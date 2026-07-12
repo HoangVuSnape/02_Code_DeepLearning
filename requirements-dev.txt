@@ -1,0 +1,12 @@
+torch
+torchvision
+datasets
+pillow
+numpy
+pandas
+scikit-learn
+pytest
+tqdm
+huggingface_hub
+comet_ml
+python-dotenv

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Dive kỹ thuật — VQA-RAD Attention Ablation</title>
+<style>
+  :root{
+    --bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;
+    --code-bg:#eef1f6;--code-text:#0f2c5c;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;
+    --good:#57d98a;--good-soft:#10241a;--warn:#fbbf24;--warn-soft:#2a2210;
+    --code-bg:#1d2536;--code-text:#bcd2ff;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;
+    --good:#57d98a;--good-soft:#10241a;--warn:#fbbf24;--warn-soft:#2a2210;
+    --code-bg:#1d2536;--code-text:#bcd2ff;}
+  :root[data-theme="light"]{
+    --bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;
+    --code-bg:#eef1f6;--code-text:#0f2c5c;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);
+    color:var(--text);line-height:1.6;padding:2rem 1rem}
+  .container{max-width:1040px;margin:0 auto}
+  header{background:linear-gradient(135deg,var(--accent-soft),var(--surface));
+    border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.4rem}
+  header h1{font-size:1.6rem;margin-bottom:.4rem;line-height:1.3}
+  header .sub{color:var(--muted);font-size:.95rem}
+  .badges{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.45rem}
+  .badge{font-size:.76rem;padding:.22rem .6rem;border-radius:999px;background:var(--surface);
+    color:var(--accent);border:1px solid var(--border)}
+  nav.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:1rem 1.3rem;margin-bottom:1.4rem}
+  nav.toc h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.5rem}
+  nav.toc ol{margin-left:1.1rem;columns:2;column-gap:2rem}
+  nav.toc a{color:var(--accent);text-decoration:none;font-size:.9rem}
+  nav.toc a:hover{text-decoration:underline}
+  @media(max-width:640px){nav.toc ol{columns:1}}
+  section{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:1.5rem 1.8rem;margin-bottom:1.4rem}
+  h2.sec{font-size:1.25rem;margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem}
+  h2.sec .n{background:var(--accent);color:#fff;border-radius:8px;font-size:.85rem;
+    padding:.1rem .55rem;font-weight:700}
+  .lead{color:var(--muted);font-size:.92rem;margin-bottom:1rem}
+  h3{font-size:1.02rem;margin:1.2rem 0 .5rem;color:var(--accent)}
+  h4{font-size:.92rem;margin:.9rem 0 .35rem;color:var(--accent2)}
+  p{margin-bottom:.6rem}ul,ol{margin:0 0 .7rem 1.3rem}li{margin-bottom:.28rem}
+  .table-wrap{overflow-x:auto;margin:.7rem 0;border:1px solid var(--border);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+  th,td{border-bottom:1px solid var(--border);padding:.5rem .7rem;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-weight:600;position:sticky;top:0}
+  tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .center{text-align:center}
+  code{font-family:Consolas,"Courier New",monospace;background:var(--code-bg);color:var(--code-text);
+    padding:.1rem .35rem;border-radius:5px;font-size:.85em}
+  pre{font-family:Consolas,"Courier New",monospace;background:var(--code-bg);color:var(--code-text);
+    padding:1rem;border-radius:10px;overflow-x:auto;font-size:.8rem;line-height:1.5;margin:.7rem 0;
+    border:1px solid var(--border)}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.7rem 1rem;
+    border-radius:0 10px 10px 0;margin:.7rem 0;font-size:.9rem}
+  .callout.good{border-color:var(--good);background:var(--good-soft)}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.8rem;margin:.8rem 0}
+  .card{border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;background:var(--surface2)}
+  .card .k{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .card .v{font-size:1.15rem;font-weight:700;margin-top:.15rem}
+  .card .d{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+  .diagram{overflow-x:auto;background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:1rem;margin:.8rem 0}
+  .pill{display:inline-block;font-size:.72rem;padding:.08rem .5rem;border-radius:999px;
+    background:var(--accent-soft);color:var(--accent);border:1px solid var(--border);margin:.1rem}
+  .tag-yes{color:var(--good);font-weight:700}.tag-no{color:var(--muted)}
+  dl{margin:.5rem 0}dt{font-weight:700;margin-top:.6rem;color:var(--accent2);font-size:.9rem}
+  dd{margin-left:0;color:var(--text);font-size:.88rem}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1rem 0 2rem}
+  .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);
+    color:var(--text);border-radius:8px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;z-index:9}
+</style>
+</head>
+<body>
+<button class="theme-btn" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));r.setAttribute('data-theme',d==='dark'?'light':'dark')">🌓 Đổi nền</button>
+<div class="container">
+
+<header>
+  <h1>🔬 Deep Dive kỹ thuật<br>VQA-RAD · CNN/ResNet–LSTM/Transformer–Decoder · Attention Ablation</h1>
+  <div class="sub">Chi tiết: data · kiến trúc model · train (SFT + RL) · config/params · metric · test/inference · workflow. Cập nhật 12/07/2026.</div>
+  <div class="badges">
+    <span class="badge">VQA-RAD 1793/451</span><span class="badge">13 runs A8+B2+C2+D1</span>
+    <span class="badge">PyTorch</span><span class="badge">classification trên answer vocab</span>
+    <span class="badge">EM · token-F1 · BLEU-1 · AUC</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Mục lục</h2>
+  <ol>
+    <li><a href="#wf">Workflow tổng thể</a></li>
+    <li><a href="#data">Data — VQA-RAD</a></li>
+    <li><a href="#prep">Tiền xử lý</a></li>
+    <li><a href="#model">Models & Architecture</a></li>
+    <li><a href="#attn">3 cơ chế Attention</a></li>
+    <li><a href="#matrix">Ma trận 13 thí nghiệm</a></li>
+    <li><a href="#train">Train — SFT</a></li>
+    <li><a href="#rl">Train — RL (SCST)</a></li>
+    <li><a href="#config">Config & Parameters</a></li>
+    <li><a href="#metric">Metrics</a></li>
+    <li><a href="#test">Test & Inference</a></li>
+    <li><a href="#cli">CLI workflow</a></li>
+  </ol>
+</nav>
+
+<!-- ============ WORKFLOW ============ -->
+<section id="wf">
+  <h2 class="sec"><span class="n">0</span> Workflow tổng thể</h2>
+  <p class="lead">Từ ảnh + câu hỏi y khoa → phân loại thành 1 answer trong từ điển đáp án của train, đo bằng exact-match để so sánh với Gemma cũ.</p>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 470" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:840px;font-family:Segoe UI,sans-serif">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/>
+      </marker>
+      <style>
+        .bx{fill:var(--surface2);stroke:var(--border);stroke-width:1.5;rx:9}
+        .lb{fill:var(--text);font-size:12px}.sm{fill:var(--muted);font-size:10px}
+        .hd{fill:var(--accent);font-size:12px;font-weight:700}
+        .ln{stroke:var(--accent);stroke-width:1.6;fill:none;marker-end:url(#ar)}
+        .acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+        .rl{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.5}
+      </style>
+    </defs>
+    <!-- row1: data -> preprocess -> encoders -->
+    <rect class="bx" x="10" y="30" width="150" height="72" rx="9"/>
+    <text class="hd" x="20" y="50">1. DATA</text>
+    <text class="sm" x="20" y="68">VQA-RAD (HF)</text>
+    <text class="sm" x="20" y="82">train 1793 / test 451</text>
+    <text class="sm" x="20" y="96">image · question · answer</text>
+
+    <rect class="bx" x="195" y="30" width="160" height="72" rx="9"/>
+    <text class="hd" x="205" y="50">2. TIỀN XỬ LÝ</text>
+    <text class="sm" x="205" y="68">ảnh: resize 128/224, 3ch</text>
+    <text class="sm" x="205" y="82">text: tokenize, pad 32</text>
+    <text class="sm" x="205" y="96">answer→class id (vocab train)</text>
+
+    <rect class="bx acc" x="390" y="18" width="180" height="46" rx="9"/>
+    <text class="hd" x="400" y="37">CNN / ResNet-18</text>
+    <text class="sm" x="400" y="53">v_img [B,128] (+SE?)</text>
+    <rect class="bx acc" x="390" y="72" width="180" height="46" rx="9"/>
+    <text class="hd" x="400" y="91">BiLSTM / Transformer</text>
+    <text class="sm" x="400" y="107">v_txt [B,64] (+temporal?)</text>
+
+    <rect class="bx" x="600" y="30" width="140" height="72" rx="9"/>
+    <text class="hd" x="610" y="50">3. FUSION</text>
+    <text class="sm" x="610" y="68">concat → [B,192]</text>
+    <text class="sm" x="610" y="82">(+Gated attn?)</text>
+    <text class="sm" x="610" y="96">MLP 192→128→C</text>
+
+    <rect class="bx" x="775" y="30" width="150" height="72" rx="9"/>
+    <text class="hd" x="785" y="50">4. LOSS</text>
+    <text class="sm" x="785" y="68">CrossEntropy</text>
+    <text class="sm" x="785" y="82">logits [B, C]</text>
+    <text class="sm" x="785" y="96">AdamW update</text>
+
+    <line class="ln" x1="160" y1="66" x2="193" y2="66"/>
+    <line class="ln" x1="355" y1="55" x2="388" y2="42"/>
+    <line class="ln" x1="355" y1="80" x2="388" y2="95"/>
+    <line class="ln" x1="570" y1="42" x2="598" y2="58"/>
+    <line class="ln" x1="570" y1="95" x2="598" y2="76"/>
+    <line class="ln" x1="740" y1="66" x2="773" y2="66"/>
+
+    <!-- row2: train loop -> checkpoint -> (RL) -> eval -> metrics -> report -->
+    <rect class="bx" x="10" y="180" width="160" height="66" rx="9"/>
+    <text class="hd" x="20" y="200">5. SFT LOOP</text>
+    <text class="sm" x="20" y="217">12 epoch, early-stop</text>
+    <text class="sm" x="20" y="231">patience 3 (val EM)</text>
+    <text class="sm" x="20" y="243">tqdm · callbacks</text>
+
+    <rect class="bx" x="205" y="180" width="150" height="66" rx="9"/>
+    <text class="hd" x="215" y="200">6. CHECKPOINT</text>
+    <text class="sm" x="215" y="217">{name}_best.pt</text>
+    <text class="sm" x="215" y="231">{name}_history.csv</text>
+    <text class="sm" x="215" y="243">Discord/HF/Comet</text>
+
+    <rect class="bx rl" x="390" y="180" width="160" height="66" rx="9"/>
+    <text class="hd" x="400" y="200" fill="var(--warn)">7. RL — SCST</text>
+    <text class="sm" x="400" y="217">reward .5·EM+.5·F1</text>
+    <text class="sm" x="400" y="231">adv = sample−greedy</text>
+    <text class="sm" x="400" y="243">chỉ best SFT (nhóm D)</text>
+
+    <rect class="bx" x="585" y="180" width="150" height="66" rx="9"/>
+    <text class="hd" x="595" y="200">8. EVAL TEST</text>
+    <text class="sm" x="595" y="217">451 câu, 1 lần</text>
+    <text class="sm" x="595" y="231">predict_answers</text>
+    <text class="sm" x="595" y="243">(+constrained yes/no)</text>
+
+    <rect class="bx" x="770" y="180" width="155" height="66" rx="9"/>
+    <text class="hd" x="780" y="200">9. METRICS</text>
+    <text class="sm" x="780" y="217">EM / F1 / BLEU-1</text>
+    <text class="sm" x="780" y="231">AUC · params · time</text>
+    <text class="sm" x="780" y="243">→ *_metrics.json</text>
+
+    <line class="ln" x1="925" y1="120" x2="925" y2="150"/>
+    <path class="ln" d="M925,150 L90,150 L90,178"/>
+    <line class="ln" x1="170" y1="213" x2="203" y2="213"/>
+    <line class="ln" x1="355" y1="213" x2="388" y2="213"/>
+    <line class="ln" x1="550" y1="213" x2="583" y2="213"/>
+    <line class="ln" x1="735" y1="213" x2="768" y2="213"/>
+
+    <rect class="bx acc" x="330" y="300" width="330" height="52" rx="9"/>
+    <text class="hd" x="345" y="322">10. REPORT.PY — gom runs/*_metrics.json</text>
+    <text class="sm" x="345" y="340">→ metrics_summary.csv  ·  so sánh 13 runs + Gemma 2B/4B (đồng bộ)</text>
+    <path class="ln" d="M847,246 L847,326 L662,326"/>
+
+    <rect class="bx rl" x="690" y="300" width="235" height="52" rx="9"/>
+    <text class="hd" x="702" y="322" fill="var(--warn)">Gemma 2B/4B (đã train)</text>
+    <text class="sm" x="702" y="340">CSV → eval.py --predictions_csv</text>
+    <line class="ln" x1="690" y1="326" x2="662" y2="326"/>
+
+    <text class="sm" x="10" y="392" style="font-style:italic">Ba bước 1–4 = forward 1 batch · 5–6 = 1 run huấn luyện · 7 chỉ cho nhóm D · 8–10 = đánh giá & tổng hợp.</text>
+  </svg>
+  </div>
+</section>
+
+<!-- ============ DATA ============ -->
+<section id="data">
+  <h2 class="sec"><span class="n">1</span> Data — VQA-RAD</h2>
+  <p class="lead">Bộ hỏi–đáp trực quan về ảnh X-quang/CT/MRI, sinh bởi bác sĩ lâm sàng. Nguồn: HuggingFace <code>flaviagiammarino/vqa-rad</code>.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Train</div><div class="v">1.793 mẫu</div><div class="d">dùng để học + tách val</div></div>
+    <div class="card"><div class="k">Test</div><div class="v">451 mẫu</div><div class="d">đánh giá đúng 1 lần cuối</div></div>
+    <div class="card"><div class="k">Features</div><div class="v">3 cột</div><div class="d">image · question · answer</div></div>
+    <div class="card"><div class="k">2 loại câu hỏi</div><div class="v">Closed / Open</div><div class="d">yes-no vs mở</div></div>
+  </div>
+
+  <h3>Cấu trúc mỗi mẫu</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Trường</th><th>Kiểu</th><th>Mô tả</th><th>Ví dụ</th></tr>
+    <tr><td><code>image</code></td><td>PIL Image</td><td>ảnh y khoa (grayscale hoặc RGB, kích thước không đồng nhất)</td><td>ảnh X-quang ngực</td></tr>
+    <tr><td><code>question</code></td><td>str</td><td>câu hỏi lâm sàng về ảnh</td><td>"Is there a fracture?"</td></tr>
+    <tr><td><code>answer</code></td><td>str</td><td>đáp án ngắn (1 từ / cụm từ)</td><td>"yes", "right lung"</td></tr>
+  </table></div>
+
+  <h3>Closed vs Open (định nghĩa dùng trong code)</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Loại</th><th>Điều kiện</th><th>Ví dụ answer</th><th>Đo riêng</th></tr>
+    <tr><td><b>Closed</b></td><td><code>normalize_answer(a) ∈ {"yes","no"}</code></td><td>yes, no</td><td>EM closed + AUC/sens/spec</td></tr>
+    <tr><td><b>Open</b></td><td>còn lại</td><td>right lung, axial, pneumonia, 2 cm…</td><td>EM open + token-F1 + BLEU-1</td></tr>
+  </table></div>
+  <p class="muted" style="font-size:.85rem">Hàm: <code>src/data/vqa_rad.py → is_closed()</code>. Chuẩn hóa <code>normalize_answer()</code>: lowercase → gộp khoảng trắng → bỏ dấu chấm cuối.</p>
+
+  <h3>Chia train / validation — image-disjoint</h3>
+  <ul>
+    <li>1 ảnh có thể có <b>nhiều câu hỏi</b> → nếu chia ngẫu nhiên theo dòng sẽ <b>rò rỉ</b> (leakage) cùng ảnh sang cả 2 phía.</li>
+    <li><code>image_key()</code> = MD5 của bytes ảnh RGB → gom câu hỏi cùng ảnh; <code>group_split(val_ratio=0.1, seed=42)</code> đảm bảo cùng ảnh chỉ nằm một phía.</li>
+    <li>Tỉ lệ: <b>90% train / 10% val</b>, deterministic theo seed → train.py và eval.py dựng lại giống hệt.</li>
+  </ul>
+
+  <h3>Answer vocabulary — biến VQA thành classification</h3>
+  <ul>
+    <li><code>build_answer_vocab()</code>: lấy <b>mọi answer duy nhất trong train split</b> (đã normalize), sắp theo tần suất giảm dần rồi alphabet → <code>{answer: class_id}</code>. Số lớp <b>C</b> = số answer duy nhất.</li>
+    <li>Answer của test <b>không có</b> trong vocab → gán <code>label = −1</code> → không bao giờ match → tính là sai trong EM (đúng protocol so với generation). % unseen được in ra làm <b>trần</b> của phương pháp (đưa vào limitations).</li>
+  </ul>
+  <div class="callout good"><b>Vì sao classification mà so được với Gemma (generation)?</b> Cả hai cùng chấm <b>exact-match trên answer string đã normalize</b>. Cùng thước đo → bảng so sánh hợp lệ, tách Closed/Open.</div>
+</section>
+
+<!-- ============ PREPROCESS ============ -->
+<section id="prep">
+  <h2 class="sec"><span class="n">2</span> Tiền xử lý</h2>
+  <p class="lead">Hai nhánh độc lập — ảnh và text — mỗi nhánh có tham số cố định. File: <code>src/data/dataset.py</code>, <code>src/data/vqa_rad.py</code>.</p>
+
+  <h3>Nhánh ảnh — <code>default_transform()</code></h3>
+  <div class="table-wrap"><table>
+    <tr><th>Bước</th><th>Chi tiết</th><th>CustomCNN</th><th>ResNet-18</th></tr>
+    <tr><td>Resize</td><td>ép vuông</td><td>128×128</td><td>224×224</td></tr>
+    <tr><td>Grayscale→3ch</td><td><code>Grayscale(num_output_channels=3)</code></td><td>✓</td><td>✓ (backbone RGB)</td></tr>
+    <tr><td>Augment (chỉ train)</td><td><code>RandomAffine(degrees=5, translate=(0.02,0.02))</code> — xoay/dịch nhẹ, không phá dấu hiệu bệnh</td><td>✓</td><td>✓</td></tr>
+    <tr><td>ToTensor</td><td>[0,1], shape [3,S,S]</td><td>✓</td><td>✓</td></tr>
+    <tr><td>Normalize</td><td>mean/std</td><td>0.5 / 0.5</td><td>ImageNet (0.485… / 0.229…)</td></tr>
+  </table></div>
+
+  <h3>Nhánh text</h3>
+  <dl>
+    <dt>tokenize_question()</dt><dd>lowercase → thay ký tự không phải <code>[a-z0-9\s]</code> bằng khoảng trắng → split theo từ.</dd>
+    <dt>build_question_vocab()</dt><dd><code>&lt;pad&gt;=0</code>, <code>&lt;unk&gt;=1</code>, rồi các từ theo tần suất giảm dần (chỉ từ train). Kích thước V = số từ + 2.</dd>
+    <dt>encode_question(max_len=32)</dt><dd>map từ→id (từ lạ → 1), cắt tối đa 32 token, pad bằng 0 về sau. Output <code>tokens[32]</code>.</dd>
+  </dl>
+
+  <h3>Output 1 mẫu — <code>VQARADClsDataset.__getitem__</code></h3>
+  <pre>(image[3,S,S], tokens[32], label:int, closed:bool)
+# label = class_id nếu answer ∈ vocab, ngược lại = -1 (unseen)
+# closed = True nếu answer normalize ∈ {yes,no}</pre>
+</section>
+
+<!-- ============ MODELS ============ -->
+<section id="model">
+  <h2 class="sec"><span class="n">3</span> Models & Architecture</h2>
+  <p class="lead">Có <b>4 encoder</b> (2 ảnh + 2 text) + fusion + decoder, ghép linh hoạt qua factory <code>build_model()</code>. File: <code>src/models/</code>.</p>
+
+  <h3>Bảng model — vai trò & train thế nào</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Thành phần</th><th>Model</th><th>Chi tiết kiến trúc</th><th>Output</th><th>Train?</th></tr>
+    <tr><td rowspan="2">Image encoder</td><td><b>CustomCNN</b><br>(mặc định)</td><td>3 block, mỗi block = <code>Conv3×3(pad1) → BatchNorm → ReLU → MaxPool2</code>; kênh 3→32→64→128; AdaptiveAvgPool→ [128]; LayerNorm</td><td>v_img [B,128]</td><td>từ đầu</td></tr>
+    <tr><td><b>ResNet-18 frozen</b><br>(nhóm C)</td><td><code>resnet18(pretrained)</code>, lấy children[:-2] → feature [B,512,h,w]; <b>đóng băng toàn bộ</b> (<code>requires_grad=False</code>, forward trong <code>no_grad</code> + BN eval); AdaptiveAvgPool → <code>Linear(512→128)</code> → LayerNorm</td><td>v_img [B,128]</td><td>chỉ Linear+LN</td></tr>
+    <tr><td rowspan="2">Text encoder</td><td><b>BiLSTM</b><br>(mặc định)</td><td><code>Embedding(V,64,pad=0)</code> → <code>LSTM(64,32,bidirectional)</code>; không attn: <code>cat(h→cuối, h←đầu)</code>; LayerNorm</td><td>v_txt [B,64]</td><td>từ đầu</td></tr>
+    <tr><td><b>Transformer</b><br>(nhóm B)</td><td><code>Embedding(V,64)</code> + positional param [1,32,64] → <code>TransformerEncoder(2× layer, d=64, nhead=4, ff=128, dropout=0.1, batch_first)</code>; pooling: masked-mean hoặc attention</td><td>v_txt [B,64]</td><td>từ đầu</td></tr>
+    <tr><td>Fusion</td><td>Concat</td><td><code>cat([v_img, v_txt]) → [B,192]</code></td><td>[B,192]</td><td>—</td></tr>
+    <tr><td>Decoder</td><td>MLP</td><td>(+GatedAttention?) → <code>Linear(192→128) → ReLU → Dropout(0.3) → Linear(128→C)</code></td><td>logits [B,C]</td><td>từ đầu</td></tr>
+  </table></div>
+
+  <h3>Factory — <code>build_model()</code> (mọi run gọi qua đây)</h3>
+  <pre>build_model(vocab_size, num_classes,
+            image_encoder="cnn"|"resnet18_frozen",
+            text_encoder ="lstm"|"transformer",
+            image_attention=False,     # SE-block ở CNN/ResNet
+            text_attention =False,     # temporal/attention pooling ở text
+            decoder_attention=False,   # gated ở fusion
+            pretrained=True, max_len=32)</pre>
+  <div class="callout">Đối chứng (đã train, chỉ chấm lại qua CSV): <b>Gemma/PaliGemma 2B & 4B + LoRA</b> và <b>PubMedCLIP-ViT + DistilGPT2</b> (baseline generation). Không train lại trong track này.</div>
+</section>
+
+<!-- ============ ATTENTION ============ -->
+<section id="attn">
+  <h2 class="sec"><span class="n">4</span> 3 cơ chế Attention — có vs không</h2>
+  <p class="lead">Điểm mấu chốt của ablation: mỗi block chỉ khác đúng 1 chỗ. File: <code>src/models/attention.py</code>.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Block</th><th>Module</th><th>KHÔNG attention</th><th>CÓ attention (công thức)</th><th>Học gì</th></tr>
+    <tr><td>Image</td><td><code>ChannelAttention</code> (SE, reduction=4)</td><td><code>v = GAP(F)</code></td><td><code>s = σ(W₂·ReLU(W₁·GAP(F)))</code>; <code>v = GAP(s ⊙ F)</code></td><td>kênh đặc trưng nào đáng tin</td></tr>
+    <tr><td>Text</td><td><code>TemporalAttention</code></td><td>hidden cuối / masked-mean</td><td><code>αₜ = softmax(w·hₜ)</code> (mask PAD = −∞); <code>v = Σ αₜ·hₜ</code></td><td>từ khóa quan trọng trong câu hỏi</td></tr>
+    <tr><td>Decoder</td><td><code>GatedAttention</code></td><td><code>z' = z</code></td><td><code>z' = z ⊙ σ(W·z)</code></td><td>cổng lọc chiều nhiễu sau concat</td></tr>
+  </table></div>
+  <p class="muted" style="font-size:.85rem">Temporal attention có <b>pad-mask</b>: token PAD nhận trọng số 0, tổng trọng số = 1 (đã test). Có thể vẽ αₜ trên từng từ để giải thích "attention nhìn vào đâu".</p>
+</section>
+
+<!-- ============ MATRIX ============ -->
+<section id="matrix">
+  <h2 class="sec"><span class="n">5</span> Ma trận 13 thí nghiệm</h2>
+  <p class="lead">Chỉ đổi biến đang khảo sát, mọi thứ khác cố định (seed 42, batch 32, AdamW lr 1e-3, 12 epoch, patience 3).</p>
+
+  <h4>Nhóm A — đủ 2³ = 8 tổ hợp attention (CustomCNN + BiLSTM)</h4>
+  <div class="table-wrap"><table>
+    <tr><th>run_name</th><th class="center">image_attention</th><th class="center">text_attention</th><th class="center">decoder_attention</th></tr>
+    <tr><td>A1_000</td><td class="center tag-no">–</td><td class="center tag-no">–</td><td class="center tag-no">–</td></tr>
+    <tr><td>A2_001</td><td class="center tag-no">–</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td></tr>
+    <tr><td>A3_010</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td></tr>
+    <tr><td>A4_011</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td></tr>
+    <tr><td>A5_100</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td><td class="center tag-no">–</td></tr>
+    <tr><td>A6_101</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td></tr>
+    <tr><td>A7_110</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td></tr>
+    <tr><td>A8_111</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td></tr>
+  </table></div>
+
+  <div class="table-wrap"><table>
+    <tr><th>Nhóm</th><th>Runs</th><th>Nội dung</th><th>Loaders</th></tr>
+    <tr><td><b>B</b></td><td>2</td><td>Transformer text encoder (mean pooling vs attention pooling), giữ cờ tốt nhất từ A → so LSTM vs Transformer</td><td>ảnh 128</td></tr>
+    <tr><td><b>C</b></td><td>2</td><td>ResNet-18 frozen (C1 + BiLSTM, C2 + text tốt nhất) — chỉ train text + fusion</td><td>ảnh 224, ImageNet norm</td></tr>
+    <tr><td><b>D</b></td><td>1</td><td>SFT → RL (SCST) trên checkpoint tốt nhất toàn cục</td><td>theo best</td></tr>
+  </table></div>
+</section>
+
+<!-- ============ TRAIN SFT ============ -->
+<section id="train">
+  <h2 class="sec"><span class="n">6</span> Train — SFT (supervised)</h2>
+  <p class="lead">Hàm <code>run_experiment()</code> trong <code>src/train/engine.py</code>. Đây là "train cái gì" chính: học có giám sát bằng cross-entropy.</p>
+
+  <div class="grid">
+    <div class="card"><div class="k">Optimizer</div><div class="v">AdamW</div><div class="d">chỉ tham số trainable (backbone frozen bị loại)</div></div>
+    <div class="card"><div class="k">Learning rate</div><div class="v">1e-3</div><div class="d">weight_decay 1e-4</div></div>
+    <div class="card"><div class="k">Loss</div><div class="v">CrossEntropy</div><div class="d">label −1 clamp về 0 (chỉ ở val)</div></div>
+    <div class="card"><div class="k">Epochs</div><div class="v">12</div><div class="d">early-stop patience 3</div></div>
+    <div class="card"><div class="k">Batch size</div><div class="v">32</div><div class="d">→ 16 nếu OOM</div></div>
+    <div class="card"><div class="k">Chọn checkpoint</div><div class="v">val EM ↑</div><div class="d">lưu best.pt khi cải thiện</div></div>
+  </div>
+
+  <h3>Vòng lặp 1 epoch</h3>
+  <ol>
+    <li><b>Train</b>: forward batch → CE loss → backward → AdamW step. Có tqdm (<code>src/utils/progress.py</code>).</li>
+    <li><b>Val</b>: forward không grad → tính loss + EM (overall/closed/open).</li>
+    <li>Ghi <code>history</code>: train_loss, train_em, val_loss, val_em, val_em_closed, val_em_open, epoch_sec.</li>
+    <li>Callbacks: <code>on_epoch_end</code> (Comet log) · nếu val_em cải thiện → lưu <code>{name}_best.pt</code> · nếu không cải thiện ≥ patience → dừng.</li>
+    <li>Cuối run: ghi <code>{name}_history.csv</code>; <code>on_run_end</code> (Discord tóm tắt + push HF).</li>
+  </ol>
+  <h4>EM khi train/val (nội bộ, theo class id)</h4>
+  <pre>correct = (preds == labels) & (labels >= 0)   # unseen (-1) luôn sai
+em_overall / em_closed / em_open  = tỉ lệ đúng trên từng nhóm</pre>
+  <p class="muted" style="font-size:.85rem">Trả về: <code>best_val_em, params_total, params_trainable, checkpoint, history</code>.</p>
+</section>
+
+<!-- ============ RL ============ -->
+<section id="rl">
+  <h2 class="sec"><span class="n">7</span> Train — RL (REINFORCE self-critical, nhóm D)</h2>
+  <p class="lead">Chạy <b>sau</b> SFT, chỉ trên checkpoint tốt nhất. File: <code>src/train/rl.py</code>. Tối ưu trực tiếp reward không khả vi (EM, token-F1).</p>
+  <dl>
+    <dt>Reward mỗi mẫu — <code>answer_reward()</code></dt>
+    <dd><code>r = 0.5·EM + 0.5·token_F1</code> giữa answer dự đoán và answer đúng (string). Label −1 (unseen) → reward 0.</dd>
+    <dt>Self-critical baseline — <code>scst_epoch()</code></dt>
+    <dd>Sample answer từ <code>Categorical(logits)</code> và greedy = argmax. <code>advantage = r(sample) − r(greedy)</code>. Loss = <code>−(logπ(sample) · advantage).mean()</code>. Grad clip 1.0. → giảm variance, không cần value network.</dd>
+    <dt>Vòng fine-tune — <code>scst_finetune()</code></dt>
+    <dd>epochs = <code>rl_epochs</code> (5, smoke 1), lr = <code>rl_lr</code> (1e-5). Mỗi epoch đánh giá val EM, giữ checkpoint EM cao nhất. Có thể ra kết quả âm tính (REINFORCE variance cao) — vẫn là finding hợp lệ, giữ SFT làm final.</dd>
+  </dl>
+  <div class="callout warn">Thứ tự bắt buộc: <b>SFT trước → RL sau</b>. RL cần <code>--load_checkpoint runs/&lt;best&gt;_best.pt</code> và <b>lặp lại đúng cờ kiến trúc</b> của checkpoint đó.</div>
+</section>
+
+<!-- ============ CONFIG ============ -->
+<section id="config">
+  <h2 class="sec"><span class="n">8</span> Config & Parameters</h2>
+  <p class="lead">Toàn bộ tham số là <b>động</b> (dataclass <code>Config</code> trong <code>src/config.py</code> + argparse trong <code>train.py</code>), không fix cứng.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Nhóm</th><th>Tham số</th><th>Mặc định</th><th>Ý nghĩa</th></tr>
+    <tr><td rowspan="6">Data</td><td><code>hf_dataset</code></td><td>flaviagiammarino/vqa-rad</td><td>tên dataset HF</td></tr>
+    <tr><td><code>seed</code></td><td>42</td><td>seed cho split + init</td></tr>
+    <tr><td><code>val_ratio</code></td><td>0.1</td><td>tỉ lệ validation</td></tr>
+    <tr><td><code>max_len</code></td><td>32</td><td>độ dài token câu hỏi</td></tr>
+    <tr><td><code>image_size</code></td><td>128</td><td>ảnh cho CustomCNN</td></tr>
+    <tr><td><code>image_size_resnet</code></td><td>224</td><td>ảnh cho ResNet-18</td></tr>
+    <tr><td rowspan="5">Train</td><td><code>batch_size</code></td><td>32</td><td>kích thước batch</td></tr>
+    <tr><td><code>epochs</code></td><td>12</td><td>số epoch SFT tối đa</td></tr>
+    <tr><td><code>lr</code></td><td>1e-3</td><td>learning rate SFT</td></tr>
+    <tr><td><code>weight_decay</code></td><td>1e-4</td><td>AdamW weight decay</td></tr>
+    <tr><td><code>patience</code></td><td>3</td><td>early-stop theo val EM</td></tr>
+    <tr><td rowspan="2">RL</td><td><code>rl_epochs</code></td><td>5</td><td>số epoch SCST</td></tr>
+    <tr><td><code>rl_lr</code></td><td>1e-5</td><td>lr RL (nhỏ hơn nhiều)</td></tr>
+    <tr><td rowspan="4">Smoke</td><td><code>smoke</code></td><td>False</td><td>bật chế độ chạy nhanh</td></tr>
+    <tr><td><code>smoke_subset</code></td><td>64</td><td>số mẫu mỗi tập khi smoke</td></tr>
+    <tr><td><code>smoke_epochs</code></td><td>1</td><td>epoch khi smoke</td></tr>
+    <tr><td><code>smoke_runs_per_group</code></td><td>2</td><td>số run mỗi nhóm khi smoke</td></tr>
+    <tr><td rowspan="6">IO / tích hợp</td><td><code>out_dir</code></td><td>runs</td><td>nơi lưu checkpoint/CSV</td></tr>
+    <tr><td><code>project_name</code></td><td>medvqa-attention-ablation</td><td>tên project Comet</td></tr>
+    <tr><td><code>use_comet / use_discord</code></td><td>True</td><td>bật log/notify</td></tr>
+    <tr><td><code>use_hf_push / hf_repo_id</code></td><td>False / ""</td><td>push checkpoint lên HF</td></tr>
+    <tr><td><code>num_workers</code></td><td>2</td><td>DataLoader workers</td></tr>
+    <tr><td><code>show_progress</code></td><td>True</td><td>bật tqdm</td></tr>
+  </table></div>
+  <p class="muted" style="font-size:.85rem"><code>Config.resolved()</code> tự override khi <code>smoke=True</code>: epochs→1, rl_epochs→1, batch≤8. Lưu <code>runs/config.json</code> đầu phiên.</p>
+</section>
+
+<!-- ============ METRICS ============ -->
+<section id="metric">
+  <h2 class="sec"><span class="n">9</span> Metrics — đánh giá thế nào</h2>
+  <p class="lead">Một evaluator dùng chung (<code>src/train/metrics.py</code>) chấm cả 13 runs lẫn prediction Gemma cũ (qua CSV) → đồng bộ.</p>
+  <div class="table-wrap"><table>
+    <tr><th>#</th><th>Metric</th><th>Công thức / định nghĩa</th><th>Áp cho</th></tr>
+    <tr><td>1</td><td><b>EM overall / closed / open</b> <span class="pill">chính</span></td><td>pred_string == ref_string sau normalize; tách theo closed(yes/no) và open</td><td>mọi model + Gemma</td></tr>
+    <tr><td>2</td><td><b>Token-F1</b></td><td>SQuAD-style: <code>2·P·R/(P+R)</code> trên token overlap (<code>token_f1</code>)</td><td>open-ended, Gemma</td></tr>
+    <tr><td>3</td><td><b>BLEU-1</b></td><td>unigram precision có clip × brevity penalty (tự implement, không cần nltk)</td><td>open-ended</td></tr>
+    <tr><td>4</td><td><b>Sensitivity / Specificity</b></td><td>trên subset yes/no, yes=positive: <code>TP/(TP+FN)</code>, <code>TN/(TN+FP)</code></td><td>closed (y tế)</td></tr>
+    <tr><td>5</td><td><b>Precision / ROC-AUC</b></td><td><code>TP/(TP+FP)</code>; AUC từ softmax hạn chế trên {yes,no} (sklearn)</td><td>closed (y tế)</td></tr>
+    <tr><td>6</td><td><b>Chi phí</b></td><td>params_total, params_trainable, inference_time_sec, epoch_sec</td><td>trade-off mọi model</td></tr>
+  </table></div>
+  <div class="callout"><b>Constrained closed</b> (tùy chọn eval): với câu closed, chỉ cho chọn giữa lớp <code>yes</code>/<code>no</code> (<code>masked_closed_argmax</code>) — phiên bản classification của Constrained Decoding. Báo cáo riêng cột <code>em_closed_constrained</code>.</div>
+  <p class="muted" style="font-size:.85rem">Metric chọn checkpoint & best-config = <b>val EM overall</b>. Metric 2–6 chỉ báo cáo, không dùng để tune.</p>
+</section>
+
+<!-- ============ TEST & INFERENCE ============ -->
+<section id="test">
+  <h2 class="sec"><span class="n">10</span> Test & Inference</h2>
+  <div class="grid">
+    <div class="card"><div class="k">Test set</div><div class="v">451 câu</div><div class="d">VQA-RAD split test, đánh giá 1 lần cuối</div></div>
+    <div class="card"><div class="k">Không tune</div><div class="v">1 lần</div><div class="d">không chỉnh hyperparameter sau khi xem test</div></div>
+    <div class="card"><div class="k">Batch eval</div><div class="v">32</div><div class="d">shuffle=False</div></div>
+  </div>
+
+  <h3>Inference — <code>predict_answers()</code></h3>
+  <ol>
+    <li>Forward test batch → <code>logits [B,C]</code>.</li>
+    <li><b>Mặc định:</b> <code>pred = argmax(logits)</code> → map class id → answer string qua <code>id2answer</code>.</li>
+    <li><b>Constrained closed</b> (nếu bật): câu closed thay bằng <code>masked_closed_argmax</code> (chỉ yes/no); câu open giữ argmax.</li>
+    <li>Trả về <code>hyps</code> (list answer string) + <code>p_yes</code> (xác suất lớp yes, cho AUC).</li>
+  </ol>
+
+  <h3>Chấm điểm test — <code>eval.py</code></h3>
+  <pre># chế độ 1: đánh giá checkpoint (cờ PHẢI trùng train)
+python eval.py --checkpoint runs/A8_111_best.pt \
+  --image_attention --text_attention --decoder_attention \
+  --save_metrics runs/A8_111_metrics.json \
+  --save_predictions runs/A8_111_preds.csv [--constrained_closed]
+
+# chế độ 2: chấm lại CSV Gemma (answer_ref, answer_pred) — không cần checkpoint
+python eval.py --predictions_csv gemma_preds/gemma2b_test.csv \
+  --save_metrics runs/gemma-2b-lora_metrics.json</pre>
+  <p class="muted" style="font-size:.85rem">eval.py cũng đo <code>params_total/trainable</code> và <code>inference_time_sec</code>. Xuất được prediction ra CSV để soi lỗi định tính.</p>
+</section>
+
+<!-- ============ CLI ============ -->
+<section id="cli">
+  <h2 class="sec"><span class="n">11</span> CLI workflow — train / eval / report</h2>
+  <p class="lead">3 script độc lập, gọi <code>!python</code> trong cell Kaggle. Notebook lệnh sẵn: <code>notebook/kaggle_cli.ipynb</code>.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Script</th><th>Việc</th><th>Đầu ra</th></tr>
+    <tr><td><code>train.py --run_name X …</code></td><td>huấn luyện 1 run (SFT, hoặc <code>--rl</code> cho RL)</td><td><code>runs/X_best.pt</code>, <code>X_history.csv</code>, <code>vocab_*.json</code></td></tr>
+    <tr><td><code>eval.py --checkpoint … / --predictions_csv …</code></td><td>đánh giá 1 checkpoint hoặc chấm CSV Gemma</td><td><code>runs/X_metrics.json</code>, <code>X_preds.csv</code></td></tr>
+    <tr><td><code>report.py</code></td><td>gom mọi <code>runs/*_metrics.json</code></td><td><code>runs/metrics_summary.csv</code> (bảng so sánh)</td></tr>
+  </table></div>
+  <div class="callout warn"><b>Quy tắc vàng:</b> cờ kiến trúc (<code>--image_encoder --text_encoder --*_attention</code>) khi eval phải <b>trùng y hệt</b> khi train, nếu không <code>load_state_dict</code> sẽ lỗi.</div>
+
+  <h3>So sánh mục tiêu (điền sau khi chạy)</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Model</th><th class="num">EM Open</th><th class="num">EM Closed</th><th class="num">Token-F1</th><th class="num">Params train</th></tr>
+    <tr><td>A1_000 … A8_111 (8)</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+    <tr><td>B / C / D (5)</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+    <tr><td>Gemma 2B LoRA <span class="muted">(chấm lại)</span></td><td class="num">23.00%*</td><td class="num">68.53%*</td><td class="num">—</td><td class="num">~2B</td></tr>
+    <tr><td>Gemma 4B LoRA <span class="muted">(chấm lại)</span></td><td class="num">20.00%*</td><td class="num">70.92%*</td><td class="num">—</td><td class="num">~4B</td></tr>
+  </table></div>
+  <p class="muted" style="font-size:.85rem">* số cũ theo cách chấm trước — sẽ chấm lại bằng <code>eval.py --predictions_csv</code> cho đồng bộ.</p>
+</section>
+
+<footer>Deep Dive kỹ thuật · VQA-RAD Attention Ablation · Master TDTU · 12/07/2026 · dữ liệu số điền sau khi chạy <code>report.py</code></footer>
+
+</div>
+</body>
+</html>
