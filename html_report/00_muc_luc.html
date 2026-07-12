@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Mục lục — Tài liệu Dự án Medical-VQA</title>
+<style>
+  :root {
+    --bg: #f4f6fb; --surface: #ffffff; --text: #131a26; --muted: #6b7685;
+    --border: #e0e5ee; --accent: #2563eb; --accent-soft: #eef4ff;
+    --accent2: #7c3aed; --accent2-soft: #f3eeff;
+    --good: #15803d; --good-soft: #eafaf0;
+    --warn: #b45309; --warn-soft: #fff7e6;
+    --card-shadow: 0 2px 12px rgba(37,99,235,.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --surface: #161b26; --text: #e6eaf2; --muted: #8b95a6;
+      --border: #2a3348; --accent: #7aa2ff; --accent-soft: #1a2540;
+      --accent2: #b794ff; --accent2-soft: #1f1535;
+      --good: #57d98a; --good-soft: #10241a;
+      --warn: #fbbf24; --warn-soft: #2a2210;
+      --card-shadow: 0 2px 12px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --surface: #161b26; --text: #e6eaf2; --muted: #8b95a6;
+    --border: #2a3348; --accent: #7aa2ff; --accent-soft: #1a2540;
+    --accent2: #b794ff; --accent2-soft: #1f1535;
+    --good: #57d98a; --good-soft: #10241a;
+    --warn: #fbbf24; --warn-soft: #2a2210;
+    --card-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f6fb; --surface: #ffffff; --text: #131a26; --muted: #6b7685;
+    --border: #e0e5ee; --accent: #2563eb; --accent-soft: #eef4ff;
+    --accent2: #7c3aed; --accent2-soft: #f3eeff;
+    --good: #15803d; --good-soft: #eafaf0;
+    --warn: #b45309; --warn-soft: #fff7e6;
+    --card-shadow: 0 2px 12px rgba(37,99,235,.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.65; padding: 2.5rem 1rem;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, var(--accent-soft), var(--surface));
+    border: 1px solid var(--border); border-radius: 18px;
+    padding: 2.5rem 2rem; margin-bottom: 2rem; text-align: center;
+  }
+  header h1 { font-size: 1.7rem; margin-bottom: .5rem; line-height: 1.3; }
+  header .sub { color: var(--muted); font-size: .95rem; }
+  .badges { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
+  .badge {
+    font-size: .78rem; padding: .25rem .7rem; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .badge.data { background: var(--good-soft); color: var(--good); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+
+  /* Cards */
+  .card-grid {
+    display: grid; grid-template-columns: 1fr; gap: 1rem;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.3rem 1.6rem;
+    box-shadow: var(--card-shadow);
+    transition: transform .15s, box-shadow .15s;
+    text-decoration: none; color: inherit; display: block;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(37,99,235,.12);
+    border-color: var(--accent);
+  }
+  .card .num {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: .78rem; font-weight: 700; width: 28px; height: 28px;
+    line-height: 28px; text-align: center; border-radius: 8px;
+    margin-right: .7rem; flex-shrink: 0;
+  }
+  .card .num.data { background: var(--good); }
+  .card .title-row { display: flex; align-items: center; margin-bottom: .4rem; }
+  .card .title-row h3 { font-size: 1.05rem; margin: 0; }
+  .card .desc { color: var(--muted); font-size: .88rem; line-height: 1.5; }
+  .card .tags { margin-top: .6rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .card .tag {
+    font-size: .72rem; padding: .15rem .5rem; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent); font-weight: 500;
+  }
+  .card .tag.data { background: var(--good-soft); color: var(--good); }
+
+  /* Section heading */
+  .section-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--accent);
+    margin: 2rem 0 .8rem; padding-left: .3rem;
+    border-left: 4px solid var(--accent); padding-left: .8rem;
+  }
+  .section-title.data { color: var(--good); border-color: var(--good); }
+
+  /* Theme toggle */
+  .theme-btn {
+    position: fixed; top: 1rem; right: 1rem;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; padding: .45rem .8rem;
+    cursor: pointer; font-size: .82rem; z-index: 9;
+    box-shadow: var(--card-shadow);
+    transition: background .2s;
+  }
+  .theme-btn:hover { background: var(--accent-soft); }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: .8rem;
+    padding: 2rem 0 1rem; margin-top: 1rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<button class="theme-btn" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));r.setAttribute('data-theme',d==='dark'?'light':'dark')">🌓 Đổi nền</button>
+
+<div class="container">
+
+<header>
+  <h1>📚 Mục lục Tài liệu<br>Dự án Medical-VQA · Deep Learning</h1>
+  <div class="sub">Master TDTU · Tổng hợp tất cả báo cáo HTML · Cập nhật: 13/07/2026</div>
+  <div class="badges">
+    <span class="badge">VQA-RAD (1793 train / 451 test)</span>
+    <span class="badge">RadImageNet-VQA (500 test)</span>
+    <span class="badge">Gemma 2B/4B LoRA</span>
+    <span class="badge">CNN–BiLSTM–GRU Decoder</span>
+    <span class="badge warn">8 files tài liệu</span>
+  </div>
+</header>
+
+<!-- ═══════ PHẦN 1: KẾ HOẠCH & KIẾN TRÚC ═══════ -->
+<div class="section-title">📐 Kế hoạch & Kiến trúc mô hình</div>
+
+<div class="card-grid">
+
+  <a class="card" href="01_ke_hoach_tong_quan.html">
+    <div class="title-row">
+      <span class="num">01</span>
+      <h3>Kế hoạch Tổng quan</h3>
+    </div>
+    <div class="desc">Bối cảnh dự án, hướng nghiên cứu, ma trận thực nghiệm 13 runs (G0–G3, E1–E4), metric đánh giá đồng bộ, kế hoạch thực thi 12 task, và bảng kết quả (điền sau khi chạy).</div>
+    <div class="tags">
+      <span class="tag">Ablation Study</span>
+      <span class="tag">13 Runs</span>
+      <span class="tag">Plan v2</span>
+    </div>
+  </a>
+
+  <a class="card" href="02_de_cuong_generative_medvqa.html">
+    <div class="title-row">
+      <span class="num">02</span>
+      <h3>Đề cương Generative Medical-VQA</h3>
+    </div>
+    <div class="desc">Đề cương chính thức đã chốt: bài toán sinh answer token-by-token, GRU decoder + cross-attention. Bao gồm RQ1–RQ5, baseline G0/G1, và chiến lược đối chứng với Gemma.</div>
+    <div class="tags">
+      <span class="tag">Đã chốt</span>
+      <span class="tag">Generative</span>
+      <span class="tag">RQ1–RQ5</span>
+    </div>
+  </a>
+
+  <a class="card" href="03_kien_truc_model.html">
+    <div class="title-row">
+      <span class="num">03</span>
+      <h3>Kiến trúc Model (chi tiết từng khối)</h3>
+    </div>
+    <div class="desc">Giải thích từng module: CustomCNN, BiLSTM, SE-Block, Temporal Attention, Fusion, GRU Decoder + Cross-Attention. Cảm hứng từ paper nào, sơ đồ khối, input/output shape.</div>
+    <div class="tags">
+      <span class="tag">SE-Block</span>
+      <span class="tag">Cross-Attention</span>
+      <span class="tag">GRU Decoder</span>
+    </div>
+  </a>
+
+  <a class="card" href="04_technical_deep_dive.html">
+    <div class="title-row">
+      <span class="num">04</span>
+      <h3>Technical Deep Dive</h3>
+    </div>
+    <div class="desc">Chi tiết kỹ thuật đầy đủ: tiền xử lý data, data pipeline, model config/params, training loop (SFT + RL/SCST), evaluation protocol, inference workflow.</div>
+    <div class="tags">
+      <span class="tag">SFT → RL</span>
+      <span class="tag">Training Loop</span>
+      <span class="tag">Config</span>
+    </div>
+  </a>
+
+  <a class="card" href="05_gemma4_architecture.html">
+    <div class="title-row">
+      <span class="num">05</span>
+      <h3>Kiến trúc Gemma 4 (E2B/E4B)</h3>
+    </div>
+    <div class="desc">Mô hình VLM đối chứng: vision tower SigLIP + projector + Gemma decoder. Chi tiết cách fine-tune bằng QLoRA, so sánh E2B vs E4B.</div>
+    <div class="tags">
+      <span class="tag">Đối chứng</span>
+      <span class="tag">QLoRA</span>
+      <span class="tag">VLM 2B/4B</span>
+    </div>
+  </a>
+
+</div>
+
+<!-- ═══════ PHẦN 2: DỮ LIỆU & ĐÁNH GIÁ ═══════ -->
+<div class="section-title data">📊 Dữ liệu & Đánh giá chất lượng Data</div>
+
+<div class="card-grid">
+
+  <a class="card" href="06_so_sanh_va_data_audit.html">
+    <div class="title-row">
+      <span class="num data">06</span>
+      <h3>So sánh Repo tham chiếu & Data Audit tổng hợp</h3>
+    </div>
+    <div class="desc">So sánh repo tham chiếu Medical-VQA (PubMedCLIP+GPT-2) vs dự án. Phân tích leakage cả VQA-RAD (99.5% trùng ảnh) và RadImageNet-VQA (0% trùng). Giải thích bản chất Image Leakage và cách xây dựng dữ liệu VQA.</div>
+    <div class="tags">
+      <span class="tag data">Leakage Analysis</span>
+      <span class="tag data">Cross-dataset</span>
+      <span class="tag">So sánh</span>
+    </div>
+  </a>
+
+  <a class="card" href="07_vqa_rad_data_audit.html">
+    <div class="title-row">
+      <span class="num data">07</span>
+      <h3>VQA-RAD Data Audit (chi tiết)</h3>
+    </div>
+    <div class="desc">Đánh giá chi tiết tập dữ liệu VQA-RAD từ file Parquet: 1793 train / 451 test, 313 ảnh unique, phân bố câu hỏi open/closed, top answers, OOV rate 21.33%, biểu đồ trực quan.</div>
+    <div class="tags">
+      <span class="tag data">VQA-RAD</span>
+      <span class="tag data">1793 train</span>
+      <span class="tag">Parquet</span>
+    </div>
+  </a>
+
+  <a class="card" href="08_radimagenet_vqa_audit.html">
+    <div class="title-row">
+      <span class="num data">08</span>
+      <h3>RadImageNet-VQA Audit (500 mẫu test)</h3>
+    </div>
+    <div class="desc">Đánh giá 500 mẫu test benchmark (250 open + 250 closed). Phân bố modality (CT/MRI/US), vị trí giải phẫu, 0% leak với cả train RadImageNet lẫn train VQA-RAD.</div>
+    <div class="tags">
+      <span class="tag data">RadImageNet</span>
+      <span class="tag data">500 test</span>
+      <span class="tag data">0% leak</span>
+    </div>
+  </a>
+
+</div>
+
+</div>
+
+<footer>
+  Dự án Medical-VQA · Môn Deep Learning · Master TDTU · 13/07/2026<br>
+  Mở file <a href="01_ke_hoach_tong_quan.html">01_ke_hoach_tong_quan.html</a> để xem kế hoạch chi tiết.
+</footer>
+
+</body>
+</html>

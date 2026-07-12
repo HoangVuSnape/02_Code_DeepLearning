@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đề cương hoàn chỉnh — Generative Medical VQA</title><style>body{font-family:Arial,sans-serif;line-height:1.58;max-width:1050px;margin:36px auto;padding:0 22px;color:#18221d}h1{color:#0b5d4d}h2{border-bottom:2px solid #cde5dc;padding-bottom:6px;margin-top:34px;color:#0b5d4d}h3{margin-top:24px;color:#164f43}table{border-collapse:collapse;width:100%;margin:14px 0;font-size:.94rem}th,td{border:1px solid #bdcec7;padding:9px;vertical-align:top}th{background:#eaf5f0}code,pre{background:#f4f6f5;border-radius:4px}code{padding:2px 4px}pre{padding:14px;white-space:pre-wrap}blockquote{border-left:4px solid #159071;padding:8px 18px;background:#f1f8f5;margin:16px 0}.note{background:#fff7e6;border:1px solid #edcf8d;padding:12px 16px;border-radius:6px}li{margin:5px 0}
+/* ═══ Navigation Bar ═══ */
+.nav-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e0e5ee;
+  padding: .5rem 1rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: .4rem;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: .82rem;
+}
+@media (prefers-color-scheme: dark) {
+  .nav-bar { background: rgba(22,27,38,.92); border-color: #2a3348; }
+  .nav-bar a, .nav-bar .nav-current { color: #c8d1e0; }
+  .nav-bar a:hover { background: #1a2540; color: #7aa2ff; }
+}
+.nav-bar a {
+  text-decoration: none; color: #2563eb; padding: .3rem .7rem;
+  border-radius: 8px; transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.nav-bar a:hover { background: #eef4ff; color: #1d4ed8; }
+.nav-bar .nav-home { font-weight: 700; }
+.nav-bar .nav-current {
+  color: #6b7685; font-weight: 600; padding: .3rem .5rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 300px;
+}
+.nav-bar .nav-group { display: flex; align-items: center; gap: .2rem; }
+.nav-bar .nav-sep { color: #c0c6d0; margin: 0 .15rem; }
+
+/* ═══ End Navigation Bar ═══ */
+</style></head><body>
+<!-- NAV_START -->
+<nav class="nav-bar">
+  <div class="nav-group">
+    <a class="nav-home" href="00_muc_luc.html" title="Về Mục lục">📚 Mục lục</a>
+    <span class="nav-sep">|</span>
+    <a href="01_ke_hoach_tong_quan.html" title="01 · Kế hoạch Tổng quan">← Trước</a>
+    <a href="03_kien_truc_model.html" title="03 · Kiến trúc Model">Sau →</a>
+  </div>
+  <span class="nav-current">📄 02 · Đề cương Generative</span>
+</nav>
+<!-- NAV_END -->
+
+<h1>Đề cương hoàn chỉnh: Generative Medical Visual Question Answering</h1>
+<p><b>Mục đích tài liệu:</b> phần này thay thế các đoạn đang mô tả bài toán theo <i>answer-class classification</i> trong <code>04_technical_deep_dive.html</code>. Bài toán chính được chốt là <b>generative Medical VQA</b>: mô hình nhận ảnh y khoa và câu hỏi, sau đó sinh chuỗi văn bản đáp án từng token.</p>
+<div class="note"><b>Quyết định scope:</b> chỉ chọn một output task là <b>generation</b>. Không dùng MLP để phân loại toàn bộ answer thành một class ID. Classification/closed yes-no chỉ là dạng answer ngắn được sinh ra bởi cùng generative decoder, không phải một task riêng.</div>
+
+<h2>1. Bài toán và câu hỏi nghiên cứu</h2>
+<h3>1.1. Định nghĩa bài toán</h3>
+<p>Với mỗi mẫu dữ liệu gồm ảnh y khoa <i>I</i>, câu hỏi <i>q</i> và đáp án tham chiếu <i>y*</i>, mô hình sinh đáp án token-by-token. Đáp án được biểu diễn dưới dạng:</p>
+<pre>&lt;bos&gt; y1 y2 ... yT &lt;eos&gt;</pre>
+<p>Mô hình học phân phối có điều kiện:</p>
+<pre>p(y1:T | I, q) = Π_t p(yt | y&lt;t, I, q)</pre>
+<p>Ví dụ: ảnh X-ray + câu hỏi “Is there a fracture?” → <code>&lt;bos&gt; no &lt;eos&gt;</code>; ảnh + “Where is the opacity?” → <code>&lt;bos&gt; right lower lobe &lt;eos&gt;</code>.</p>
+
+<h3>1.2. Mục tiêu</h3>
+<ul><li>Xây dựng mô hình Medical VQA nhẹ, chạy được trên Kaggle/Google Colab Free.</li><li>So sánh đóng góp của ảnh, câu hỏi và multimodal fusion trong sinh đáp án.</li><li>Đánh giá ảnh hưởng của attention tại image encoder, question encoder và generative decoder.</li><li>So sánh một số encoder nhẹ: CustomCNN/ResNet-18 frozen và BiLSTM/small Transformer.</li><li>Thử nghiệm SCST reinforcement learning sau supervised fine-tuning trên cấu hình tốt nhất.</li></ul>
+
+<h3>1.3. Câu hỏi nghiên cứu</h3>
+<table><tr><th>ID</th><th>Câu hỏi</th><th>Thực nghiệm trả lời</th></tr><tr><td>RQ1</td><td>Thông tin ảnh có thực sự giúp hơn chỉ dùng câu hỏi không?</td><td>Question-only vs image-only vs multimodal SFT</td></tr><tr><td>RQ2</td><td>Attention ở đâu giúp sinh đáp án tốt nhất?</td><td>Ablation image/text/decoder attention</td></tr><tr><td>RQ3</td><td>Encoder nhẹ nào hiệu quả hơn với compute miễn phí?</td><td>Bi
+<h2>2. Dữ liệu và split</h2>
+<h3>2.1. Dataset</h3>
+<p>Dùng <code>flaviagiammarino/vqa-rad</code> trên Hugging Face. Mỗi record gồm <code>image</code>, <code>question</code>, <code>answer</code>. Bài toán là VQA y tế với ảnh X-ray/CT/MRI và đáp án ngắn.</p>
+<table><tr><th>Trường</th><th>Kiểu</th><th>Vai trò</th></tr><tr><td><code>image</code></td><td>PIL image</td><td>Đầu vào cho image encoder</td></tr><tr><td><code>question</code></td><td>String</td><td>Đầu vào cho question encoder</td></tr><tr><td><code>answer</code></td><td>String</td><td>Target sequence cho generative decoder</td></tr></table>
+
+<h3>2.2. Kiểm soát Leakage (Rò rỉ dữ liệu)</h3>
+<div class="note">
+    <b>⚠️ Phân tích rò rỉ ảnh (Data Leakage Audit):</b><br>
+    Qua kiểm tra tập dữ liệu VQA-RAD mặc định (2,248 cặp câu hỏi trên 314 ảnh unique, trung bình 7.16 câu hỏi/ảnh):
+    <ul>
+        <li>Tập <b>Validation</b> (226 mẫu): có tới 141/142 ảnh unique (<b>99.30%</b>) đã xuất hiện trong tập Train.</li>
+        <li>Tập <b>Test</b> (225 mẫu): có tới 145/146 ảnh unique (<b>99.32%</b>) đã xuất hiện trong tập Train.</li>
+        <li>Tập Test cũng trùng 85/146 ảnh (<b>58.22%</b>) với Validation.</li>
+    </ul>
+    Điều này có nghĩa là tập test chính thức của Hugging Face đánh giá mô hình trên <i>ảnh cũ đã học</i> (chỉ khác câu hỏi), dẫn đến điểm số bị thổi phồng và không phản ánh khả năng tổng quát hóa trên bệnh nhân mới.
+</div>
+
+<p><b>Giải pháp thiết lập Split:</b> Để vừa so sánh được với các nghiên cứu trước vừa phản ánh đúng hiệu năng thực tế, ta chạy thực nghiệm song song trên <b>hai loại split</b>:</p>
+<ol>
+    <li><b>Official Split (Có Leakage):</b> Giữ nguyên split mặc định của Hugging Face (1797 train, 226 valid, 225 test) để đối chiếu hiệu năng với các bài báo công bố trước đây.</li>
+    <li><b>Image-Disjoint Split (Sạch - Không Leakage):</b> Sử dụng hàm <code>group_split</code> dựa trên MD5 của ảnh (<code>image_key</code>). Gom 314 ảnh unique lại và chia theo tỷ lệ 70% (220 ảnh), 15% (47 ảnh), 15% (47 ảnh) làm tập Train, Validation, và Test tương ứng. Tập Test này đảm bảo 100% không chứa ảnh nào đã được dùng trong Train hay Validation.</li>
+</ol>
+<p><i>Limitation về Patient-level:</i> Do dataset VQA-RAD không có metadata Patient/Study ID, ta chỉ có thể đảm bảo chia disjoint ở mức ảnh (Image-level). Việc hai ảnh khác nhau của cùng một ca bệnh nằm ở cả hai phía vẫn có thể xảy ra và sẽ được ghi nhận là một giới hạn (Limitation).</p>
+
+<h3>2.3. Bảng số liệu Data Audit</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Split</th>
+            <th>Số sample</th>
+            <th>Số ảnh unique</th>
+            <th>Tỷ lệ Closed (Yes/No)</th>
+            <th>Tỷ lệ Open-ended</th>
+            <th>Tỷ lệ đáp án Unseen (OOV)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><b>Train</b></td>
+            <td>1,797</td>
+            <td>313</td>
+            <td>57.0%</td>
+            <td>43.0%</td>
+            <td>0.0%</td>
+        </tr>
+        <tr>
+            <td><b>Validation (Official)</b></td>
+            <td>226</td>
+            <td>142 (99.3% leak)</td>
+            <td>56.6%</td>
+            <td>43.4%</td>
+            <td>29.65% (67 mẫu)</td>
+        </tr>
+        <tr>
+            <td><b>Test (Official)</b></td>
+            <td>225</td>
+            <td>146 (99.3% leak)</td>
+            <td>64.0%</td>
+            <td>36.0%</td>
+            <td>21.33% (48 mẫu)</td>
+        </tr>
+    </tbody>
+</table>
+
+<p><b>Phân tích Answer Vocabulary (Train set):</b></p>
+<ul>
+    <li>Tổng số đáp án duy nhất trong tập Train là <b>430</b> đáp án.</li>
+    <li>Hiện tượng long-tail rất nặng: Top 10 đáp án phổ biến nhất chiếm tới <b>58.54%</b> số mẫu (riêng <code>yes</code> và <code>no</code> chiếm 52.42%). Có 208 đáp án chỉ xuất hiện đúng 1 lần, và 159 đáp án chỉ xuất hiện 2 lần.</li>
+    <li>Chính sách Rare Token: Do mô hình ở dạng sinh chuỗi (generative), để giảm nhiễu, các token trong đáp án có tần suất xuất hiện trong tập Train &lt; 3 lần sẽ được ánh xạ về token đặc biệt <code>&lt;unk&gt;</code>.</li>
+</ul>
+
+<h2>3. Tiền xử lý</h2>
+<h3>3.1. Ảnh</h3>
+<table><tr><th>Bước</th><th>CustomCNN</th><th>ResNet-18 frozen</th></tr><tr><td>Resize</td><td>128 x 128 (hoặc 224 x 224 để control confound)</td><td>224 x 224</td></tr><tr><td>Grayscale</td><td>Chuyển 3 channel</td><td>Chuyển 3 channel</td></tr><tr><td>Augmentation train</td><td>RandomAffine: degree 5, translate 0.02</td><td>Tương tự</td></tr><tr><td>Normalize</td><td>mean/std 0.5</td><td>ImageNet mean/std</td></tr></table>
+<p>Không dùng augmentation ở validation/test. Không flip ngang mặc định vì có thể làm đổi tín hiệu trái/phải mang ý nghĩa lâm sàng.</p>
+<h3>3.2. Text và answer</h3>
+<ul><li><code>normalize_answer()</code>: lowercase, gộp whitespace, bỏ punctuation không cần thiết nhưng giữ các token có ý nghĩa.</li><li>Tạo <b>hai vocabulary train-only</b>: <code>question_vocab</code> và <code>answer_vocab</code>.</li><li>Token đặc biệt answer: <code>&lt;pad&gt;=0</code>, <code>&lt;unk&gt;=1</code>, <code>&lt;bos&gt;=2</code>, <code>&lt;eos&gt;=3</code>.</li><li><code>MAX_QUESTION_LEN=32</code>, <code>MAX_ANSWER_LEN=12</code> (kiểm tra phân vị độ dài trước khi chốt).</li><li>Không còn <code>answer → class_id</code>, không có <code>label=-1</code> cho unseen answer. Token chưa biết map về <code>&lt;unk&gt;</code>.</li></ul>
+<pre>answer = "right lung"
+answer_ids   = [&lt;bos&gt;, right, lung, &lt;eos&gt;, &lt;pad&gt;, ...]
+decoder_in   = [&lt;bos&gt;, right, lung, &lt;eos&gt;, ...]
+decoder_tgt  = [right, lung, &lt;eos&gt;, &lt;pad&gt;, ...]</pre>
+
+<h2>4. Kiến trúc mô hình</h2>
+<h3>4.1. Pipeline chính</h3>
+<pre>Medical Image ──> Image Encoder ──> image features/tokens
+                                             │
+Question ───────> Question Encoder ─> question tokens
+                                             │
+                              Fusion / Projector / Attention
+                                             │
+                             GRU generative decoder + attention
+                                             │
+                     &lt;bos&gt; → token 1 → ... → token T → &lt;eos&gt;</pre>
+
+<h3>4.2. Image encoder</h3>
+<table><tr><th>Encoder</th><th>Kiến trúc</th><th>Output</th><th>Mục đích</th></tr><tr><td>CustomCNN</td><td>3 blocks: Conv 3x3 → BN → ReLU → MaxPool; channel 3→32→64→128</td><td>Spatial map <code>[B,128,16,16]</code> tại input 128; flatten thành image tokens</td><td>Baseline nhẹ, train từ đầu</td></tr><tr><td>ResNet-18 frozen</td><td>ImageNet pretrained; freeze backbone, chỉ train projection/LN</td><td>Feature map <code>[B,512,7,7]</code>; project 512→128</td><td>Extension pretrained nhẹ</td></tr></table>
+<p><b>Image attention:</b> SE/Channel Attention có thể đặt sau CNN block cuối. Đây là channel attention, không phải spatial heatmap. Dùng Grad-CAM riêng để giải thích vùng ảnh.</p>
+
+<h3>4.3. Question encoder</h3>
+<table><tr><th>Encoder</th><th>Kiến trúc</th><th>Output</th></tr><tr><td>BiLSTM</td><td>Embedding 64 → BiLSTM hidden 64 (32 mỗi chiều)</td><td>Question token states <code>[B,T,64]</code></td></tr><tr><td>Small Transformer</td><td>Embedding 64 + positional embedding; 2 layers, 4 heads, FFN 128</td><td>Question token states <code>[B,T,64]</code></td></tr></table>
+<p><b>Text attention:</b> dùng temporal attention/masked attention pooling chỉ khi cần rút question thành vector global. PAD phải mask trước softmax.</p>
+
+<h3>4.4. Fusion và projector</h3>
+<p>Image features và question features là hai latent space khác nhau. Có hai lựa chọn:</p>
+<table><tr><th>Biến thể</th><th>Cách làm</th><th>Khi nào chạy</th></tr><tr><td>Concat baseline</td><td>GAP image → <code>v_img[128]</code>, masked mean question → <code>v_txt[64]</code>, concat và MLP → initial decoder state</td><td>Core baseline</td></tr><tr><td>Shared-space projector</td><td><code>img_proj:128→P</code>, <code>txt_proj:64→P</code>, GELU + Linear + LayerNorm</td><td>Extension sau khi chọn attention tốt nhất</td></tr></table>
+<p>Không chạy toàn bộ 2^4 tổ hợp attention + projector trong điều kiện compute hạn chế. Projector chỉ so với best base configuration.</p>
+
+<h3>4.5. Generative decoder</h3>
+<p>Decoder là <b>GRU 1 layer, hidden size 128</b>, không phải MLP answer classifier.</p>
+<pre>prev_answer_token embedding [B,64]
++ decoder context từ image/question attention [B,128]
+→ GRU → hidden [B,128]
+→ Linear(128, V_answer) → next-token logits</pre>
+<p>Decoder hidden ban đầu lấy từ fusion vector qua <code>Linear(fused_dim, 128)</code>. Decoder có thể attend lên image spatial tokens và question token states ở mỗi time step. Đây là <b>cross-attention decoder</b>, phù hợp nhất với nhánh generation trên bảng.</p>
+
+<h3>4.6. Attention ablation</h3>
+<table><tr><th>Vị trí</th><th>Không attention</th><th>Có attention</th><th>Ý nghĩa</th></tr><tr><td>Image</td><td>Feature map gốc</td><td>SE channel attention</td><td>Chọn kênh ảnh đáng tin</td></tr><tr><td>Question</td><td>BiLSTM/Transformer token states gốc</td><td>Temporal attention/pooling có mask</td><td>Nhấn mạnh từ khóa question</td></tr><tr><td>Decoder</td><td>Context fusion cố định</td><td>Cross-attention theo mỗi bước sinh token</td><td>Chọn image/question feature phù hợp với token đang sinh</td></tr></table>
+
+<h2>5. Huấn luyện SFT</h2>
+<h3>5.1. Teacher forcing</h3>
+<p>Trong train, decoder nhận token thật ở thời điểm trước. Mục tiêu tối ưu là token cross-entropy và bỏ qua PAD:</p>
+<pre>L_SFT = - Σ_t log pθ(y*_t | y*_{&lt;t}, I, q)
+criterion = CrossEntropyLoss(ignore_index=PAD_ID)</pre>
+<h3>5.2. Cấu hình mặc định</h3>
+<table><tr><th>Tham số</th><th>Giá trị</th></tr><tr><td>Batch size</td><td>16 (giảm 8 nếu OOM; có thể 32 với CustomCNN)</td></tr><tr><td>Epoch SFT</td><td>tối đa 15; early stopping patience 3</td></tr><tr><td>Optimizer</td><td>AdamW</td></tr><tr><td>Learning rate</td><td>1e-3</td></tr><tr><td>Weight decay</td><td>1e-4</td></tr><tr><td>Gradient clipping</td><td>1.0</td></tr><tr><td>Mixed precision</td><td>bật nếu CUDA khả dụng</td></tr><tr><td>Checkpoint criterion</td><td>Validation token-F1 open + closed EM macro; chốt trước khi chạy</td></tr></table>
+<p><b>Khuyến nghị checkpoint:</b> dùng <code>0.5 × val_EM_closed + 0.5 × val_tokenF1_open</code> nếu có đủ cả closed/open. Nếu implementation cần đơn giản hơn, chọn val EM overall và phải giữ cố định policy này từ đầu.</p>
+
+<h2>6. Inference và decoding</h2>
+<ul><li><b>Greedy decoding:</b> chọn token có logit cao nhất từng bước; đây là protocol mặc định.</li><li><b>Beam search (beam=3):</b> chỉ chạy evaluation ở best model; báo cáo tách biệt greedy và beam.</li><li>Dừng khi dự đoán <code>&lt;eos&gt;</code> hoặc đạt <code>MAX_ANSWER_LEN</code>.</li><li>Không dùng answer reference trong validation/test inference.</li></ul>
+
+<h2>7. Thiết kế thực nghiệm có kiểm soát</h2>
+<div class="note">
+    <b>🧪 Nguyên tắc loại bỏ Biến nhiễu (Confounding Control):</b>
+    <ul>
+        <li><b>Kiểm soát so sánh Image Encoder (CustomCNN vs ResNet-18):</b> Sự khác biệt giữa CustomCNN (128x128, train từ đầu) và ResNet-18 (224x224, pretrain) có 3 biến đổi đồng thời (kiến trúc, độ phân giải, pretrain). Để so sánh công bằng: ta sẽ chạy thêm một run CustomCNN ở độ phân giải 224x224, hoặc ghi nhận rõ đây là so sánh "cấu hình thực dụng" (practical configs) chứ không kết luận thuần túy kiến trúc ResNet tốt hơn CNN.</li>
+        <li><b>Kiểm soát so sánh Text Encoder (BiLSTM vs Transformer):</b> Để tránh thay đổi cả encoder lẫn phương thức pooling đồng thời, cả BiLSTM và Transformer đều phải sử dụng chung cơ chế Pooling (masked-mean pooling) khi chạy baseline không có attention.</li>
+    </ul>
+</div>
+
+<h3>7.1. Core experiments (bắt buộc - chạy trên cả 2 Split)</h3>
+<p>Để cô lập biến, toàn bộ 4 cấu hình cốt lõi này sẽ được huấn luyện và đánh giá song song trên cả <b>Official Split (có leak)</b> và <b>Image-Disjoint Split (sạch)</b>:</p>
+<table><tr><th>Run</th><th>Image input</th><th>Question input</th><th>Decoder</th><th>Mục tiêu</th></tr><tr><td>G0</td><td>Không dùng</td><td>BiLSTM</td><td>GRU generation</td><td>Question-only: kiểm tra language/question bias</td></tr><tr><td>G1</td><td>CustomCNN</td><td>Không dùng hoặc token dummy</td><td>GRU generation</td><td>Image-only: đo đóng góp ảnh</td></tr><tr><td>G2</td><td>CustomCNN</td><td>BiLSTM (masked-mean pooling)</td><td>GRU, context cố định</td><td>Multimodal SFT baseline (không attention)</td></tr><tr><td>G3</td><td>CustomCNN + SE</td><td>BiLSTM + temporal attention</td><td>GRU + cross-attention</td><td>Full attention generative model</td></tr></table>
+<p>G0/G1 là bắt buộc để chứng minh model không chỉ học prior từ câu hỏi hoặc chỉ dựa vào ảnh.</p>
+
+<h3>7.2. Extension experiments (chạy tuần tự nếu còn quota)</h3>
+<table><tr><th>Run</th><th>So sánh</th><th>Nguyên tắc</th></tr><tr><td>E1</td><td>BiLSTM vs small Transformer</td><td>Giữ image encoder và decoder tốt nhất; cả hai đều dùng masked-mean pooling làm baseline</td></tr><tr><td>E2</td><td>CustomCNN vs ResNet-18 frozen</td><td>Giữ question encoder và decoder tốt nhất; chạy cùng độ phân giải 224x224 để công bằng</td></tr><tr><td>E3</td><td>Concat vs Projector</td><td>Chạy trên best encoder pair</td></tr><tr><td>E4</td><td>Best SFT vs Best SFT + SCST</td><td>Chỉ 1 checkpoint tốt nhất, 3–5 RL epochs</td></tr></table>
+
+<h3>7.3. Biến cần cố định</h3>
+<ul><li>Data split, data preprocessing, vocabulary và max length.</li><li>Seed, batch size, epoch budget, optimizer, LR, early stopping rule.</li><li>Evaluation code, answer normalization và decoding protocol.</li><li>Mỗi run lưu resolved config, checkpoint, history CSV, predictions CSV và metrics JSON.</li></ul>
+
+<h2>8. Metrics</h2>
+<table><tr><th>Metric</th><th>Định nghĩa</th><th>Dùng cho</th></tr><tr><td>Exact Match (EM)</td><td>predicted normalized answer = reference normalized answer</td><td>Overall, closed, open</td></tr><tr><td>Token-F1</td><td>F1 trên token overlap</td><td>Open-ended answers</td></tr><tr><td>BLEU-1</td><td>Unigram precision có brevity penalty</td><td>Open-ended answers</td></tr><tr><td>Closed EM / accuracy</td><td>EM trên subset answer yes/no</td><td>Closed question</td></tr><tr><td>Sensitivity / specificity</td><td>yes là positive, no là negative</td><td>Closed question; chỉ báo cáo nếu sample đủ</td></tr><tr><td>Cost metrics</td><td>trainable params, epoch seconds, inference seconds</td><td>Trade-off compute</td></tr></table>
+<p><b>Không dùng ROC-AUC làm metric chính</b> vì output là một sequence. Nếu muốn AUC cho yes/no, phải xây protocol binary probability riêng từ generative decoder; việc đó là extension, không thuộc core.</p>
+
+<h2>9. Reinforcement learning: SCST sau SFT</h2>
+<p>RL không train từ đầu. Chỉ fine-tune checkpoint SFT tốt nhất với Self-Critical Sequence Training (SCST).</p>
+<ol><li>Model sinh <code>y_sample</code> bằng sampling.</li><li>Model sinh <code>y_greedy</code> bằng greedy decoding làm self-critical baseline.</li><li>Reward: <code>r(y)=0.5×EM(y,y*) + 0.5×TokenF1(y,y*)</code>.</li><li>Advantage: <code>A = r(y_sample) - r(y_greedy)</code>.</li><li>Loss: <code>L_SCST = -A × Σ_t log p(y_sample_t | y_sample_&lt;t, I, q)</code>.</li></ol>
+<table><tr><th>Tham số</th><th>Khuyến nghị</th></tr><tr><td>RL epochs</td><td>3–5</td></tr><tr><td>RL learning rate</td><td>1e-5</td></tr><tr><td>Gradient clipping</td><td>1.0</td></tr><tr><td>Checkpoint</td><td>Best validation score theo policy cố định</td></tr></table>
+<p>SCST là exploratory experiment. Nếu metric giảm hoặc không ổn định, báo cáo kết quả âm tính và chọn SFT model là final; không cherry-pick.</p>
+
+<h2>10. Khả năng giải thích và error analysis</h2>
+<ul><li>Vẽ Grad-CAM cho 5–10 prediction đúng và 5–10 prediction sai của CustomCNN/ResNet.</li><li>Vẽ temporal attention trên token câu hỏi; chỉ giải thích trọng số text, không coi là lời giải thích nhân quả.</li><li>Lưu decoder cross-attention weights theo từng output token nếu implementation hỗ trợ.</li><li>Tạo bảng lỗi: sai yes/no, sai anatomical location, sai pathology/finding, sai modality/view, answer semantic gần đúng nhưng EM sai, OOV/rare token.</li><li>Ghi rõ mô hình là nghiên cứu benchmark; không được dùng như công cụ chẩn đoán lâm sàng.</li></ul>
+
+<h2>11. Reproducibility và output file</h2>
+<ul><li><code>config.json</code>: toàn bộ hyperparameter và flags của mỗi run.</li><li><code>data_split.csv</code> hoặc split index cố định.</li><li><code>question_vocab.json</code>, <code>answer_vocab.json</code>.</li><li><code>{run}_best.pt</code>, <code>{run}_history.csv</code>, <code>{run}_preds.csv</code>, <code>{run}_metrics.json</code>.</li><li><code>metrics_summary.csv</code> tổng hợp.</li><li>Chạy tất cả core runs với seed 42; sau đó rerun top-2 với seed 123 và 2026, báo cáo mean ± std nếu quota cho phép.</li></ul>
+
+<h2>12. Checklist triển khai</h2>
+<h3>Data & Split</h3><ul><li>[ ] Tích hợp 2 chế độ split dữ liệu: Official Split (so sánh nghiên cứu) và Image-Disjoint Split (sạch, không rò rỉ ảnh)</li><li>[ ] Viết code kiểm tra và in thống kê overlap <code>image_key</code> giữa Train/Val/Test tự động trước khi train</li><li>[ ] Lọc/ánh xạ rare tokens (tần suất &lt; 3 trong Train) về <code>&lt;unk&gt;</code> trong từ điển</li><li>[ ] Tạo và lưu trữ <code>data_audit.json</code> để kiểm chứng</li></ul>
+<h3>Model & Confounding Control</h3><ul><li>[ ] Đồng bộ hóa Pooling: cài đặt masked-mean pooling cho cả BiLSTM và Transformer khi so sánh</li><li>[ ] Cài đặt CustomCNN hỗ trợ cả độ phân giải 224x224 để control confound khi so sánh với ResNet-18</li><li>[ ] Sửa dataset trả về <code>decoder_input</code>, <code>decoder_target</code> dạng token sequence, không dùng class label</li><li>[ ] Implement các khối attention (Image SE, Text Temporal, Decoder Cross-attention) có thể tắt/mở qua argument</li><li>[ ] Thực hiện test overfit trên 32 mẫu để xác thực kiến trúc trước khi chạy lớn</li></ul>
+<h3>Train/eval</h3><ul><li>[ ] Teacher forcing và tối ưu hóa Cross Entropy Loss bỏ qua <code>&lt;pad&gt;</code></li><li>[ ] Greedy decoding phục vụ validation và test, lưu predictions dạng text</li><li>[ ] Đo lường đầy đủ EM, Token-F1, BLEU-1 cho cả hai loại split</li><li>[ ] Thực hiện G0–G3 trên cả hai split, chọn checkpoint theo công thức cân bằng <code>0.5 × Closed EM + 0.5 × Open Token-F1</code></li></ul>
+
+<h2>13. Giới hạn nghiên cứu</h2>
+<ul><li>VQA-RAD có kích thước ảnh rất nhỏ (314 ảnh unique), kết quả có thể biến động lớn theo seed và split.</li><li>Dataset có rò rỉ ảnh cực lớn ở bản split mặc định (99.3%). Cần phải báo cáo rõ ranh giới giữa đánh giá trên ảnh cũ (Seen-image VQA) và ảnh mới (Unseen-image VQA).</li><li>Thiếu metadata Patient/Study ID nên chưa thể kiểm soát rò rỉ mức bệnh nhân (patient-level leakage).</li><li>Đánh giá EM (Exact Match) có tính khắt khe cao đối với dạng sinh chuỗi văn bản tự do, có thể đánh giá thấp các đáp án đồng nghĩa.</li><li>Mô hình nhẹ không so sánh trực tiếp với các mô hình VLM thương mại lớn; mục tiêu tập trung vào ablation study có kiểm soát.</li><li>Không có sự thẩm định lâm sàng từ bác sĩ chuyên khoa; kết quả chỉ mang ý nghĩa khoa học máy tính.</li></ul>
+
+<h2>14. Đoạn scope statement để dán vào báo cáo</h2>
+<blockquote>Nghiên cứu này xem Medical Visual Question Answering là một bài toán sinh chuỗi có điều kiện. Mô hình nhận ảnh y khoa và câu hỏi bằng văn bản, sau đó sử dụng generative decoder để sinh đáp án từng token. Thực nghiệm cốt lõi khảo sát đóng góp của từng modality và attention trong mô hình CNN–BiLSTM–GRU nhẹ; các mở rộng gồm Transformer encoder, ResNet-18 frozen, shared-space projector và SCST reinforcement learning. Do ràng buộc Kaggle/Google Colab Free, các mở rộng chỉ được thực hiện trên cấu hình tốt nhất từ giai đoạn supervised learning.</blockquote>
+</body></html>

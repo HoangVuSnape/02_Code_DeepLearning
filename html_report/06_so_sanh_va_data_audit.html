@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>So sánh — Repo tham chiếu Medical-VQA vs dự án của mình</title>
+<style>
+  :root{--bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;--bad:#b91c1c;--bad-soft:#fef2f2;--code-bg:#eef1f6;--code-text:#0f2c5c;}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;--good:#57d98a;--good-soft:#10241a;
+    --warn:#fbbf24;--warn-soft:#2a2210;--bad:#f87171;--bad-soft:#2a1414;--code-bg:#1d2536;--code-text:#bcd2ff;}}
+  :root[data-theme="dark"]{--bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;--good:#57d98a;--good-soft:#10241a;
+    --warn:#fbbf24;--warn-soft:#2a2210;--bad:#f87171;--bad-soft:#2a1414;--code-bg:#1d2536;--code-text:#bcd2ff;}
+  :root[data-theme="light"]{--bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;--good:#15803d;--good-soft:#eafaf0;
+    --warn:#b45309;--warn-soft:#fff7e6;--bad:#b91c1c;--bad-soft:#fef2f2;--code-bg:#eef1f6;--code-text:#0f2c5c;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.62;padding:2rem 1rem}
+  .container{max-width:1020px;margin:0 auto}
+  header{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.4rem}
+  header h1{font-size:1.5rem;margin-bottom:.4rem;line-height:1.3}
+  header .sub{color:var(--muted);font-size:.93rem}
+  section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem 1.8rem;margin-bottom:1.4rem}
+  h2{font-size:1.18rem;margin-bottom:.6rem;color:var(--accent)}
+  h3{font-size:1rem;margin:1rem 0 .4rem;color:var(--accent2)}
+  p{margin-bottom:.55rem}ul{margin:0 0 .6rem 1.2rem}li{margin-bottom:.28rem}
+  code{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);padding:.1rem .35rem;border-radius:5px;font-size:.85em}
+  pre{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);padding:.9rem;border-radius:10px;overflow-x:auto;font-size:.8rem;line-height:1.5;margin:.6rem 0;border:1px solid var(--border)}
+  .table-wrap{overflow-x:auto;margin:.7rem 0;border:1px solid var(--border);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:560px}
+  th,td{border-bottom:1px solid var(--border);padding:.5rem .7rem;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-weight:600}tr:last-child td{border-bottom:none}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem 1rem;border-radius:0 10px 10px 0;margin:.6rem 0;font-size:.9rem}
+  .callout.good{border-color:var(--good);background:var(--good-soft)}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+  .big{font-size:1.6rem;font-weight:800;color:var(--bad)}
+  .yes{color:var(--good);font-weight:700}.no{color:var(--bad);font-weight:700}.mid{color:var(--warn);font-weight:700}
+  .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;z-index:9}
+  .muted{color:var(--muted);font-size:.85rem}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1rem 0 2rem}
+
+/* ═══ Navigation Bar ═══ */
+.nav-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e0e5ee;
+  padding: .5rem 1rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: .4rem;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: .82rem;
+}
+@media (prefers-color-scheme: dark) {
+  .nav-bar { background: rgba(22,27,38,.92); border-color: #2a3348; }
+  .nav-bar a, .nav-bar .nav-current { color: #c8d1e0; }
+  .nav-bar a:hover { background: #1a2540; color: #7aa2ff; }
+}
+.nav-bar a {
+  text-decoration: none; color: #2563eb; padding: .3rem .7rem;
+  border-radius: 8px; transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.nav-bar a:hover { background: #eef4ff; color: #1d4ed8; }
+.nav-bar .nav-home { font-weight: 700; }
+.nav-bar .nav-current {
+  color: #6b7685; font-weight: 600; padding: .3rem .5rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 300px;
+}
+.nav-bar .nav-group { display: flex; align-items: center; gap: .2rem; }
+.nav-bar .nav-sep { color: #c0c6d0; margin: 0 .15rem; }
+
+/* ═══ End Navigation Bar ═══ */
+</style>
+</head>
+<body>
+<!-- NAV_START -->
+<nav class="nav-bar">
+  <div class="nav-group">
+    <a class="nav-home" href="00_muc_luc.html" title="Về Mục lục">📚 Mục lục</a>
+    <span class="nav-sep">|</span>
+    <a href="05_gemma4_architecture.html" title="05 · Gemma 4 Architecture">← Trước</a>
+    <a href="07_vqa_rad_data_audit.html" title="07 · VQA-RAD Audit">Sau →</a>
+  </div>
+  <span class="nav-current">📄 06 · So sánh & Data Audit</span>
+</nav>
+<!-- NAV_END -->
+
+<button class="theme-btn" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));r.setAttribute('data-theme',d==='dark'?'light':'dark')">🌓 Đổi nền</button>
+<div class="container">
+
+<header>
+  <h1>🔍 So sánh: repo tham chiếu <code>Medical-VQA</code> vs dự án của mình</h1>
+  <div class="sub">Nguồn: <code>CNN_LSTM_references/Medical-VQA/</code> (README + Open_Ended_VQA.ipynb + data/*.csv). Trả lời: nó làm gì · tổ chức data ra sao · <b>có khắc phục leakage không</b>.</div>
+</header>
+
+<section>
+  <h2>⚡ TL;DR</h2>
+  <ul>
+    <li><b class="yes">Tổ chức data gọn hơn thật:</b> dùng file CSV có metadata (<code>img_id, category, answer_type, mode</code>) + split cố định train/valid/test → tái lập tốt, phân tích theo category/loại câu hỏi dễ.</li>
+    <li><b class="no">NHƯNG không khắc phục leakage.</b> Mình đã đo: <b>145/146 ảnh trong test cũng có trong train</b> (~99% trùng). Đây là leak "kinh điển" của split chuẩn VQA-RAD — repo này kế thừa y nguyên.</li>
+    <li><b class="mid">Về model:</b> nó là bản <b>generative</b> (PubMedCLIP + GPT-2, prefix tuning) — chính là notebook mà <code>Open_Ended_VQA_fixed.ipynb</code> của mình đã sửa 4 nhóm bug. Cùng hướng generative đã chốt.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>1. Repo tham chiếu đã LÀM GÌ</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Hạng mục</th><th>Chi tiết (từ README + notebook)</th></tr>
+    <tr><td>Bài toán</td><td><b>Generation</b> (sinh answer), theo phương pháp <b>MedVInT-TD</b> của PMC-VQA</td></tr>
+    <tr><td>Visual encoder</td><td><b>PubMedCLIP ViT-B/32</b> — ảnh → vector 512-d</td></tr>
+    <tr><td>LM decoder</td><td><b>DistilGPT2-PubMed</b> (đã adapt domain y khoa)</td></tr>
+    <tr><td>Fusion / mapper</td><td><b>MLP mapper</b> <code>512→768→768</code> → chèn "visual prefix" vào chuỗi embedding GPT-2</td></tr>
+    <tr><td>Train</td><td>Language-modeling, CE loss trên answer tokens, Adam, batch 16, 10 epoch, lr 5e-3</td></tr>
+    <tr><td>Cải tiến</td><td><b>Prefix tuning</b> (prompt: <code>question: … context: v₁…vₓ answer:</code>), <b>beam search</b> khi eval</td></tr>
+    <tr><td>Kết quả</td><td>Yes/No accuracy ≈ <b>0.45</b>; open-ended kém, "không có answer space cố định → cần dataset lớn hơn". LoRA thử nhưng loss bất ổn → bỏ.</td></tr>
+    <tr><td>Metric</td><td>BLEU-1, token-F1, accuracy (yes/no)</td></tr>
+  </table></div>
+  <div class="callout warn"><b>Lưu ý:</b> notebook <code>Open_Ended_VQA.ipynb</code> ở repo này là <b>bản GỐC còn bug</b>. Bản <code>notebook/Open_Ended_VQA_fixed.ipynb</code> trong dự án của mình đã sửa: <code>generate()</code> chèn nhầm chiều batch, val loss NameError, BLEU tính trên ký tự, lr 5e-3 gây catastrophic forgetting.</div>
+</section>
+
+<section>
+  <h2>2. Tổ chức DATA (điểm nó làm tốt hơn)</h2>
+  <p>Thay vì nạp thẳng từ HuggingFace (ảnh nhúng trong dataset như dự án của mình), repo này lưu thành <b>CSV + thư mục ảnh riêng</b>:</p>
+  <pre>data/
+├── img/                              ← ảnh, tham chiếu bằng img_id
+├── vqa_rad.csv                       ← full (2248 dòng)
+├── vqa_rad_train.csv                 ← 1797 dòng   cột: img_id, category, question, answer_type, answer, mode
+├── vqa_rad_valid.csv                 ← 226
+├── vqa_rad_test.csv                  ← 225
+├── vqa_rad_only4maincat.csv          ← 441 (lọc 4 category chính)
+├── vqa_rad_train_4maincatAndOther.csv← 1797
+└── vqa_rad_test_4maincatAndOther.csv ← 451  (khớp test official HF)</pre>
+  <div class="callout good"><b>Ưu điểm:</b> mỗi dòng có sẵn <code>category</code> (PRES/POS/MODALITY/ABN/SIZE/PLANE/ATTRIB/OTHER), <code>answer_type</code> (CLOSED/OPEN), <code>mode</code> (loại ảnh) → phân tích theo nhóm dễ, split cố định &amp; tái lập, không phụ thuộc thứ tự HF.</div>
+  <h3>Phân bố (đo từ <code>vqa_rad_train.csv</code>)</h3>
+  <div class="table-wrap"><table>
+    <tr><th>answer_type</th><th class="num">count</th><th>·</th><th>Top category</th><th class="num">count</th></tr>
+    <tr><td>CLOSED (yes/no…)</td><td class="num">~1009</td><td></td><td>PRES (presence)</td><td class="num">637</td></tr>
+    <tr><td>OPEN</td><td class="num">~760</td><td></td><td>POS (position)</td><td class="num">258</td></tr>
+    <tr><td></td><td class="num"></td><td></td><td>MODALITY / ABN / SIZE / PLANE / ATTRIB</td><td class="num">152/146/126/94/70</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>3. ❓ Có khắc phục LEAKAGE không — <span class="no">KHÔNG</span></h2>
+  <p>Mình cắt cột <code>img_id</code> của từng split rồi đếm ảnh trùng. Kết quả:</p>
+  <div class="table-wrap"><table>
+    <tr><th>Split</th><th class="num">Ảnh unique train</th><th class="num">Ảnh unique test</th><th class="num">Ảnh test cũng có trong train</th><th class="num">% trùng</th></tr>
+    <tr><td>train / test (2248)</td><td class="num">313</td><td class="num">146</td><td class="num"><b class="no">145</b></td><td class="num"><b class="no">99.3%</b></td></tr>
+    <tr><td>4maincatAndOther (test=451)</td><td class="num">313</td><td class="num">203</td><td class="num"><b class="no">202</b></td><td class="num"><b class="no">99.5%</b></td></tr>
+    <tr><td>train / valid</td><td class="num">313</td><td class="num">142</td><td class="num"><b class="no">141</b></td><td class="num"><b class="no">99.3%</b></td></tr>
+  </table></div>
+  <div class="callout bad">
+    <b>Gần như MỌI ảnh test đều đã xuất hiện trong train</b> (chỉ khác câu hỏi). Đây đúng là leak mà file <code>02.Continue_leak.md</code> lo ngại — và repo tham chiếu <b>không</b> giải quyết, nó dùng đúng split chuẩn của VQA-RAD vốn có sẵn leak này.
+  </div>
+  <h3>❓ Bản chất của Image Leakage & Cách xây dựng dữ liệu VQA</h3>
+  <p><b>1. Tại sao số lượng ảnh độc nhất lại nhỏ hơn số câu hỏi (số dòng)?</b><br>
+  Trong Visual Question Answering, một bức ảnh chụp y khoa (X-quang, CT, MRI) thường được sử dụng để hỏi nhiều câu hỏi khác nhau. Ví dụ: từ 1 bức ảnh chụp phổi duy nhất, bác sĩ có thể tạo ra 3 dòng dữ liệu: dòng 1 hỏi về tràn dịch màng phổi, dòng 2 hỏi về xương sườn, dòng 3 hỏi về bóng tim. Do đó, số lượng cặp câu hỏi-đáp (dòng dữ liệu) luôn lớn hơn số lượng ảnh gốc.</p>
+
+  <p><b>2. Image Leakage (Rò rỉ hình ảnh) thực chất là gì?</b><br>
+  Rò rỉ ở đây <b>chỉ xảy ra ở khía cạnh hình ảnh</b> (visual data), còn các câu hỏi và câu trả lời ở tập Train và tập Test là hoàn toàn khác nhau.
+  Mặc dù câu hỏi khác nhau, nhưng do mô hình đã được nhìn thấy bức ảnh này lúc huấn luyện (để trả lời câu hỏi khác), đặc trưng thị giác của bức ảnh đã được mô hình "học thuộc lòng" (visual memorization). Khi gặp lại ảnh cũ ở tập Test, mô hình chỉ cần nhận diện ảnh cũ để trả lời chứ không thực sự học cách phân tích một ca bệnh mới. Điều này làm điểm số đánh giá bị ảo (overestimated) và mô hình dễ thất bại khi gặp ảnh của bệnh nhân mới hoàn toàn ngoài thực tế.</p>
+
+  <h3>Vì sao vẫn là split "chuẩn" trong nghiên cứu?</h3>
+  <p>VQA-RAD chỉ có <b>313 ảnh</b> nhưng có tới ~2248 cặp Q-A. Việc chia ngẫu nhiên theo cặp Q-A (split chuẩn của VQA-RAD và test official 451 trên HF) dẫn đến việc ảnh bị lặp ở cả hai phía. Hầu hết các công trình nghiên cứu lớn trên thế giới (kể cả các tài liệu đối chứng của Gemma) đều báo cáo trên split này để đảm bảo:</p>
+  <ul>
+    <li><b class="yes">Ưu điểm:</b> So sánh trực tiếp, công bằng được với điểm số của các công trình khác (literature benchmark).</li>
+    <li><b class="no">Nhược điểm:</b> Điểm số phản ánh một phần khả năng ghi nhớ ảnh cũ. Cách khắc phục khoa học là <b>đo đạc, khai báo nó như một Limitation (Giới hạn nghiên cứu)</b> trong báo cáo, kết hợp chạy song song tập test sạch để đối chứng thực tế.</li>
+  </ul>
+</section>
+
+<!-- START_DATA_AUDIT -->
+<section id="data-audit-details">
+  <h2>📊 3b. Chi tiết Đánh giá & Phân tích Dữ liệu (Audit Reports)</h2>
+  <p>Dưới đây là thống kê chi tiết từ các file Parquet dữ liệu thực tế được sử dụng trong dự án.</p>
+  
+  <h3>📌 A. Tập dữ liệu VQA-RAD (Gemma 2B/4B Training & Evaluation)</h3>
+  <p>Được đo trực tiếp từ file Parquet di chuyển bởi người dùng (<code>data_audit_report/data/train...parquet</code> và <code>test...parquet</code>):</p>
+  <ul>
+    <li><b>Tập Train:</b> 1,793 mẫu, <b>313 ảnh độc nhất</b>.</li>
+    <li><b>Tập Test:</b> 451 mẫu, <b>203 ảnh độc nhất</b>.</li>
+    <li><b>Tỷ lệ trùng lặp:</b> 202 trong số 203 ảnh ở tập Test đã có mặt trong Train (rò rỉ <b>99.51%</b>).</li>
+  </ul>
+  
+  <div class="grid2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+    <div style="text-align: center;">
+      <img src="plots/vqa_rad/split_comparison.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="Split comparison">
+      <p class="muted">So sánh kích thước các split VQA-RAD</p>
+    </div>
+    <div style="text-align: center;">
+      <img src="plots/vqa_rad/image_leakage.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="Image Leakage">
+      <p class="muted">Tỷ lệ trùng lặp ảnh (99.51%)</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+    <div style="text-align: center;">
+      <img src="plots/vqa_rad/question_type_dist.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="Question types">
+      <p class="muted">Phân bố Closed vs Open-ended (VQA-RAD)</p>
+    </div>
+    <div style="text-align: center;">
+      <img src="plots/vqa_rad/top_answers.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="Top answers">
+      <p class="muted">Top 15 đáp án y khoa phổ biến (Long-tail)</p>
+    </div>
+  </div>
+  
+  <div class="callout warn">
+    <b>Đặc điểm OOV (Out-of-Vocabulary) của VQA-RAD:</b> Tập Test có tới <b>21.33%</b> đáp án chưa từng xuất hiện ở tập Train. Đây là rào cản tuyệt đối đối với mô hình Classification (Acc = 0% trên các mẫu này), nhưng mô hình Generative như Gemma có thể vượt qua nhờ pre-trained medical knowledge.
+  </div>
+
+  <hr style="border: 0; border-top: 1px solid var(--border); margin: 25px 0;">
+
+  <h3>📌 B. Tập dữ liệu RadImageNet-VQA (Benchmark 500 mẫu - Open/Closed)</h3>
+  <p>Được đo từ 500 mẫu trích xuất cân bằng dùng trong notebook <code>benchmark_4.ipynb</code>:</p>
+  <ul>
+    <li><b>Cấu trúc:</b> 250 mẫu <code>open</code> và 250 mẫu <code>closed</code> (loại bỏ trắc nghiệm, seed 42).</li>
+    <li><b>Số ảnh độc nhất:</b> 403 ảnh.</li>
+    <li><b>Đối chiếu với tập Train của chính RadImageNet-VQA (instruct train):</b> <b>0% trùng lặp</b> (đối chiếu với 15,000 dòng train instruct, phát hiện 0 mẫu trùng).</li>
+    <li><b>Đối chiếu với tập Train của VQA-RAD (file Parquet gồm 1,793 dòng):</b> <b>0% trùng lặp</b> (so sánh trực tiếp mã băm MD5 của 403 ảnh test RadImageNet với 313 ảnh train VQA-RAD, phát hiện 0 mẫu trùng). Điều này khẳng định hai bộ dữ liệu hoàn toàn độc lập và không có hiện tượng rò rỉ chéo.</li>
+  </ul>
+
+  <div class="grid2" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 15px; margin: 15px 0;">
+    <div style="text-align: center;">
+      <img src="plots/radimagenet/question_types.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="RadImageNet Qtypes">
+      <p class="muted">Phân bố câu hỏi (250 Open / 250 Closed)</p>
+    </div>
+    <div style="text-align: center;">
+      <img src="plots/radimagenet/modalities.png" style="max-width:100%; border-radius:8px; border: 1px solid var(--border);" alt="RadImageNet Modalities">
+      <p class="muted">Phân bố thiết bị chụp y khoa (CT, MRI, US...)</p>
+    </div>
+  </div>
+  
+  <div style="text-align: center; margin: 15px 0;">
+    <img src="plots/radimagenet/locations.png" style="max-width:80%; border-radius:8px; border: 1px solid var(--border);" alt="RadImageNet Locations">
+    <p class="muted">Top 10 vị trí giải phẫu trong 500 mẫu test</p>
+  </div>
+
+  <div class="callout good">
+    <b>Nhận định:</b> RadImageNet-VQA là một benchmark sạch, không bị leak ảnh y khoa. Điểm số của mô hình của bạn trên bộ 500 mẫu test này phản ánh chính xác năng lực chẩn đoán hình ảnh trên bệnh nhân mới.
+  </div>
+</section>
+<!-- END_DATA_AUDIT -->
+
+<section>
+  <h2>4. Bảng so sánh tổng thể</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Tiêu chí</th><th>Repo tham chiếu (Medical-VQA)</th><th>Dự án của mình (hướng mới)</th></tr>
+    <tr><td>Bài toán</td><td>Generative (MedVInT-TD)</td><td>Generative (GRU decoder) — <b>cùng hướng</b></td></tr>
+    <tr><td>Visual encoder</td><td>PubMedCLIP ViT (pretrained, ~lớn)</td><td>CustomCNN / ResNet-18 frozen (nhẹ)</td></tr>
+    <tr><td>Text/Decoder</td><td>DistilGPT2-PubMed (LM decoder)</td><td>BiLSTM/Transformer encoder + GRU decoder</td></tr>
+    <tr><td>Tổ chức data</td><td><b class="yes">CSV + img folder + metadata + split cố định</b></td><td>nạp từ HF, split bằng <code>group_split</code> (chưa có metadata) → <b>nên học theo</b></td></tr>
+    <tr><td>Metadata sẵn</td><td><b class="yes">category, answer_type, mode</b></td><td>chỉ image/question/answer → thiếu</td></tr>
+    <tr><td>Test split độc lập</td><td>có file test cố định (nhưng leak ảnh)</td><td>dùng test official HF (cũng leak ảnh)</td></tr>
+    <tr><td>Kiểm soát leakage</td><td><b class="no">Không (99% trùng ảnh)</b></td><td><b class="no">Cũng chưa</b> — phải đo &amp; khai báo</td></tr>
+    <tr><td>Baseline theo modality (question-only…)</td><td>Không</td><td><b class="yes">Có (G0/G1/G2/G3)</b></td></tr>
+    <tr><td>Grad-CAM / error taxonomy</td><td>Không</td><td><b class="yes">Có trong đề cương</b></td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>5. Nên áp dụng gì cho dự án</h2>
+  <ol>
+    <li><b>Học cách tổ chức data của họ:</b> chuyển sang dùng CSV có <code>img_id, category, answer_type, mode</code> + split cố định (thậm chí <b>dùng luôn CSV của họ</b> để split khớp literature). → có sẵn stratified analysis theo category.</li>
+    <li><b>Về leakage:</b> KHÔNG cố "sửa" split chuẩn (sẽ mất khả năng so với Gemma). Thay vào đó: <b>đo &amp; báo cáo</b> % ảnh test trùng train (99%) như một <b>limitation</b>, và (tùy chọn) thêm một <b>split phụ image-disjoint</b> làm robustness check.</li>
+    <li><b>Giữ ưu thế của mình:</b> baseline G0/G1 (question-only, image-only), Grad-CAM, error taxonomy — những thứ repo tham chiếu không có.</li>
+    <li><b>Model:</b> hướng generative đã đúng; PubMedCLIP+GPT-2 của họ là baseline generation mạnh để đối chiếu (bản <code>Open_Ended_VQA_fixed.ipynb</code>).</li>
+  </ol>
+  <div class="callout"><b>Kết luận:</b> repo tham chiếu <b>tổ chức data tốt hơn</b> (nên học theo phần CSV + metadata) nhưng <b>KHÔNG khắc phục leakage</b> — leak là bản chất của split chuẩn VQA-RAD, cách xử lý đúng là <b>đo &amp; khai báo</b>, không phải giả vờ đã sửa.</div>
+</section>
+
+<footer>So sánh repo tham chiếu Medical-VQA · số liệu leak đo trực tiếp từ data/*.csv · 12/07/2026</footer>
+
+</div>
+</body>
+</html>

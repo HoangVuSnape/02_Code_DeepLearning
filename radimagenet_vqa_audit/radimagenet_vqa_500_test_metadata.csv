@@ -1,0 +1,501 @@
+index_in_test,question_type,question,answer,content_type,is_abnormal,location,modality,pathology,question_id
+5,open,What abnormality is present in this scan?,flexor pathology,pathology,True,ankle foot,mri,flexor_pathology_,pathology_open
+27,open,What organ is highlighted in this scan?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+31,closed,Does this scan reveal any abnormalities?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+52,closed,Is the lung affected by parenchyma destruction?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+59,open,What abnormality is present in this scan?,meniscal abnormality,pathology,True,knee,mri,meniscal_abnormality,pathology_open
+104,open,What abnormality is present in this scan?,labral pathology,pathology,True,hip,mri,labral_pathology,pathology_open
+105,closed,Are there signs of labral pathology?,yes,pathology_specific,True,hip,mri,labral_pathology,pathology_closed_pos
+115,closed,Are there signs of postoperative acl reconstruction?,no,pathology_specific,True,knee,mri,soft_tissue_fluid_collection,pathology_closed_neg
+137,closed,Is the brain present in this image?,no,anatomy,True,abdomen,ct,liver_lesion,anatomy_closed_neg
+142,closed,Is there evidence of arterial pathology in this image?,no,pathology_specific,True,abdomen,ct,liver_lesion,pathology_closed_neg
+176,open,What abnormality is present in this scan?,soft tissue fluid,pathology,True,ankle foot,mri,soft_tissue_fluid,pathology_open
+217,closed,Is the abdomen part of this scan?,yes,anatomy,True,abdomen,ct,pancreatic_lesion,anatomy_closed_pos
+230,open,What condition is affecting the hip?,chondral pathology,pathology,True,hip,mri,chondral_pathology,pathology_open
+243,open,Which part of the body does this image belong to?,ankle foot,anatomy,True,ankle foot,mri,osseous_disruption,anatomy_open
+275,open,What condition is affecting the abdomen?,liver lesion,pathology,True,abdomen,ct,liver_lesion,pathology_open
+293,open,What abnormality is present in this scan?,uterine pathology,pathology,True,abdomen,ct,uterine_pathology,pathology_open
+310,closed,Does the lung look abnormal?,no,pathology,False,lung,ct,normal,abnormal_closed
+348,closed,Is there evidence of chronic infarct in this image?,yes,pathology_specific,True,brain,mri,chronic_infarct,pathology_closed_pos
+366,closed,Is the abdomen affected by posterior cruciate ligament pathology?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_pos
+396,open,What anatomical region is shown?,hip,anatomy,True,hip,mri,labral_pathology,anatomy_open
+419,open,What condition is affecting the knee?,chondral abnormality,pathology,True,knee,mri,chondral_abnormality,pathology_open
+432,open,Which body part is visible in this image?,spine,anatomy,True,spine,mri,disc_pathology,anatomy_open
+463,closed,Is this image abnormal?,yes,pathology,True,ankle foot,mri,cfl_pathology,abnormal_closed
+513,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,liver_lesion,anatomy_open
+531,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,bowel_abnormality,anatomy_open
+532,closed,Does the picture contain the abdomen?,yes,anatomy,True,abdomen,ct,bowel_abnormality,anatomy_closed_pos
+571,closed,Is there an abnormality present?,yes,pathology,True,abdomen,ct,ascites,abnormal_closed
+585,open,Which body part is visible in this image?,lung,anatomy,True,lung,ct,Nodule,anatomy_open
+586,closed,Does the picture contain the lung?,yes,anatomy,True,lung,ct,Nodule,anatomy_closed_pos
+587,closed,Is the knee part of this scan?,no,anatomy,True,lung,ct,Nodule,anatomy_closed_neg
+608,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+616,closed,Does the abdomen look abnormal?,yes,pathology,True,abdomen,mri,liver_lesion,abnormal_closed
+635,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+639,open,Which body part is visible in this image?,brain,anatomy,False,brain,mri,normal,anatomy_open
+650,closed,Is the shoulder present in this image?,no,anatomy,True,knee,mri,quad_pathology,anatomy_closed_neg
+657,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,ct,renal_lesion,anatomy_open
+725,open,What abnormality is present in this scan?,labral pathology,pathology,True,shoulder,mri,labral_pathology,pathology_open
+734,open,What condition is affecting the lung?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+739,closed,Can you see the abdomen?,yes,anatomy,False,abdomen,ct,normal,anatomy_closed_pos
+745,closed,Are there signs of ascites?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_neg
+749,closed,Is the knee visible in the image?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+788,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+798,closed,Is meniscal abnormality present?,yes,pathology_specific,True,knee,mri,meniscal_abnormality,pathology_closed_pos
+801,open,What specific anatomical structure is highlighted?,knee,anatomy,True,knee,mri,soft_tissue_fluid_collection,anatomy_open
+837,open,What anatomical region is shown?,knee,anatomy,True,knee,mri,soft_tissue_fluid_collection,anatomy_open
+838,closed,Can you identify the knee in this image?,yes,anatomy,True,knee,mri,soft_tissue_fluid_collection,anatomy_closed_pos
+843,closed,Is there evidence of soft tissue fluid collection in this image?,yes,pathology_specific,True,knee,mri,soft_tissue_fluid_collection,pathology_closed_pos
+851,open,What abnormality is present in this scan?,postoperative acl reconstruction,pathology,True,knee,mri,post_operative_acl,pathology_open
+860,open,What abnormality is present in this scan?,foraminal pathology,pathology,True,spine,mri,foraminal_pathlogy,pathology_open
+862,closed,Does the patient have facet arthropathy?,no,pathology_specific,True,spine,mri,foraminal_pathlogy,pathology_closed_neg
+865,closed,Can you identify the brain in this image?,yes,anatomy,True,brain,mri,white_matter_changes,anatomy_closed_pos
+868,closed,Does the brain look abnormal?,yes,pathology,True,brain,mri,white_matter_changes,abnormal_closed
+891,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,mri,ascites,anatomy_open
+893,closed,Can you see the shoulder?,no,anatomy,True,abdomen,mri,ascites,anatomy_closed_neg
+898,closed,Are there signs of adrenal pathology?,no,pathology_specific,True,abdomen,mri,ascites,pathology_closed_neg
+927,open,Which part of the body does this image belong to?,knee,anatomy,True,knee,mri,patella_pathology,anatomy_open
+941,open,What abnormality is present in this scan?,foraminal pathology,pathology,True,spine,mri,foraminal_pathlogy,pathology_open
+943,closed,Is facet arthropathy present?,no,pathology_specific,True,spine,mri,foraminal_pathlogy,pathology_closed_neg
+977,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,mri,normal,pathology_open
+994,closed,Is there an abnormality present?,yes,pathology,True,knee,mri,chondral_abnormality,abnormal_closed
+1001,closed,Does the picture contain the brain?,no,anatomy,False,abdomen,ct,normal,anatomy_closed_neg
+1008,open,What specific anatomical structure is highlighted?,lung,anatomy,True,lung,ct,Parenchyma_destruction,anatomy_open
+1010,closed,Is the spine present in this image?,no,anatomy,True,lung,ct,Parenchyma_destruction,anatomy_closed_neg
+1014,closed,Is there evidence of parenchyma destruction in this image?,yes,pathology_specific,True,lung,ct,Parenchyma_destruction,pathology_closed_pos
+1023,closed,Are there signs of nodule?,yes,pathology_specific,True,lung,ct,Nodule,pathology_closed_pos
+1026,open,Which part of the body does this image belong to?,lung,anatomy,False,lung,ct,normal,anatomy_open
+1031,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+1045,closed,Is the brain part of this scan?,yes,anatomy,True,brain,mri,extra,anatomy_closed_pos
+1046,closed,Is the knee part of this scan?,no,anatomy,True,brain,mri,extra,anatomy_closed_neg
+1053,open,Which body part is visible in this image?,spine,anatomy,True,spine,mri,disc_pathology,anatomy_open
+1069,closed,Does the patient have soft tissue fluid collection?,no,pathology_specific,True,knee,mri,acl_pathology,pathology_closed_neg
+1081,closed,Does this image show the hip?,yes,anatomy,True,hip,mri,soft_tissue_edema,anatomy_closed_pos
+1109,closed,Is the ankle foot present in this image?,no,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_neg
+1111,closed,Does the lung look abnormal?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+1148,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+1157,open,What abnormality is present in this scan?,acromioclavicular joint osteoarthritis,pathology,True,shoulder,mri,acj_oa,pathology_open
+1179,open,Which part of the body does this image belong to?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+1181,closed,Can you see the lung?,no,anatomy,False,abdomen,ct,normal,anatomy_closed_neg
+1208,closed,Is the ankle foot present in this image?,no,anatomy,True,spine,mri,disc_pathology,anatomy_closed_neg
+1274,open,What condition is affecting the spine?,foraminal pathology,pathology,True,spine,mri,foraminal_pathlogy,pathology_open
+1283,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+1314,open,Which part of the body does this image belong to?,lung,anatomy,False,lung,ct,normal,anatomy_open
+1361,closed,Does this image show the spine?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+1375,closed,Does the patient have nodule?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+1390,closed,Does the lung look abnormal?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+1409,open,What abnormality is present in this scan?,osseous disruption,pathology,True,ankle foot,mri,osseous_disruption,pathology_open
+1429,closed,Does the patient have osseous abnormality?,no,pathology_specific,True,spine,mri,facet_arthropathy,pathology_closed_neg
+1431,open,Name the organ featured in this image.,brain,anatomy,True,brain,mri,chronic_infarct,anatomy_open
+1444,closed,Does this scan reveal any abnormalities?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+1451,closed,Can you identify the spine in this image?,no,anatomy,True,ankle foot,mri,chondral_abnormality,anatomy_closed_neg
+1454,open,What abnormality is present in this scan?,chondral abnormality,pathology,True,ankle foot,mri,chondral_abnormality,pathology_open
+1467,open,What anatomical region is shown?,abdomen,anatomy,True,abdomen,ct,fat_containing_tumor,anatomy_open
+1472,open,What abnormality is present in this scan?,fatcontaining tumor,pathology,True,abdomen,ct,fat_containing_tumor,pathology_open
+1474,closed,Is there evidence of biliary dilation in this image?,no,pathology_specific,True,abdomen,ct,fat_containing_tumor,pathology_closed_neg
+1485,open,Which body part is visible in this image?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+1499,open,What condition is affecting the shoulder?,soft tissue edema,pathology,True,shoulder,mri,soft_tissue_edema,pathology_open
+1503,open,Which part of the body does this image belong to?,lung,anatomy,False,lung,ct,normal,anatomy_open
+1516,closed,Is this image abnormal?,no,pathology,False,abdomen,ct,normal,abnormal_closed
+1527,closed,Is the ankle foot affected by syndesmosis pathology?,yes,pathology_specific,True,ankle foot,mri,syndesmosis_pathology,pathology_closed_pos
+1575,open,Which body part is visible in this image?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+1577,closed,Does the picture contain the spine?,no,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_neg
+1594,closed,Can you see the lung?,yes,anatomy,False,lung,ct,normal,anatomy_closed_pos
+1612,closed,Is the brain part of this scan?,yes,anatomy,True,brain,mri,white_matter_changes,anatomy_closed_pos
+1643,open,What condition is affecting the spine?,cystic lesions,pathology,True,spine,mri,cystic_lesions,pathology_open
+1649,closed,Is the ankle foot present in this image?,no,anatomy,False,abdomen,ct,normal,anatomy_closed_neg
+1702,closed,Is the shoulder part of this scan?,yes,anatomy,True,shoulder,mri,subscapularis_pathology,anatomy_closed_pos
+1768,closed,Does the spine look abnormal?,no,pathology,False,spine,mri,normal,abnormal_closed
+1769,open,What abnormality is present in this scan?,no pathology seen,pathology,False,spine,mri,normal,pathology_open
+1784,closed,Can you identify the hip in this image?,no,anatomy,True,knee,mri,bone_inflammation,anatomy_closed_neg
+1832,open,What condition is affecting the knee?,chondral abnormality,pathology,True,knee,mri,chondral_abnormality,pathology_open
+1879,closed,Is there evidence of splenic lesion in this image?,no,pathology_specific,True,abdomen,ct,abnormal_entire_organ,pathology_closed_neg
+1928,closed,Is the abdomen present in this image?,no,anatomy,False,brain,mri,normal,anatomy_closed_neg
+1930,closed,Does the brain look abnormal?,no,pathology,False,brain,mri,normal,abnormal_closed
+1931,open,What condition is affecting the brain?,no pathology seen,pathology,False,brain,mri,normal,pathology_open
+1944,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,mri,uterine_pathology,anatomy_open
+1950,closed,Does the patient have uterine pathology?,yes,pathology_specific,True,abdomen,mri,uterine_pathology,pathology_closed_pos
+1954,closed,Is the spine present in this image?,yes,anatomy,True,spine,mri,disc_pathology,anatomy_closed_pos
+1958,open,What condition is affecting the spine?,disc pathology,pathology,True,spine,mri,disc_pathology,pathology_open
+1980,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,ct,urolithiasis,anatomy_open
+1981,closed,Can you identify the abdomen in this image?,yes,anatomy,True,abdomen,ct,urolithiasis,anatomy_closed_pos
+2012,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+2021,open,What condition is affecting the brain?,focal flair hyperintensity,pathology,True,brain,mri,focal_flair_hyper,pathology_open
+2030,open,What abnormality is present in this scan?,no pathology seen,pathology,False,shoulder,mri,normal,pathology_open
+2057,open,What condition is affecting the abdomen?,degenerative changes,pathology,True,abdomen,mri,degenerative_changes,pathology_open
+2067,closed,Is labral pathology present?,yes,pathology_specific,True,shoulder,mri,labral_pathology,pathology_closed_pos
+2097,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,bowel_abnormality,anatomy_open
+2111,open,What abnormality is present in this scan?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+2142,open,Name the organ featured in this image.,lung,anatomy,False,lung,ct,normal,anatomy_open
+2184,closed,Are there signs of subscapularis pathology?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_pos
+2198,closed,Is the spine present in this image?,no,anatomy,True,ankle foot,mri,bone_inflammation,anatomy_closed_neg
+2205,open,Which body part is visible in this image?,hip,anatomy,True,hip,mri,chondral_pathology,anatomy_open
+2219,open,What condition is affecting the spine?,no pathology seen,pathology,False,spine,mri,normal,pathology_open
+2255,open,What condition is affecting the abdomen?,bladder pathology,pathology,True,abdomen,ct,bladder_pathology,pathology_open
+2273,open,What abnormality is present in this scan?,disc pathology,pathology,True,spine,mri,disc_pathology,pathology_open
+2279,closed,Does the picture contain the spine?,no,anatomy,True,abdomen,mri,degenerative_changes,anatomy_closed_neg
+2283,closed,Is the abdomen affected by degenerative changes?,yes,pathology_specific,True,abdomen,mri,degenerative_changes,pathology_closed_pos
+2292,closed,Is the lung affected by bronchiectasis?,no,pathology_specific,False,lung,ct,normal,pathology_closed_pos
+2313,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,mri,enlarged_organ,anatomy_open
+2320,closed,Does the patient have bladder pathology?,no,pathology_specific,True,abdomen,mri,enlarged_organ,pathology_closed_neg
+2326,closed,Is there an abnormality present?,yes,pathology,True,knee,mri,post_operative_acl,abnormal_closed
+2347,closed,Are there signs of fibular collateral ligament pathology?,no,pathology_specific,True,knee,mri,chondral_abnormality,pathology_closed_neg
+2382,closed,Is labral pathology present?,yes,pathology_specific,True,shoulder,mri,labral_pathology,pathology_closed_pos
+2396,closed,Is the shoulder part of this scan?,no,anatomy,True,abdomen,ct,bowel_mass,anatomy_closed_neg
+2421,open,What specific anatomical structure is highlighted?,spine,anatomy,False,spine,mri,normal,anatomy_open
+2426,open,What condition is affecting the spine?,no pathology seen,pathology,False,spine,mri,normal,pathology_open
+2427,closed,Are there signs of fatcontaining tumor?,no,pathology_specific,False,spine,mri,normal,pathology_closed_pos
+2434,closed,Does the ankle foot look abnormal?,yes,pathology,True,ankle foot,mri,lisfranc_pathology,abnormal_closed
+2435,open,What condition is affecting the ankle foot?,lisfranc joint injury,pathology,True,ankle foot,mri,lisfranc_pathology,pathology_open
+2439,open,Which part of the body does this image belong to?,shoulder,anatomy,True,shoulder,mri,ghj_oa,anatomy_open
+2452,closed,Does this scan reveal any abnormalities?,yes,pathology,True,abdomen,ct,bowel_inflammation,abnormal_closed
+2457,open,Which part of the body does this image belong to?,shoulder,anatomy,True,shoulder,mri,labral_pathology,anatomy_open
+2466,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,dilated_urinary_tract,anatomy_open
+2484,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,arterial_pathology,anatomy_open
+2534,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+2561,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+2611,closed,Does this image show the lung?,yes,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_pos
+2644,closed,Is the lung affected by nodule?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+2664,open,What organ is highlighted in this scan?,brain,anatomy,False,brain,mri,normal,anatomy_open
+2700,open,Which part of the body does this image belong to?,lung,anatomy,True,lung,ct,Nodule,anatomy_open
+2705,open,What condition is affecting the lung?,nodule,pathology,True,lung,ct,Nodule,pathology_open
+2706,closed,Are there signs of nodule?,yes,pathology_specific,True,lung,ct,Nodule,pathology_closed_pos
+2740,closed,Does this scan reveal any abnormalities?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+2750,open,What abnormality is present in this scan?,fracture,pathology,True,knee,mri,fracture,pathology_open
+2800,closed,Can you see the brain?,yes,anatomy,True,brain,mri,white_matter_changes,anatomy_closed_pos
+2805,closed,Does the patient have white matter changes?,yes,pathology_specific,True,brain,mri,white_matter_changes,pathology_closed_pos
+2806,closed,Is the brain affected by focal flair hyperintensity?,no,pathology_specific,True,brain,mri,white_matter_changes,pathology_closed_neg
+2824,closed,Is arteriovenous anomaly present?,no,pathology_specific,True,brain,mri,white_matter_changes,pathology_closed_neg
+2831,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+2848,closed,Is this image abnormal?,yes,pathology,True,hip,mri,chondral_pathology,abnormal_closed
+2898,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,mri,normal,anatomy_open
+2907,open,What specific anatomical structure is highlighted?,brain,anatomy,True,brain,mri,white_matter_changes,anatomy_open
+2941,closed,Is airspace opacity present?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+2965,closed,Does the spine look abnormal?,yes,pathology,True,spine,mri,facet_arthropathy,abnormal_closed
+2984,open,What condition is affecting the abdomen?,adrenal pathology,pathology,True,abdomen,ct,adrenal_pathology,pathology_open
+2988,open,What anatomical region is shown?,ankle foot,anatomy,True,ankle foot,mri,soft_tissue_mass,anatomy_open
+3001,closed,Is this image abnormal?,yes,pathology,True,spine,mri,foraminal_pathlogy,abnormal_closed
+3012,closed,Is focal flair hyperintensity present?,yes,pathology_specific,True,brain,mri,focal_flair_hyper,pathology_closed_pos
+3097,closed,Is the hip present in this image?,yes,anatomy,True,hip,mri,soft_tissue_fluid,anatomy_closed_pos
+3101,open,What abnormality is present in this scan?,soft tissue fluid,pathology,True,hip,mri,soft_tissue_fluid,pathology_open
+3106,closed,Does the picture contain the brain?,yes,anatomy,True,brain,mri,white_matter_changes,anatomy_closed_pos
+3124,closed,Is the spine present in this image?,yes,anatomy,True,spine,mri,disc_pathology,anatomy_closed_pos
+3132,open,What organ is highlighted in this scan?,brain,anatomy,True,brain,mri,acute_infarct,anatomy_open
+3143,closed,Can you see the ankle foot?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+3152,closed,Can you identify the spine in this image?,no,anatomy,True,abdomen,ct,uterine_pathology,anatomy_closed_neg
+3160,closed,Does the picture contain the shoulder?,yes,anatomy,True,shoulder,mri,supraspinatus_pathology,anatomy_closed_pos
+3168,open,Which part of the body does this image belong to?,ankle foot,anatomy,True,ankle foot,mri,soft_tissue_mass,anatomy_open
+3210,closed,Is the brain affected by white matter changes?,yes,pathology_specific,True,brain,mri,white_matter_changes,pathology_closed_pos
+3247,closed,Is airspace opacity present?,no,pathology_specific,True,lung,ct,Nodule,pathology_closed_neg
+3272,open,What abnormality is present in this scan?,glenohumeral joint osteoarthritis,pathology,True,shoulder,mri,ghj_oa,pathology_open
+3280,closed,Is there an abnormality present?,yes,pathology,True,hip,mri,labral_pathology,abnormal_closed
+3287,closed,Can you see the ankle foot?,no,anatomy,True,lung,ct,Parenchyma_destruction,anatomy_closed_neg
+3308,open,What condition is affecting the spine?,dural or epidural abnormality,pathology,True,spine,mri,dural_epidural_abn,pathology_open
+3313,closed,Is the hip present in this image?,yes,anatomy,True,hip,mri,labral_pathology,anatomy_closed_pos
+3330,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+3335,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+3344,open,What abnormality is present in this scan?,liver lesion,pathology,True,abdomen,ct,liver_lesion,pathology_open
+3355,closed,Does the patient have postoperative state?,no,pathology_specific,True,shoulder,mri,soft_tissue_fluid,pathology_closed_neg
+3362,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,mri,normal,pathology_open
+3376,closed,Is the hip part of this scan?,yes,anatomy,True,hip,mri,capsular_pathology,anatomy_closed_pos
+3394,closed,Does this image show the shoulder?,yes,anatomy,True,shoulder,mri,acj_oa,anatomy_closed_pos
+3411,open,What anatomical region is shown?,lung,anatomy,False,lung,ct,normal,anatomy_open
+3443,open,What abnormality is present in this scan?,scoliosis,pathology,True,spine,mri,scoliosis,pathology_open
+3467,closed,Can you see the ankle foot?,no,anatomy,False,abdomen,ct,normal,anatomy_closed_neg
+3485,closed,Does this image show the knee?,no,anatomy,True,shoulder,mri,ghj_oa,anatomy_closed_neg
+3488,open,What condition is affecting the shoulder?,glenohumeral joint osteoarthritis,pathology,True,shoulder,mri,ghj_oa,pathology_open
+3490,closed,Does the patient have acromioclavicular joint osteoarthritis?,no,pathology_specific,True,shoulder,mri,ghj_oa,pathology_closed_neg
+3497,open,What condition is affecting the knee?,posterior cruciate ligament pathology,pathology,True,knee,mri,pcl_pathology,pathology_open
+3501,open,Name the organ featured in this image.,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+3508,closed,Is the abdomen affected by renal lesion?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_neg
+3515,open,What abnormality is present in this scan?,plantar plate tear,pathology,True,ankle foot,mri,Plantar_plate_tear,pathology_open
+3520,closed,Does the picture contain the shoulder?,yes,anatomy,True,shoulder,mri,infraspinatus_pathology,anatomy_closed_pos
+3546,open,Which part of the body does this image belong to?,abdomen,anatomy,True,abdomen,ct,bladder_pathology,anatomy_open
+3583,closed,Does this image show the hip?,yes,anatomy,True,hip,mri,osseous_lesion,anatomy_closed_pos
+3602,closed,Does this image show the shoulder?,no,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_neg
+3629,closed,Is the spine visible in the image?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+3645,open,Which body part is visible in this image?,knee,anatomy,True,knee,mri,soft_tissue_fluid_collection,anatomy_open
+3655,closed,Is the abdomen part of this scan?,yes,anatomy,False,abdomen,ct,normal,anatomy_closed_pos
+3658,closed,Does the abdomen look abnormal?,no,pathology,False,abdomen,ct,normal,abnormal_closed
+3665,closed,Is the spine visible in the image?,no,anatomy,True,knee,mri,chondral_abnormality,anatomy_closed_neg
+3677,open,What condition is affecting the knee?,posterior cruciate ligament pathology,pathology,True,knee,mri,pcl_pathology,pathology_open
+3679,closed,Is the knee affected by patella pathology?,no,pathology_specific,True,knee,mri,pcl_pathology,pathology_closed_neg
+3683,closed,Does this image show the knee?,no,anatomy,True,hip,mri,labral_pathology,anatomy_closed_neg
+3695,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+3703,closed,Is there an abnormality present?,yes,pathology,True,abdomen,mri,enlarged_organ,abnormal_closed
+3845,closed,Does this image show the ankle foot?,no,anatomy,False,shoulder,mri,normal,anatomy_closed_neg
+3862,closed,Can you identify the abdomen in this image?,yes,anatomy,False,abdomen,ct,normal,anatomy_closed_pos
+3866,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+3888,open,Which body part is visible in this image?,lung,anatomy,False,lung,ct,normal,anatomy_open
+3892,closed,Is this image abnormal?,no,pathology,False,lung,ct,normal,abnormal_closed
+3893,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+3899,closed,Can you see the spine?,no,anatomy,True,ankle foot,mri,plantar_fascia_pathology,anatomy_closed_neg
+3908,closed,Does the picture contain the ankle foot?,no,anatomy,True,abdomen,ct,pancreatic_lesion,anatomy_closed_neg
+3910,closed,Does this scan reveal any abnormalities?,yes,pathology,True,abdomen,ct,pancreatic_lesion,abnormal_closed
+3916,closed,Does the picture contain the brain?,yes,anatomy,True,brain,mri,focal_flair_hyper,anatomy_closed_pos
+3934,closed,Is the abdomen visible in the image?,yes,anatomy,True,abdomen,ct,urolithiasis,anatomy_closed_pos
+3947,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+4005,open,Which part of the body does this image belong to?,abdomen,anatomy,True,abdomen,ct,bowel_abnormality,anatomy_open
+4016,closed,Does the picture contain the hip?,no,anatomy,True,knee,mri,chondral_abnormality,anatomy_closed_neg
+4079,closed,Does this image show the lung?,no,anatomy,True,brain,mri,extra,anatomy_closed_neg
+4106,closed,Does the picture contain the shoulder?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+4108,closed,Is this image abnormal?,no,pathology,False,lung,ct,normal,abnormal_closed
+4115,closed,Can you identify the knee in this image?,no,anatomy,True,ankle foot,mri,peroneal_pathology,anatomy_closed_neg
+4136,open,What abnormality is present in this scan?,coalition bone fusion,pathology,True,ankle foot,mri,coalition,pathology_open
+4155,closed,Does the patient have labral pathology?,yes,pathology_specific,True,shoulder,mri,labral_pathology,pathology_closed_pos
+4176,open,Which part of the body does this image belong to?,shoulder,anatomy,True,shoulder,mri,soft_tissue_edema,anatomy_open
+4181,open,What abnormality is present in this scan?,soft tissue edema,pathology,True,shoulder,mri,soft_tissue_edema,pathology_open
+4201,closed,Is the knee affected by anterior cruciate ligament pathology?,no,pathology_specific,True,knee,mri,meniscal_abnormality,pathology_closed_neg
+4205,closed,Is the hip visible in the image?,no,anatomy,False,ankle foot,mri,normal,anatomy_closed_neg
+4226,open,What condition is affecting the brain?,white matter changes,pathology,True,brain,mri,white_matter_changes,pathology_open
+4230,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,ct,bowel_abnormality,anatomy_open
+4257,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,ct,osseous_neoplasm,anatomy_open
+4311,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,mri,splenic_lesion,anatomy_open
+4375,closed,Is the abdomen visible in the image?,yes,anatomy,False,abdomen,mri,normal,anatomy_closed_pos
+4414,closed,Is there an abnormality present?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+4423,closed,Does this scan reveal any abnormalities?,no,pathology,False,abdomen,mri,normal,abnormal_closed
+4461,closed,Are there signs of dural or epidural abnormality?,yes,pathology_specific,True,spine,mri,dural_epidural_abn,pathology_closed_pos
+4478,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+4500,open,Which body part is visible in this image?,abdomen,anatomy,True,abdomen,ct,uterine_pathology,anatomy_open
+4501,closed,Is the abdomen present in this image?,yes,anatomy,True,abdomen,ct,uterine_pathology,anatomy_closed_pos
+4545,open,Which body part is visible in this image?,abdomen,anatomy,True,abdomen,mri,intraperitoneal_mass,anatomy_open
+4546,closed,Is the abdomen part of this scan?,yes,anatomy,True,abdomen,mri,intraperitoneal_mass,anatomy_closed_pos
+4596,closed,Does the patient have intraarticular abnormality?,yes,pathology_specific,True,brain,mri,intra,pathology_closed_pos
+4599,open,What organ is highlighted in this scan?,hip,anatomy,True,hip,mri,soft_tissue_fluid,anatomy_open
+4613,open,What abnormality is present in this scan?,fatcontaining tumor,pathology,True,ankle foot,mri,fat_containing_tumor,pathology_open
+4624,closed,Is there evidence of foraminal pathology in this image?,no,pathology_specific,True,spine,mri,disc_pathology,pathology_closed_neg
+4632,closed,Are there signs of soft tissue fluid?,yes,pathology_specific,True,ankle foot,mri,soft_tissue_fluid,pathology_closed_pos
+4653,open,Which body part is visible in this image?,brain,anatomy,True,brain,mri,extra,anatomy_open
+4663,closed,Does this image show the abdomen?,yes,anatomy,False,abdomen,mri,normal,anatomy_closed_pos
+4664,closed,Is the hip present in this image?,no,anatomy,False,abdomen,mri,normal,anatomy_closed_neg
+4676,open,What abnormality is present in this scan?,chondral abnormality,pathology,True,knee,mri,chondral_abnormality,pathology_open
+4694,open,What condition is affecting the lung?,nodule,pathology,True,lung,ct,Nodule,pathology_open
+4840,closed,Is there evidence of airspace opacity in this image?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+4871,closed,Is the knee visible in the image?,no,anatomy,True,ankle foot,mri,soft_tissue_fluid,anatomy_closed_neg
+4874,open,What abnormality is present in this scan?,soft tissue fluid,pathology,True,ankle foot,mri,soft_tissue_fluid,pathology_open
+4887,open,What organ is highlighted in this scan?,lung,anatomy,True,lung,ct,Nodule,anatomy_open
+4898,closed,Does the picture contain the abdomen?,no,anatomy,True,brain,mri,edema,anatomy_closed_neg
+4905,open,What organ is highlighted in this scan?,lung,anatomy,True,lung,ct,Nodule,anatomy_open
+4918,closed,Is there an abnormality present?,yes,pathology,True,abdomen,ct,gallbladder_pathology,abnormal_closed
+4919,open,What condition is affecting the abdomen?,gallbladder pathology,pathology,True,abdomen,ct,gallbladder_pathology,pathology_open
+4941,open,Name the organ featured in this image.,hip,anatomy,True,hip,mri,chondral_pathology,anatomy_open
+4946,open,What abnormality is present in this scan?,chondral pathology,pathology,True,hip,mri,chondral_pathology,pathology_open
+4964,open,What condition is affecting the hip?,labral pathology,pathology,True,hip,mri,labral_pathology,pathology_open
+4968,open,What specific anatomical structure is highlighted?,ankle foot,anatomy,True,ankle foot,mri,soft_tissue_fluid,anatomy_open
+4984,closed,Is postoperative state present?,no,pathology_specific,True,abdomen,ct,osseous_neoplasm,pathology_closed_neg
+5002,closed,Is bronchiectasis present?,no,pathology_specific,True,lung,ct,Airspace_opacity,pathology_closed_neg
+5022,open,Name the organ featured in this image.,lung,anatomy,True,lung,ct,Parenchyma_destruction,anatomy_open
+5055,closed,Is there evidence of chronic infarct in this image?,yes,pathology_specific,True,brain,mri,chronic_infarct,pathology_closed_pos
+5085,open,Which part of the body does this image belong to?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+5099,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+5130,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,dilated_urinary_tract,anatomy_open
+5146,closed,Is there evidence of bowel abnormality in this image?,no,pathology_specific,True,abdomen,mri,liver_lesion,pathology_closed_neg
+5155,closed,Is the spine affected by cystic lesions?,no,pathology_specific,True,spine,mri,disc_pathology,pathology_closed_neg
+5171,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+5177,closed,Is the shoulder part of this scan?,no,anatomy,True,hip,mri,hamstring_pathology,anatomy_closed_neg
+5215,closed,Is there an abnormality present?,yes,pathology,True,shoulder,mri,ca++_tendinosis,abnormal_closed
+5224,closed,Does this scan reveal any abnormalities?,no,pathology,False,abdomen,ct,normal,abnormal_closed
+5225,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+5276,closed,Is the ankle foot visible in the image?,no,anatomy,True,knee,mri,meniscal_abnormality,anatomy_closed_neg
+5319,open,Which body part is visible in this image?,shoulder,anatomy,True,shoulder,mri,soft_tissue_fluid,anatomy_open
+5377,closed,Is this image abnormal?,yes,pathology,True,hip,mri,marrow_inflammation,abnormal_closed
+5378,open,What abnormality is present in this scan?,marrow inflammation,pathology,True,hip,mri,marrow_inflammation,pathology_open
+5387,open,What condition is affecting the knee?,soft tissue fluid collection,pathology,True,knee,mri,soft_tissue_fluid_collection,pathology_open
+5427,open,Which body part is visible in this image?,ankle foot,anatomy,True,ankle foot,mri,bone_inflammation,anatomy_open
+5441,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+5443,closed,Does the patient have interstitial lung disease?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+5449,closed,Is there an abnormality present?,no,pathology,False,abdomen,mri,normal,abnormal_closed
+5490,open,What organ is highlighted in this scan?,brain,anatomy,True,brain,mri,extra,anatomy_open
+5495,open,What condition is affecting the brain?,extraaxial lesion,pathology,True,brain,mri,extra,pathology_open
+5506,closed,Is the abdomen affected by bowel inflammation?,no,pathology_specific,True,abdomen,mri,ovarian_pathology,pathology_closed_neg
+5517,open,What organ is highlighted in this scan?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+5544,open,What anatomical region is shown?,lung,anatomy,False,lung,ct,normal,anatomy_open
+5562,open,What specific anatomical structure is highlighted?,hip,anatomy,True,hip,mri,chondral_pathology,anatomy_open
+5587,closed,Is the abdomen affected by marrow abnormality?,no,pathology_specific,True,abdomen,mri,enlarged_organ,pathology_closed_neg
+5612,open,What abnormality is present in this scan?,supraspinatus pathology,pathology,True,shoulder,mri,supraspinatus_pathology,pathology_open
+5640,closed,Is biceps pathology present?,yes,pathology_specific,True,shoulder,mri,biceps_pathology,pathology_closed_pos
+5697,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+5757,closed,Is there evidence of arteriovenous anomaly in this image?,yes,pathology_specific,True,brain,mri,arteriovenous_anomaly,pathology_closed_pos
+5760,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+5783,open,What condition is affecting the lung?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+5792,open,What abnormality is present in this scan?,fibular collateral ligament pathology,pathology,True,knee,mri,fcl_pathology,pathology_open
+5836,closed,Is this image abnormal?,yes,pathology,True,hip,mri,labral_pathology,abnormal_closed
+5850,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,ct,arterial_pathology,anatomy_open
+5855,open,What abnormality is present in this scan?,arterial pathology,pathology,True,abdomen,ct,arterial_pathology,pathology_open
+5875,closed,Is there evidence of bowel mass in this image?,no,pathology_specific,True,abdomen,mri,bladder_pathology,pathology_closed_neg
+5883,closed,Does the patient have hamstring pathology?,no,pathology_specific,False,lung,ct,normal,pathology_closed_pos
+5886,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,mri,normal,anatomy_open
+5891,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,mri,normal,pathology_open
+5895,open,Name the organ featured in this image.,knee,anatomy,True,knee,mri,meniscal_abnormality,anatomy_open
+5904,open,What organ is highlighted in this scan?,spine,anatomy,True,spine,mri,foraminal_pathlogy,anatomy_open
+5914,closed,Does this image show the abdomen?,yes,anatomy,False,abdomen,mri,normal,anatomy_closed_pos
+5922,open,What anatomical region is shown?,shoulder,anatomy,True,shoulder,mri,supraspinatus_pathology,anatomy_open
+5937,closed,Is interstitial lung disease present?,yes,pathology_specific,True,lung,ct,interstitial_lung_disease,pathology_closed_pos
+5953,closed,Is there an abnormality present?,no,pathology,False,lung,ct,normal,abnormal_closed
+5972,open,What condition is affecting the knee?,meniscal abnormality,pathology,True,knee,mri,meniscal_abnormality,pathology_open
+5985,open,What anatomical region is shown?,abdomen,anatomy,True,abdomen,ct,ovarian_pathology,anatomy_open
+5992,closed,Does the patient have renal lesion?,no,pathology_specific,True,abdomen,ct,ovarian_pathology,pathology_closed_neg
+6001,closed,Is there evidence of urolithiasis in this image?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_neg
+6039,open,Which body part is visible in this image?,spine,anatomy,False,spine,mri,normal,anatomy_open
+6061,closed,Does this scan reveal any abnormalities?,yes,pathology,True,hip,mri,osseous_lesion,abnormal_closed
+6070,closed,Does this scan reveal any abnormalities?,yes,pathology,True,knee,mri,meniscal_abnormality,abnormal_closed
+6079,closed,Does this scan reveal any abnormalities?,no,pathology,False,lung,ct,normal,abnormal_closed
+6080,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+6093,open,What specific anatomical structure is highlighted?,knee,anatomy,True,knee,mri,mcl_pathology,anatomy_open
+6174,open,What organ is highlighted in this scan?,lung,anatomy,False,lung,ct,normal,anatomy_open
+6181,closed,Is there evidence of interstitial lung disease in this image?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+6221,closed,Is the hip part of this scan?,no,anatomy,True,knee,mri,acl_pathology,anatomy_closed_neg
+6233,open,What condition is affecting the ankle foot?,deltoid pathology,pathology,True,ankle foot,mri,deltoid_pathology,pathology_open
+6238,closed,Can you identify the brain in this image?,yes,anatomy,False,brain,mri,normal,anatomy_closed_pos
+6239,closed,Can you identify the shoulder in this image?,no,anatomy,False,brain,mri,normal,anatomy_closed_neg
+6244,closed,Is there evidence of acute infarct in this image?,no,pathology_specific,False,brain,mri,normal,pathology_closed_neg
+6269,open,What condition is affecting the abdomen?,bowel inflammation,pathology,True,abdomen,ct,bowel_inflammation,pathology_open
+6282,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+6296,open,What abnormality is present in this scan?,extraaxial lesion,pathology,True,brain,mri,extra,pathology_open
+6306,closed,Are there signs of fibular collateral ligament pathology?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_pos
+6309,open,Which body part is visible in this image?,lung,anatomy,False,lung,ct,normal,anatomy_open
+6337,closed,Is the lung visible in the image?,yes,anatomy,True,lung,ct,Nodule,anatomy_closed_pos
+6341,open,What condition is affecting the lung?,nodule,pathology,True,lung,ct,Nodule,pathology_open
+6356,closed,Can you identify the ankle foot in this image?,no,anatomy,True,hip,mri,chondral_pathology,anatomy_closed_neg
+6431,open,What abnormality is present in this scan?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+6459,closed,Is the knee affected by meniscal abnormality?,yes,pathology_specific,True,knee,mri,meniscal_abnormality,pathology_closed_pos
+6460,closed,Are there signs of quadriceps pathology?,no,pathology_specific,True,knee,mri,meniscal_abnormality,pathology_closed_neg
+6462,open,Name the organ featured in this image.,hip,anatomy,True,hip,mri,labral_pathology,anatomy_open
+6467,open,What abnormality is present in this scan?,labral pathology,pathology,True,hip,mri,labral_pathology,pathology_open
+6489,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,ct,arterial_pathology,anatomy_open
+6514,closed,Are there signs of parenchyma destruction?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+6535,closed,Can you see the shoulder?,yes,anatomy,False,shoulder,mri,normal,anatomy_closed_pos
+6597,open,What anatomical region is shown?,abdomen,anatomy,True,abdomen,ct,bowel_inflammation,anatomy_open
+6615,open,What anatomical region is shown?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+6616,closed,Can you identify the abdomen in this image?,yes,anatomy,False,abdomen,ct,normal,anatomy_closed_pos
+6629,open,What condition is affecting the abdomen?,bowel inflammation,pathology,True,abdomen,mri,bowel_inflammation,pathology_open
+6642,open,What specific anatomical structure is highlighted?,brain,anatomy,True,brain,mri,white_matter_changes,anatomy_open
+6651,open,Which part of the body does this image belong to?,ankle foot,anatomy,True,ankle foot,mri,bone_inflammation,anatomy_open
+6657,closed,Is the ankle foot affected by bone inflammation?,yes,pathology_specific,True,ankle foot,mri,bone_inflammation,pathology_closed_pos
+6709,closed,Is there an abnormality present?,yes,pathology,True,lung,ct,Nodule,abnormal_closed
+6719,open,What condition is affecting the brain?,no pathology seen,pathology,False,brain,mri,normal,pathology_open
+6723,open,Which part of the body does this image belong to?,ankle foot,anatomy,True,ankle foot,mri,spring_ligament_injury,anatomy_open
+6741,open,Name the organ featured in this image.,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+6742,closed,Can you see the abdomen?,yes,anatomy,False,abdomen,ct,normal,anatomy_closed_pos
+6757,closed,Are there signs of nodule?,no,pathology_specific,True,lung,ct,Airspace_opacity,pathology_closed_neg
+6786,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,renal_lesion,anatomy_open
+6787,closed,Is the abdomen visible in the image?,yes,anatomy,True,abdomen,ct,renal_lesion,anatomy_closed_pos
+6820,closed,Is the ankle foot affected by flexor pathology?,no,pathology_specific,True,ankle foot,mri,lisfranc_pathology,pathology_closed_neg
+6822,open,Name the organ featured in this image.,lung,anatomy,False,lung,ct,normal,anatomy_open
+6831,open,Name the organ featured in this image.,abdomen,anatomy,False,abdomen,mri,normal,anatomy_open
+6863,open,What condition is affecting the lung?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+6881,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+6886,closed,Can you identify the shoulder in this image?,yes,anatomy,True,shoulder,mri,labral_pathology,anatomy_closed_pos
+6917,open,What condition is affecting the abdomen?,gallstone,pathology,True,abdomen,ct,gallstone,pathology_open
+6940,closed,Is the shoulder visible in the image?,yes,anatomy,True,shoulder,mri,labral_pathology,anatomy_closed_pos
+6962,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+6970,closed,Does the ankle foot look abnormal?,yes,pathology,True,ankle foot,mri,Plantar_plate_tear,abnormal_closed
+6973,closed,Does the patient have hematoma?,no,pathology_specific,True,ankle foot,mri,Plantar_plate_tear,pathology_closed_neg
+6993,open,Which body part is visible in this image?,abdomen,anatomy,False,abdomen,mri,normal,anatomy_open
+7007,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,mri,normal,pathology_open
+7008,closed,Is there evidence of gallstone in this image?,no,pathology_specific,False,abdomen,mri,normal,pathology_closed_pos
+7020,open,What specific anatomical structure is highlighted?,abdomen,anatomy,False,abdomen,mri,normal,anatomy_open
+7025,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,mri,normal,pathology_open
+7030,closed,Does the picture contain the abdomen?,yes,anatomy,True,abdomen,ct,bowel_inflammation,anatomy_closed_pos
+7034,open,What condition is affecting the abdomen?,bowel inflammation,pathology,True,abdomen,ct,bowel_inflammation,pathology_open
+7056,open,What organ is highlighted in this scan?,ankle foot,anatomy,True,ankle foot,mri,peroneal_pathology,anatomy_open
+7079,open,What abnormality is present in this scan?,arteriovenous anomaly,pathology,True,brain,mri,arteriovenous_anomaly,pathology_open
+7083,open,What anatomical region is shown?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+7098,closed,Is renal lesion present?,yes,pathology_specific,True,abdomen,mri,renal_lesion,pathology_closed_pos
+7124,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+7151,open,What abnormality is present in this scan?,degenerative changes,pathology,True,abdomen,mri,degenerative_changes,pathology_open
+7157,closed,Does the picture contain the ankle foot?,no,anatomy,False,brain,mri,normal,anatomy_closed_neg
+7161,closed,Is osseous disruption present?,no,pathology_specific,False,brain,mri,normal,pathology_closed_pos
+7173,open,What anatomical region is shown?,spine,anatomy,True,spine,mri,disc_pathology,anatomy_open
+7175,closed,Does this image show the lung?,no,anatomy,True,spine,mri,disc_pathology,anatomy_closed_neg
+7204,closed,Does this scan reveal any abnormalities?,yes,pathology,True,abdomen,mri,soft_tissue_collection,abnormal_closed
+7299,open,What specific anatomical structure is highlighted?,shoulder,anatomy,True,shoulder,mri,supraspinatus_pathology,anatomy_open
+7414,closed,Is there evidence of calcific tendinosis in this image?,no,pathology_specific,True,shoulder,mri,osseous_lesion,pathology_closed_neg
+7416,open,Which body part is visible in this image?,lung,anatomy,True,lung,ct,Nodule,anatomy_open
+7425,open,What organ is highlighted in this scan?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+7434,open,What organ is highlighted in this scan?,ankle foot,anatomy,True,ankle foot,mri,cfl_pathology,anatomy_open
+7453,closed,Is the lung present in this image?,yes,anatomy,False,lung,ct,normal,anatomy_closed_pos
+7457,open,What abnormality is present in this scan?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+7459,closed,Are there signs of nodule?,no,pathology_specific,False,lung,ct,normal,pathology_closed_neg
+7489,closed,Can you see the spine?,yes,anatomy,True,spine,mri,scoliosis,anatomy_closed_pos
+7520,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+7574,open,What condition is affecting the lung?,no pathology seen,pathology,False,lung,ct,normal,pathology_open
+7580,closed,Is the ankle foot visible in the image?,no,anatomy,True,abdomen,ct,bowel_inflammation,anatomy_closed_neg
+7630,closed,Is the ankle foot affected by osseous neoplasm?,no,pathology_specific,True,ankle foot,mri,osseous_disruption,pathology_closed_neg
+7641,open,Which part of the body does this image belong to?,ankle foot,anatomy,True,ankle foot,mri,chondral_abnormality,anatomy_open
+7664,open,What abnormality is present in this scan?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+7686,open,Name the organ featured in this image.,spine,anatomy,True,spine,mri,disc_pathology,anatomy_open
+7708,closed,Does this scan reveal any abnormalities?,yes,pathology,True,brain,mri,chronic_infarct,abnormal_closed
+7754,open,What condition is affecting the brain?,pituitary lesion,pathology,True,brain,mri,pituatary_lesion,pathology_open
+7767,open,What anatomical region is shown?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+7780,closed,Does this scan reveal any abnormalities?,yes,pathology,True,spine,mri,dural_epidural_abn,abnormal_closed
+7800,closed,Is syndesmosis pathology present?,yes,pathology_specific,True,ankle foot,mri,syndesmosis_pathology,pathology_closed_pos
+7808,open,What abnormality is present in this scan?,no pathology seen,pathology,False,shoulder,mri,normal,pathology_open
+7831,closed,Does the picture contain the lung?,yes,anatomy,False,lung,ct,normal,anatomy_closed_pos
+7880,open,What abnormality is present in this scan?,soft tissue edema,pathology,True,ankle foot,mri,soft_tissue_edema,pathology_open
+7908,closed,Are there signs of soft tissue fluid?,no,pathology_specific,False,lung,ct,normal,pathology_closed_pos
+7927,closed,Does the patient have supraspinatus pathology?,no,pathology_specific,True,shoulder,mri,biceps_pathology,pathology_closed_neg
+7929,open,What specific anatomical structure is highlighted?,ankle foot,anatomy,True,ankle foot,mri,lisfranc_pathology,anatomy_open
+7934,open,What abnormality is present in this scan?,lisfranc joint injury,pathology,True,ankle foot,mri,lisfranc_pathology,pathology_open
+7938,open,What anatomical region is shown?,abdomen,anatomy,True,abdomen,ct,liver_lesion,anatomy_open
+7951,closed,Does the brain look abnormal?,yes,pathology,True,brain,mri,extra,abnormal_closed
+7971,closed,Is bronchiectasis present?,yes,pathology_specific,True,lung,ct,Bronchiectasis,pathology_closed_pos
+7983,open,What anatomical region is shown?,abdomen,anatomy,True,abdomen,ct,osseous_neoplasm,anatomy_open
+7994,closed,Can you identify the shoulder in this image?,no,anatomy,True,brain,mri,white_matter_changes,anatomy_closed_neg
+8010,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,ct,adrenal_pathology,anatomy_open
+8011,closed,Does this image show the abdomen?,yes,anatomy,True,abdomen,ct,adrenal_pathology,anatomy_closed_pos
+8019,open,What organ is highlighted in this scan?,lung,anatomy,False,lung,ct,normal,anatomy_open
+8044,closed,Is abductor pathology present?,no,pathology_specific,True,hip,mri,soft_tissue_fluid,pathology_closed_neg
+8069,open,What condition is affecting the abdomen?,abnormal entire organ,pathology,True,abdomen,ct,abnormal_entire_organ,pathology_open
+8073,open,What organ is highlighted in this scan?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+8091,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,renal_lesion,anatomy_open
+8096,open,What abnormality is present in this scan?,renal lesion,pathology,True,abdomen,ct,renal_lesion,pathology_open
+8106,closed,Are there signs of labral pathology?,yes,pathology_specific,True,shoulder,mri,labral_pathology,pathology_closed_pos
+8115,closed,Is bladder pathology present?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_pos
+8134,closed,Is coalition bone fusion present?,no,pathology_specific,True,ankle foot,mri,atfl_pathology,pathology_closed_neg
+8147,closed,Is the spine visible in the image?,no,anatomy,True,abdomen,ct,ascites,anatomy_closed_neg
+8150,open,What abnormality is present in this scan?,ascites,pathology,True,abdomen,ct,ascites,pathology_open
+8154,open,What anatomical region is shown?,lung,anatomy,True,lung,ct,Airspace_opacity,anatomy_open
+8158,closed,Is there an abnormality present?,yes,pathology,True,lung,ct,Airspace_opacity,abnormal_closed
+8159,open,What condition is affecting the lung?,airspace opacity,pathology,True,lung,ct,Airspace_opacity,pathology_open
+8167,closed,Is there an abnormality present?,yes,pathology,True,abdomen,mri,pancreatic_lesion,abnormal_closed
+8178,closed,Are there signs of gallbladder pathology?,no,pathology_specific,False,abdomen,ct,normal,pathology_closed_pos
+8194,closed,Is there an abnormality present?,no,pathology,False,ankle foot,mri,normal,abnormal_closed
+8222,open,What abnormality is present in this scan?,soft tissue fluid,pathology,True,shoulder,mri,soft_tissue_fluid,pathology_open
+8255,closed,Is the hip part of this scan?,no,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_neg
+8269,closed,Is there evidence of disc pathology in this image?,no,pathology_specific,True,spine,mri,foraminal_pathlogy,pathology_closed_neg
+8271,open,Which part of the body does this image belong to?,spine,anatomy,True,spine,mri,disc_pathology,anatomy_open
+8302,closed,Is this image abnormal?,yes,pathology,True,abdomen,mri,liver_disease_,abnormal_closed
+8335,closed,Is the ankle foot present in this image?,yes,anatomy,True,ankle foot,mri,chondral_abnormality,anatomy_closed_pos
+8399,closed,Can you identify the brain in this image?,no,anatomy,True,lung,ct,Airspace_opacity,anatomy_closed_neg
+8411,open,What condition is affecting the brain?,chronic infarct,pathology,True,brain,mri,chronic_infarct,pathology_open
+8415,open,Which body part is visible in this image?,abdomen,anatomy,False,abdomen,ct,normal,anatomy_open
+8419,closed,Does the abdomen look abnormal?,no,pathology,False,abdomen,ct,normal,abnormal_closed
+8424,open,What specific anatomical structure is highlighted?,knee,anatomy,True,knee,mri,patella_pathology,anatomy_open
+8465,open,What condition is affecting the abdomen?,no pathology seen,pathology,False,abdomen,ct,normal,pathology_open
+8496,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,mri,renal_lesion,anatomy_open
+8497,closed,Is the abdomen part of this scan?,yes,anatomy,True,abdomen,mri,renal_lesion,anatomy_closed_pos
+8501,open,What condition is affecting the abdomen?,renal lesion,pathology,True,abdomen,mri,renal_lesion,pathology_open
+8528,open,What condition is affecting the ankle foot?,soft tissue fluid,pathology,True,ankle foot,mri,soft_tissue_fluid,pathology_open
+8536,closed,Is this image abnormal?,yes,pathology,True,lung,ct,Bronchiectasis,abnormal_closed
+8539,closed,Does the patient have parenchyma destruction?,no,pathology_specific,True,lung,ct,Bronchiectasis,pathology_closed_neg
+8559,open,What specific anatomical structure is highlighted?,abdomen,anatomy,True,abdomen,mri,soft_tissue_collection,anatomy_open
+8588,closed,Can you identify the knee in this image?,no,anatomy,False,abdomen,ct,normal,anatomy_closed_neg
+8606,closed,Is the shoulder part of this scan?,no,anatomy,False,lung,ct,normal,anatomy_closed_neg
+8614,closed,Can you identify the knee in this image?,yes,anatomy,True,knee,mri,chondral_abnormality,anatomy_closed_pos
+8631,open,What organ is highlighted in this scan?,abdomen,anatomy,True,abdomen,ct,osseous_neoplasm,anatomy_open
+8674,closed,Does the patient have urolithiasis?,no,pathology_specific,True,abdomen,ct,bladder_pathology,pathology_closed_neg
+8677,closed,Does this image show the knee?,yes,anatomy,True,knee,mri,pcl_pathology,anatomy_closed_pos
+8685,open,What organ is highlighted in this scan?,ankle foot,anatomy,True,ankle foot,mri,atfl_pathology,anatomy_open
+8690,open,What abnormality is present in this scan?,anterior talofibular ligament pathology,pathology,True,ankle foot,mri,atfl_pathology,pathology_open
+8726,open,What condition is affecting the shoulder?,labral pathology,pathology,True,shoulder,mri,labral_pathology,pathology_open
+8767,closed,Can you see the abdomen?,yes,anatomy,True,abdomen,ct,fat_containing_tumor,anatomy_closed_pos
+8773,closed,Does the patient have bowel mass?,no,pathology_specific,True,abdomen,ct,fat_containing_tumor,pathology_closed_neg
+8784,open,Name the organ featured in this image.,abdomen,anatomy,True,abdomen,ct,renal_lesion,anatomy_open
+8789,open,What condition is affecting the abdomen?,renal lesion,pathology,True,abdomen,ct,renal_lesion,pathology_open
+8820,open,What organ is highlighted in this scan?,shoulder,anatomy,False,shoulder,mri,normal,anatomy_open
+8917,closed,Is the brain affected by arteriovenous anomaly?,no,pathology_specific,True,brain,mri,acute_infarct,pathology_closed_neg
+8944,closed,Does the patient have soft tissue mass?,no,pathology_specific,True,abdomen,ct,bowel_inflammation,pathology_closed_neg
+8946,open,Which body part is visible in this image?,lung,anatomy,False,lung,ct,normal,anatomy_open
+8955,open,What anatomical region is shown?,ankle foot,anatomy,True,ankle foot,mri,spring_ligament_injury,anatomy_open
+8964,open,Which body part is visible in this image?,abdomen,anatomy,True,abdomen,ct,post_op,anatomy_open

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiến trúc Gemma 4 (E2B/E4B) — model đã fine-tune</title>
+<style>
+  :root{--bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;--code-bg:#eef1f6;--code-text:#0f2c5c;
+    --vis:#0e7490;--llm:#7c3aed;--lora:#b45309;}
+  @media (prefers-color-scheme:dark){:root{--bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;--good:#57d98a;--good-soft:#10241a;
+    --warn:#fbbf24;--warn-soft:#2a2210;--code-bg:#1d2536;--code-text:#bcd2ff;--vis:#4dd6e8;--llm:#b794ff;--lora:#fbbf24;}}
+  :root[data-theme="dark"]{--bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;--good:#57d98a;--good-soft:#10241a;
+    --warn:#fbbf24;--warn-soft:#2a2210;--code-bg:#1d2536;--code-text:#bcd2ff;--vis:#4dd6e8;--llm:#b794ff;--lora:#fbbf24;}
+  :root[data-theme="light"]{--bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;--good:#15803d;--good-soft:#eafaf0;
+    --warn:#b45309;--warn-soft:#fff7e6;--code-bg:#eef1f6;--code-text:#0f2c5c;--vis:#0e7490;--llm:#7c3aed;--lora:#b45309;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.62;padding:2rem 1rem}
+  .container{max-width:1000px;margin:0 auto}
+  header{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.4rem}
+  header h1{font-size:1.5rem;margin-bottom:.4rem;line-height:1.3}
+  header .sub{color:var(--muted);font-size:.93rem}
+  .badges{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.45rem}
+  .badge{font-size:.76rem;padding:.22rem .6rem;border-radius:999px;background:var(--surface);color:var(--accent);border:1px solid var(--border)}
+  section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem 1.8rem;margin-bottom:1.4rem}
+  h2{font-size:1.18rem;margin-bottom:.6rem;color:var(--accent)}
+  h3{font-size:1rem;margin:1rem 0 .4rem;color:var(--accent2)}
+  p{margin-bottom:.55rem}ul{margin:0 0 .6rem 1.2rem}li{margin-bottom:.28rem}
+  code{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);padding:.1rem .35rem;border-radius:5px;font-size:.85em}
+  pre{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);padding:.9rem;border-radius:10px;overflow-x:auto;font-size:.8rem;line-height:1.5;margin:.6rem 0;border:1px solid var(--border)}
+  .table-wrap{overflow-x:auto;margin:.7rem 0;border:1px solid var(--border);border-radius:10px}
+  table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+  th,td{border-bottom:1px solid var(--border);padding:.5rem .7rem;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);font-weight:600}tr:last-child td{border-bottom:none}
+  .diagram{overflow-x:auto;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.7rem 0}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem 1rem;border-radius:0 10px 10px 0;margin:.6rem 0;font-size:.9rem}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .callout.good{border-color:var(--good);background:var(--good-soft)}
+  .io{display:flex;flex-wrap:wrap;gap:.6rem;margin:.6rem 0}
+  .io .box{flex:1;min-width:200px;border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;background:var(--surface2)}
+  .io .box .h{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .io .box .c{font-family:Consolas,monospace;font-size:.85rem;margin-top:.2rem;color:var(--code-text)}
+  .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;z-index:9}
+  svg text{font-family:Segoe UI,sans-serif}
+  .muted{color:var(--muted);font-size:.85rem}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1rem 0 2rem}
+
+/* ═══ Navigation Bar ═══ */
+.nav-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e0e5ee;
+  padding: .5rem 1rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: .4rem;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: .82rem;
+}
+@media (prefers-color-scheme: dark) {
+  .nav-bar { background: rgba(22,27,38,.92); border-color: #2a3348; }
+  .nav-bar a, .nav-bar .nav-current { color: #c8d1e0; }
+  .nav-bar a:hover { background: #1a2540; color: #7aa2ff; }
+}
+.nav-bar a {
+  text-decoration: none; color: #2563eb; padding: .3rem .7rem;
+  border-radius: 8px; transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.nav-bar a:hover { background: #eef4ff; color: #1d4ed8; }
+.nav-bar .nav-home { font-weight: 700; }
+.nav-bar .nav-current {
+  color: #6b7685; font-weight: 600; padding: .3rem .5rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 300px;
+}
+.nav-bar .nav-group { display: flex; align-items: center; gap: .2rem; }
+.nav-bar .nav-sep { color: #c0c6d0; margin: 0 .15rem; }
+
+/* ═══ End Navigation Bar ═══ */
+</style>
+</head>
+<body>
+<!-- NAV_START -->
+<nav class="nav-bar">
+  <div class="nav-group">
+    <a class="nav-home" href="00_muc_luc.html" title="Về Mục lục">📚 Mục lục</a>
+    <span class="nav-sep">|</span>
+    <a href="04_technical_deep_dive.html" title="04 · Technical Deep Dive">← Trước</a>
+    <a href="06_so_sanh_va_data_audit.html" title="06 · So sánh & Data Audit">Sau →</a>
+  </div>
+  <span class="nav-current">📄 05 · Gemma 4 Architecture</span>
+</nav>
+<!-- NAV_END -->
+
+<button class="theme-btn" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));r.setAttribute('data-theme',d==='dark'?'light':'dark')">🌓 Đổi nền</button>
+<div class="container">
+
+<header>
+  <h1>🤖 Kiến trúc Gemma 4 (E2B / E4B) — model VLM bạn đã fine-tune</h1>
+  <div class="sub">Đối chứng của dự án. Số liệu lấy trực tiếp từ <code>notebook/v3-vqa-4b-it.ipynb</code> &amp; <code>v3-vqa-2b-it.ipynb</code>.</div>
+  <div class="badges">
+    <span class="badge">unsloth/gemma-4-e4b-it</span><span class="badge">unsloth/gemma-4-e2b-it</span>
+    <span class="badge">QLoRA 4-bit</span><span class="badge">Vision-Language Model</span>
+    <span class="badge">Generative</span>
+  </div>
+</header>
+
+<section>
+  <h2>1. Nó là model gì?</h2>
+  <p>Đây là <b>Vision-Language Model (VLM)</b> của Google, dòng <b>Gemma 4 (E2B/E4B)</b>, bản do <b>Unsloth</b> đóng gói lượng tử hóa 4-bit để chạy được trên Kaggle/Colab Free:</p>
+  <div class="table-wrap"><table>
+    <tr><th>Thuộc tính</th><th>Giá trị (từ notebook)</th></tr>
+    <tr><td>Model 4B</td><td><code>unsloth/gemma-4-e4b-it</code> (và bản <code>-unsloth-bnb-4bit</code>)</td></tr>
+    <tr><td>Model 2B</td><td><code>unsloth/gemma-4-e2b-it</code></td></tr>
+    <tr><td>Class</td><td><code>Gemma4ForConditionalGeneration</code>, layer <code>Gemma4TextDecoderLayer</code></td></tr>
+    <tr><td>Kiểu</td><td><code>-it</code> = instruction-tuned; đa mô thức (ảnh + text)</td></tr>
+    <tr><td>Lượng tử hóa</td><td><code>load_in_4bit</code> (NF4/bitsandbytes) → giảm VRAM</td></tr>
+    <tr><td>Bài toán</td><td><b>generative</b>: ảnh + câu hỏi → sinh answer text</td></tr>
+  </table></div>
+  <div class="callout warn"><b>Về tên "E2B/E4B":</b> ký hiệu <b>effective 2B/4B</b> (số tham số "hiệu dụng") là đặc trưng thiết kế <b>elastic/MatFormer + Per-Layer Embeddings</b> của dòng Gemma 3n/4 — cùng 1 checkpoint có thể chạy ở nhiều kích thước. E2B nhẹ hơn, E4B mạnh hơn.</div>
+</section>
+
+<section>
+  <h2>2. Có những khối gì? (pipeline)</h2>
+  <div class="diagram">
+  <svg viewBox="0 0 980 250" style="width:100%;min-width:840px">
+    <defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+    <style>.v{fill:var(--surface2);stroke:var(--vis);stroke-width:1.6}.l{fill:var(--surface2);stroke:var(--llm);stroke-width:1.6}.b{fill:var(--surface2);stroke:var(--border);stroke-width:1.5}
+    .t{fill:var(--text);font-size:12px}.s{fill:var(--muted);font-size:9.5px}.h{font-size:12px;font-weight:700}.ln{stroke:var(--accent);stroke-width:1.6;fill:none;marker-end:url(#a)}</style></defs>
+    <rect class="b" x="10" y="30" width="120" height="52" rx="9"/><text class="h" x="20" y="50" fill="var(--vis)">Ảnh y khoa</text><text class="s" x="20" y="68">X-ray/CT/MRI</text>
+    <rect class="v" x="165" y="24" width="165" height="64" rx="9"/><text class="h" x="175" y="44" fill="var(--vis)">Vision Tower</text><text class="s" x="175" y="60">MobileNet-V5 (timm)</text><text class="s" x="175" y="74">→ vision embeddings</text>
+    <rect class="v" x="360" y="24" width="150" height="64" rx="9"/><text class="h" x="370" y="44" fill="var(--vis)">Projector</text><text class="s" x="370" y="60">multi-modal</text><text class="s" x="370" y="74">→ soft image tokens</text>
+    <rect class="b" x="10" y="150" width="120" height="52" rx="9"/><text class="h" x="20" y="170" fill="var(--llm)">Câu hỏi</text><text class="s" x="20" y="188">prompt text</text>
+    <rect class="b" x="165" y="150" width="165" height="52" rx="9"/><text class="h" x="175" y="170" fill="var(--llm)">Tokenizer/Embed</text><text class="s" x="175" y="188">→ text tokens</text>
+    <rect class="l" x="545" y="80" width="210" height="90" rx="9"/><text class="h" x="557" y="102" fill="var(--llm)">Gemma 4 Text Decoder</text><text class="s" x="557" y="120">decoder-only Transformer</text><text class="s" x="557" y="134">GQA · RoPE · RMSNorm</text><text class="s" x="557" y="148">gated MLP (SwiGLU)</text><text class="s" x="557" y="162">Per-Layer Embeddings</text>
+    <rect class="b" x="790" y="95" width="170" height="60" rx="9"/><text class="h" x="800" y="117" fill="var(--good)">Sinh answer</text><text class="s" x="800" y="134">autoregressive</text><text class="s" x="800" y="148">"no" / "right lung"</text>
+    <line class="ln" x1="130" y1="56" x2="163" y2="56"/><line class="ln" x1="330" y1="56" x2="358" y2="56"/><line class="ln" x1="130" y1="176" x2="163" y2="176"/>
+    <path class="ln" d="M510,56 L525,56 L525,110 L543,110"/><path class="ln" d="M330,176 L525,176 L525,140 L543,140"/>
+    <line class="ln" x1="755" y1="125" x2="788" y2="125"/>
+  </svg>
+  </div>
+  <div class="table-wrap"><table>
+    <tr><th>Khối</th><th>Là gì / làm gì</th><th>Bằng chứng trong notebook</th></tr>
+    <tr><td><b>Vision Tower</b></td><td>Encoder ảnh (dòng Gemma 3n dùng <b>MobileNet-V5</b> qua thư viện <code>timm</code>) → biến ảnh y khoa thành embedding thị giác.</td><td><code>timm</code> import; Unsloth flag <code>finetune_vision_layers</code></td></tr>
+    <tr><td><b>Multi-modal Projector</b></td><td>Chiếu vision embedding sang <b>không gian token</b> của LLM → "soft image tokens" chèn vào chuỗi.</td><td>kiến trúc <code>Gemma4ForConditionalGeneration</code></td></tr>
+    <tr><td><b>Text Decoder (Gemma 4)</b></td><td>Transformer decoder-only sinh answer: grouped-query attention (<code>q/k/v/o_proj</code>), gated MLP SwiGLU (<code>gate/up/down_proj</code>), RMSNorm, RoPE, <b>Per-Layer Embeddings</b> (tiết kiệm bộ nhớ).</td><td><code>Gemma4TextDecoderLayer</code>, <code>per_layer</code>, các <code>*_proj</code></td></tr>
+    <tr><td>Đầu ra</td><td>Sinh token answer tự hồi quy tới <code>&lt;eos&gt;</code>.</td><td>tác vụ VQA generation</td></tr>
+  </table></div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">ảnh + câu hỏi (prompt đa mô thức)</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">answer text sinh từng token (generative)</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>3. Fine-tune thế nào? (QLoRA)</h2>
+  <p>Không train lại toàn bộ — dùng <b>QLoRA</b>: đóng băng model gốc (4-bit) và chỉ học các ma trận LoRA nhỏ chèn vào.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Cấu hình LoRA (từ notebook)</th><th>Giá trị</th></tr>
+    <tr><td>Rank <code>r</code></td><td>16</td></tr>
+    <tr><td><code>lora_alpha</code></td><td>có đặt (scale LoRA)</td></tr>
+    <tr><td>target_modules</td><td>attention <code>q_proj, k_proj, v_proj, o_proj</code> + MLP <code>gate_proj, up_proj, down_proj</code></td></tr>
+    <tr><td>Unsloth flags</td><td><code>finetune_vision_layers</code>, <code>finetune_language_layers</code>, <code>finetune_attention_modules</code>, <code>finetune_mlp_modules</code></td></tr>
+    <tr><td>Base</td><td><code>load_in_4bit</code> (đóng băng, NF4)</td></tr>
+  </table></div>
+  <div class="callout">Đây chính là <b>Hướng 1</b> trong <code>docs/overview/01_before.md</code>: mở LoRA vào cả <b>Vision Encoder</b> lẫn Text Decoder để "dạy mắt" model nhìn ảnh y khoa (vốn pretrain trên ảnh tự nhiên).</div>
+</section>
+
+<section>
+  <h2>4. Vì sao dự án mới chọn Generative?</h2>
+  <p>Gemma 4 <b>sinh answer text</b> (autoregressive). Muốn so sánh <b>công bằng cùng loại task</b>, mô hình nhẹ của mình cũng phải là <b>generative</b> (GRU decoder sinh token), không phải classification. Đó là lý do đề cương chuyển sang generative.</p>
+  <div class="table-wrap"><table>
+    <tr><th></th><th>Gemma 4 (đã làm)</th><th>Model nhẹ của mình (hướng mới)</th></tr>
+    <tr><td>Vision</td><td>MobileNet-V5 pretrained (khổng lồ)</td><td>CustomCNN / ResNet-18 frozen</td></tr>
+    <tr><td>Text</td><td>Gemma 4 decoder (tỷ tham số)</td><td>BiLSTM / small Transformer</td></tr>
+    <tr><td>Fusion</td><td>projector → soft tokens vào LLM</td><td>concat / projector → GRU hidden</td></tr>
+    <tr><td>Sinh answer</td><td>Gemma decoder tự hồi quy</td><td>GRU decoder + cross-attention</td></tr>
+    <tr><td>Fine-tune</td><td>QLoRA 4-bit</td><td>train từ đầu (SFT) + SCST</td></tr>
+    <tr><td>EM cũ</td><td>4B: Open 20% / Closed 70.92% · 2B: Open 23% / Closed 68.53%</td><td>chấm cùng evaluator để đối chiếu</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>5. Lưu ý về độ chính xác thông tin</h2>
+  <ul>
+    <li>Các mục <b>từ notebook</b> (model id, class, LoRA config, timm, per_layer, 4-bit): chắc chắn.</li>
+    <li>Các mục <b>MobileNet-V5, MatFormer/effective-params, PLE, GQA/RoPE/RMSNorm/SwiGLU</b>: suy từ tên model E2B/E4B + dòng Gemma 3n/4; đây là thiết kế đặc trưng của dòng này, không in số layer/hidden cụ thể vì notebook không nêu.</li>
+    <li>Muốn số chi tiết (số layer, hidden size, số vision tokens): in <code>print(model)</code> và <code>model.config</code> trong notebook rồi mình bổ sung vào bảng.</li>
+  </ul>
+</section>
+
+<footer>Kiến trúc Gemma 4 (E2B/E4B) · đối chứng dự án VQA-RAD · nguồn: notebook/v3-vqa-*.ipynb · 12/07/2026</footer>
+
+</div>
+</body>
+</html>

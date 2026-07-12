@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiến trúc chi tiết — VQA-RAD Multimodal</title>
+<style>
+  :root{
+    --bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;
+    --code-bg:#eef1f6;--code-text:#0f2c5c;--img:#0e7490;--txt:#b45309;--fuse:#7c3aed;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;
+    --good:#57d98a;--good-soft:#10241a;--warn:#fbbf24;--warn-soft:#2a2210;
+    --code-bg:#1d2536;--code-text:#bcd2ff;--img:#4dd6e8;--txt:#fbbf24;--fuse:#b794ff;}}
+  :root[data-theme="dark"]{
+    --bg:#0e131d;--surface:#161d2b;--surface2:#121826;--text:#e7ebf3;--muted:#98a3b6;
+    --border:#28324a;--accent:#7aa2ff;--accent-soft:#1a2540;--accent2:#b794ff;
+    --good:#57d98a;--good-soft:#10241a;--warn:#fbbf24;--warn-soft:#2a2210;
+    --code-bg:#1d2536;--code-text:#bcd2ff;--img:#4dd6e8;--txt:#fbbf24;--fuse:#b794ff;}
+  :root[data-theme="light"]{
+    --bg:#f6f8fb;--surface:#fff;--surface2:#fbfcfe;--text:#131a26;--muted:#5a6577;
+    --border:#e2e7ef;--accent:#2563eb;--accent-soft:#eef4ff;--accent2:#7c3aed;
+    --good:#15803d;--good-soft:#eafaf0;--warn:#b45309;--warn-soft:#fff7e6;
+    --code-bg:#eef1f6;--code-text:#0f2c5c;--img:#0e7490;--txt:#b45309;--fuse:#7c3aed;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);
+    color:var(--text);line-height:1.62;padding:2rem 1rem}
+  .container{max-width:1060px;margin:0 auto}
+  header{background:linear-gradient(135deg,var(--accent-soft),var(--surface));
+    border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.4rem}
+  header h1{font-size:1.55rem;margin-bottom:.4rem;line-height:1.3}
+  header .sub{color:var(--muted);font-size:.94rem}
+  nav.toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:1rem 1.3rem;margin-bottom:1.4rem}
+  nav.toc h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.5rem}
+  nav.toc ol{margin-left:1.1rem;columns:2;column-gap:2rem}
+  nav.toc a{color:var(--accent);text-decoration:none;font-size:.9rem}
+  nav.toc a:hover{text-decoration:underline}
+  @media(max-width:640px){nav.toc ol{columns:1}}
+  section{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:1.5rem 1.8rem;margin-bottom:1.4rem}
+  h2.sec{font-size:1.22rem;margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+  h2.sec .n{background:var(--accent);color:#fff;border-radius:8px;font-size:.82rem;padding:.1rem .55rem;font-weight:700}
+  .lead{color:var(--muted);font-size:.92rem;margin-bottom:.4rem}
+  h3{font-size:1.02rem;margin:1.1rem 0 .4rem;color:var(--accent)}
+  p{margin-bottom:.55rem}ul{margin:0 0 .6rem 1.2rem}li{margin-bottom:.25rem}
+  code{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);
+    padding:.1rem .35rem;border-radius:5px;font-size:.85em}
+  pre{font-family:Consolas,monospace;background:var(--code-bg);color:var(--code-text);
+    padding:.9rem;border-radius:10px;overflow-x:auto;font-size:.8rem;line-height:1.5;margin:.6rem 0;border:1px solid var(--border)}
+  .meta{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;margin:.6rem 0;font-size:.9rem}
+  .meta .lbl{font-weight:700;color:var(--accent2);white-space:nowrap}
+  .io{display:flex;flex-wrap:wrap;gap:.6rem;margin:.6rem 0}
+  .io .box{flex:1;min-width:200px;border:1px solid var(--border);border-radius:10px;padding:.6rem .8rem;background:var(--surface2)}
+  .io .box .h{font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .io .box .c{font-family:Consolas,monospace;font-size:.85rem;margin-top:.2rem;color:var(--code-text)}
+  .insp{border-left:4px solid var(--accent2);background:var(--accent-soft);padding:.55rem .9rem;border-radius:0 8px 8px 0;margin:.5rem 0;font-size:.88rem}
+  .diagram{overflow-x:auto;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.9rem;margin:.7rem 0}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:.6rem 1rem;border-radius:0 10px 10px 0;margin:.6rem 0;font-size:.9rem}
+  .callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+  .callout.good{border-color:var(--good);background:var(--good-soft)}
+  .tag{display:inline-block;font-size:.72rem;padding:.1rem .5rem;border-radius:999px;border:1px solid var(--border);margin-left:.4rem}
+  .tag.img{color:var(--img)}.tag.txt{color:var(--txt)}.tag.fuse{color:var(--fuse)}
+  .theme-btn{position:fixed;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.4rem .7rem;cursor:pointer;font-size:.8rem;z-index:9}
+  svg text{font-family:Segoe UI,sans-serif}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1rem 0 2rem}
+
+/* ═══ Navigation Bar ═══ */
+.nav-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #e0e5ee;
+  padding: .5rem 1rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: .4rem;
+  font-family: "Segoe UI", system-ui, sans-serif; font-size: .82rem;
+}
+@media (prefers-color-scheme: dark) {
+  .nav-bar { background: rgba(22,27,38,.92); border-color: #2a3348; }
+  .nav-bar a, .nav-bar .nav-current { color: #c8d1e0; }
+  .nav-bar a:hover { background: #1a2540; color: #7aa2ff; }
+}
+.nav-bar a {
+  text-decoration: none; color: #2563eb; padding: .3rem .7rem;
+  border-radius: 8px; transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.nav-bar a:hover { background: #eef4ff; color: #1d4ed8; }
+.nav-bar .nav-home { font-weight: 700; }
+.nav-bar .nav-current {
+  color: #6b7685; font-weight: 600; padding: .3rem .5rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 300px;
+}
+.nav-bar .nav-group { display: flex; align-items: center; gap: .2rem; }
+.nav-bar .nav-sep { color: #c0c6d0; margin: 0 .15rem; }
+
+/* ═══ End Navigation Bar ═══ */
+</style>
+</head>
+<body>
+<!-- NAV_START -->
+<nav class="nav-bar">
+  <div class="nav-group">
+    <a class="nav-home" href="00_muc_luc.html" title="Về Mục lục">📚 Mục lục</a>
+    <span class="nav-sep">|</span>
+    <a href="02_de_cuong_generative_medvqa.html" title="02 · Đề cương Generative">← Trước</a>
+    <a href="04_technical_deep_dive.html" title="04 · Technical Deep Dive">Sau →</a>
+  </div>
+  <span class="nav-current">📄 03 · Kiến trúc Model</span>
+</nav>
+<!-- NAV_END -->
+
+<button class="theme-btn" onclick="var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));r.setAttribute('data-theme',d==='dark'?'light':'dark')">🌓 Đổi nền</button>
+<div class="container">
+
+<header>
+  <h1>🧠 Kiến trúc chi tiết — từng khối là gì, lấy cảm hứng từ đâu, làm gì</h1>
+  <div class="sub">Multimodal VQA-RAD: ảnh + câu hỏi → <b>sinh answer token-by-token</b>. Mỗi khối kèm: cảm hứng (paper) · là gì · làm gì · sơ đồ khối · input/output. Cuối cùng: Reinforcement Learning.</div>
+</header>
+
+<div style="background:var(--good-soft);border:1px solid var(--good);border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.4rem;font-size:.9rem">
+  ✅ <b>Hướng đã chốt: Generative VQA.</b> Decoder là <b>GRU sinh chuỗi</b> (khối ⑩) + cross-attention, KHÔNG phải MLP classifier.
+  Đề cương đầy đủ: <a href="02_de_cuong_generative_medvqa.html">02_de_cuong_generative_medvqa.html</a>.
+  Khối ⑨ Gated attention chỉ còn là tùy chọn phụ; "decoder attention" chính thức = <b>cross-attention</b> ở khối ⑩.
+</div>
+
+<nav class="toc">
+  <h2>Mục lục</h2>
+  <ol>
+    <li><a href="#overview">Toàn cảnh (input→output)</a></li>
+    <li><a href="#cnn">① CustomCNN <span class="tag img">ảnh</span></a></li>
+    <li><a href="#resnet">② ResNet-18 frozen <span class="tag img">ảnh</span></a></li>
+    <li><a href="#se">③ SE-Block (Channel Attn)</a></li>
+    <li><a href="#lstm">④ BiLSTM <span class="tag txt">text</span></a></li>
+    <li><a href="#transformer">⑤ Transformer <span class="tag txt">text</span></a></li>
+    <li><a href="#temporal">⑥ Temporal Attention</a></li>
+    <li><a href="#projector">⑦ Projector (Mapper) <span class="tag fuse">fusion</span></a></li>
+    <li><a href="#fusion">⑧ Fusion (Concat)</a></li>
+    <li><a href="#gated">⑨ Gated Attention</a></li>
+    <li><a href="#decoder">⑩ Decoder (MLP)</a></li>
+    <li><a href="#rl">⑪ Reinforcement Learning (SCST)</a></li>
+  </ol>
+</nav>
+
+<!-- ===== OVERVIEW ===== -->
+<section id="overview">
+  <h2 class="sec"><span class="n">0</span> Toàn cảnh — input đến output</h2>
+  <p class="lead">Hai nhánh (ảnh, text) → hợp nhất → phân loại thành 1 answer. Màu <span style="color:var(--img)">■ ảnh</span> · <span style="color:var(--txt)">■ text</span> · <span style="color:var(--fuse)">■ fusion</span>.</p>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">image [B,3,128/224,·] + question tokens [B,32]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">logits [B,T,V_answer] → greedy/beam → answer string</div></div>
+  </div>
+  <div class="diagram">
+  <svg viewBox="0 0 1010 340" style="width:100%;min-width:860px">
+    <defs>
+      <marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="var(--accent)"/></marker>
+      <style>
+        .b{fill:var(--surface);stroke:var(--border);stroke-width:1.5}
+        .bi{fill:var(--surface);stroke:var(--img);stroke-width:1.6}
+        .bt{fill:var(--surface);stroke:var(--txt);stroke-width:1.6}
+        .bf{fill:var(--surface);stroke:var(--fuse);stroke-width:1.6}
+        .t{fill:var(--text);font-size:12px}.s{fill:var(--muted);font-size:10px}
+        .h{font-size:12px;font-weight:700}
+        .l{stroke:var(--accent);stroke-width:1.6;fill:none;marker-end:url(#a)}
+      </style>
+    </defs>
+    <!-- image branch -->
+    <rect class="bi" x="12" y="24" width="120" height="52" rx="9"/>
+    <text class="h" x="22" y="44" fill="var(--img)">Ảnh</text>
+    <text class="s" x="22" y="62">[B,3,128,128]</text>
+    <rect class="bi" x="165" y="20" width="150" height="60" rx="9"/>
+    <text class="h" x="175" y="40" fill="var(--img)">CNN / ResNet-18</text>
+    <text class="s" x="175" y="56">(+SE-block?)</text>
+    <text class="s" x="175" y="70">→ v_img [B,128]</text>
+    <!-- text branch -->
+    <rect class="bt" x="12" y="240" width="120" height="52" rx="9"/>
+    <text class="h" x="22" y="260" fill="var(--txt)">Câu hỏi</text>
+    <text class="s" x="22" y="278">tokens [B,32]</text>
+    <rect class="bt" x="165" y="236" width="150" height="60" rx="9"/>
+    <text class="h" x="175" y="256" fill="var(--txt)">BiLSTM / Transformer</text>
+    <text class="s" x="175" y="272">(+temporal attn?)</text>
+    <text class="s" x="175" y="286">→ v_txt [B,64]</text>
+    <!-- projector -->
+    <rect class="bf" x="360" y="20" width="120" height="60" rx="9"/>
+    <text class="h" x="370" y="40" fill="var(--fuse)">Projector?</text>
+    <text class="s" x="370" y="56">MLP →shared</text>
+    <text class="s" x="370" y="70">z_img [B,P]</text>
+    <rect class="bf" x="360" y="236" width="120" height="60" rx="9"/>
+    <text class="h" x="370" y="256" fill="var(--fuse)">Projector?</text>
+    <text class="s" x="370" y="272">MLP →shared</text>
+    <text class="s" x="370" y="286">z_txt [B,P]</text>
+    <!-- fusion -->
+    <rect class="bf" x="525" y="130" width="130" height="72" rx="9"/>
+    <text class="h" x="535" y="152" fill="var(--fuse)">Concat</text>
+    <text class="s" x="535" y="170">[B,192] hoặc</text>
+    <text class="s" x="535" y="184">[B,2P]</text>
+    <text class="s" x="535" y="198">(+Gated attn?)</text>
+    <!-- decoder -->
+    <rect class="b" x="700" y="132" width="140" height="68" rx="9"/>
+    <text class="h" x="710" y="154" fill="var(--accent)">GRU decoder</text>
+    <text class="s" x="710" y="172">+cross-attn</text>
+    <text class="s" x="710" y="188">[B,T,V_answer]</text>
+    <!-- output -->
+    <rect class="b" x="880" y="134" width="118" height="64" rx="9"/>
+    <text class="h" x="890" y="156" fill="var(--good)">greedy/beam</text>
+    <text class="s" x="890" y="174">→ answer</text>
+    <text class="s" x="890" y="188">"no"/"right lung"</text>
+    <!-- arrows -->
+    <line class="l" x1="132" y1="50" x2="163" y2="50"/>
+    <line class="l" x1="132" y1="266" x2="163" y2="266"/>
+    <line class="l" x1="315" y1="50" x2="358" y2="50"/>
+    <line class="l" x1="315" y1="266" x2="358" y2="266"/>
+    <path class="l" d="M480,50 L505,50 L525,140"/>
+    <path class="l" d="M480,266 L505,266 L525,192"/>
+    <line class="l" x1="655" y1="166" x2="698" y2="166"/>
+    <line class="l" x1="840" y1="166" x2="878" y2="166"/>
+  </svg>
+  </div>
+</section>
+
+<!-- ===== CNN ===== -->
+<section id="cnn">
+  <h2 class="sec"><span class="n">①</span> CustomCNN <span class="tag img">image encoder</span></h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> ConvNet cổ điển kiểu <b>LeNet / VGG</b> (LeCun 1998, Simonyan &amp; Zisserman 2014) — chồng các khối <code>Conv → ReLU → Pool</code> để trích đặc trưng không gian, thêm <b>BatchNorm</b> (Ioffe &amp; Szegedy 2015) cho ổn định.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>CNN tự viết 3 tầng, nhẹ (~vài trăm nghìn tham số), train từ đầu.</div>
+    <div class="lbl">Làm gì</div><div>Biến ảnh y khoa thành 1 vector đặc trưng thị giác cố định 128 chiều.</div>
+  </div>
+  <div class="diagram">
+  <svg viewBox="0 0 1000 120" style="width:100%;min-width:820px">
+    <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--img)"/></marker>
+    <style>.k{fill:var(--surface2);stroke:var(--img);stroke-width:1.5}.kt{fill:var(--text);font-size:11px}.ks{fill:var(--muted);font-size:9.5px}.kl{stroke:var(--img);stroke-width:1.5;fill:none;marker-end:url(#a2)}</style></defs>
+    <rect class="k" x="8" y="35" width="96" height="46" rx="8"/><text class="kt" x="16" y="55">Input</text><text class="ks" x="16" y="72">3×128×128</text>
+    <rect class="k" x="140" y="30" width="120" height="56" rx="8"/><text class="kt" x="148" y="48">Block1</text><text class="ks" x="148" y="63">Conv3→32,BN,ReLU</text><text class="ks" x="148" y="77">MaxPool→32×64²</text>
+    <rect class="k" x="296" y="30" width="120" height="56" rx="8"/><text class="kt" x="304" y="48">Block2</text><text class="ks" x="304" y="63">Conv32→64,BN,ReLU</text><text class="ks" x="304" y="77">MaxPool→64×32²</text>
+    <rect class="k" x="452" y="30" width="120" height="56" rx="8"/><text class="kt" x="460" y="48">Block3</text><text class="ks" x="460" y="63">Conv64→128,BN,ReLU</text><text class="ks" x="460" y="77">MaxPool→128×16²</text>
+    <rect class="k" x="608" y="35" width="96" height="46" rx="8" style="stroke-dasharray:4"/><text class="kt" x="616" y="53">SE-block?</text><text class="ks" x="616" y="70">(tùy chọn)</text>
+    <rect class="k" x="740" y="35" width="110" height="46" rx="8"/><text class="kt" x="748" y="53">AvgPool+LN</text><text class="ks" x="748" y="70">→ [B,128]</text>
+    <rect class="k" x="886" y="35" width="100" height="46" rx="8"/><text class="kt" x="894" y="53" fill="var(--img)">v_img</text><text class="ks" x="894" y="70">[B,128]</text>
+    <line class="kl" x1="104" y1="58" x2="138" y2="58"/><line class="kl" x1="260" y1="58" x2="294" y2="58"/><line class="kl" x1="416" y1="58" x2="450" y2="58"/><line class="kl" x1="572" y1="58" x2="606" y2="58"/><line class="kl" x1="704" y1="58" x2="738" y2="58"/><line class="kl" x1="850" y1="58" x2="884" y2="58"/>
+  </svg>
+  </div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">ảnh [B, 3, 128, 128]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">v_img [B, 128] (đã LayerNorm)</div></div>
+  </div>
+</section>
+
+<!-- ===== RESNET ===== -->
+<section id="resnet">
+  <h2 class="sec"><span class="n">②</span> ResNet-18 (đóng băng) <span class="tag img">image encoder</span></h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>ResNet</b> (He et al., CVPR 2016) — residual/skip connection cho phép mạng rất sâu. Ở đây dùng theo hướng <b>transfer learning / frozen feature extractor</b>: lấy backbone đã pretrain ImageNet làm "mắt" sẵn có, chỉ học lớp chiếu.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>ResNet-18 pretrained, bỏ 2 lớp cuối (avgpool+fc), <b>đóng băng toàn bộ</b> (không cập nhật gradient, BatchNorm chạy running-stats).</div>
+    <div class="lbl">Làm gì</div><div>Trích đặc trưng ảnh mạnh sẵn có → chỉ train lớp <code>Linear(512→128)</code> để đưa về đúng chiều v_img. Dùng ở nhóm C để so với CNN tự viết.</div>
+  </div>
+  <pre>[B,3,224,224] → resnet18.features (đóng băng) → [B,512,7,7]
+             → (SE-block? trên 512) → AdaptiveAvgPool → [B,512]
+             → Linear(512→128) → LayerNorm → v_img [B,128]</pre>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">ảnh [B,3,224,224], chuẩn hóa ImageNet</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">v_img [B,128] · chỉ Linear+LN được train</div></div>
+  </div>
+</section>
+
+<!-- ===== SE ===== -->
+<section id="se">
+  <h2 class="sec"><span class="n">③</span> SE-Block — Channel Attention</h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>Squeeze-and-Excitation Networks</b> (Hu, Shen, Sun — CVPR 2018). Ý tưởng: không phải kênh feature nào cũng quan trọng như nhau → học trọng số cho từng kênh.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Khối attention theo kênh, gắn sau feature map của CNN/ResNet.</div>
+    <div class="lbl">Làm gì</div><div>"Squeeze" (nén không gian bằng GAP) → "Excite" (2 lớp FC học trọng số 0–1) → nhân lại từng kênh → khuếch đại kênh hữu ích (cạnh, đốm mờ, texture xương), nén kênh nhiễu.</div>
+  </div>
+  <div class="diagram">
+  <svg viewBox="0 0 900 110" style="width:100%;min-width:760px">
+    <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"/></marker>
+    <style>.p{fill:var(--surface2);stroke:var(--border);stroke-width:1.4}.pt{fill:var(--text);font-size:11px}.ps{fill:var(--muted);font-size:9.5px}.pl{stroke:var(--accent);stroke-width:1.4;fill:none;marker-end:url(#a3)}</style></defs>
+    <rect class="p" x="8" y="30" width="110" height="50" rx="8"/><text class="pt" x="16" y="50">Feature F</text><text class="ps" x="16" y="67">[B,C,H,W]</text>
+    <rect class="p" x="160" y="30" width="120" height="50" rx="8"/><text class="pt" x="168" y="50">Squeeze: GAP</text><text class="ps" x="168" y="67">→ [B,C]</text>
+    <rect class="p" x="322" y="30" width="180" height="50" rx="8"/><text class="pt" x="330" y="50">Excite: FC↓ ReLU FC↑ σ</text><text class="ps" x="330" y="67">C→C/4→C, s∈(0,1)^C</text>
+    <rect class="p" x="544" y="30" width="130" height="50" rx="8"/><text class="pt" x="552" y="50">Scale: s ⊙ F</text><text class="ps" x="552" y="67">nhân theo kênh</text>
+    <rect class="p" x="716" y="30" width="160" height="50" rx="8"/><text class="pt" x="724" y="50" fill="var(--good)">F' đã reweight</text><text class="ps" x="724" y="67">[B,C,H,W]</text>
+    <line class="pl" x1="118" y1="55" x2="158" y2="55"/><line class="pl" x1="280" y1="55" x2="320" y2="55"/><line class="pl" x1="502" y1="55" x2="542" y2="55"/><line class="pl" x1="674" y1="55" x2="714" y2="55"/>
+  </svg>
+  </div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">feature map [B, C, H, W]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">feature map cùng shape, đã nhân trọng số kênh</div></div>
+  </div>
+</section>
+
+<!-- ===== LSTM ===== -->
+<section id="lstm">
+  <h2 class="sec"><span class="n">④</span> BiLSTM <span class="tag txt">text encoder</span></h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>LSTM</b> (Hochreiter &amp; Schmidhuber, 1997) giải bài toán gradient tiêu biến của RNN nhờ cổng nhớ; <b>Bidirectional RNN</b> (Schuster &amp; Paliwal, 1997) đọc câu cả 2 chiều để mỗi từ thấy ngữ cảnh trước &amp; sau.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Embedding + 1 lớp LSTM 2 chiều (hidden 32 mỗi chiều → 64).</div>
+    <div class="lbl">Làm gì</div><div>Mã hóa câu hỏi thành vector ngữ nghĩa 64 chiều theo trình tự từ. Không attn: lấy hidden cuối 2 chiều; có attn: dùng Temporal Attention (khối ⑥).</div>
+  </div>
+  <pre>tokens [B,32] → Embedding(V,64,pad=0) → [B,32,64]
+             → BiLSTM(64→32×2) → outputs [B,32,64], (h→,h←)
+   không attn: v_txt = cat(h→cuối, h←đầu) [B,64]
+   có attn:   v_txt = TemporalAttention(outputs) [B,64]
+             → LayerNorm → v_txt [B,64]</pre>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">tokens [B,32] (id từ, pad=0)</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">v_txt [B,64]</div></div>
+  </div>
+</section>
+
+<!-- ===== TRANSFORMER ===== -->
+<section id="transformer">
+  <h2 class="sec"><span class="n">⑤</span> Transformer Encoder <span class="tag txt">text encoder</span></h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>"Attention Is All You Need"</b> (Vaswani et al., NeurIPS 2017) — self-attention cho mọi từ "nhìn" mọi từ cùng lúc, không cần đệ quy. Dùng làm nhánh so sánh với BiLSTM.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Embedding + positional encoding + 2 lớp TransformerEncoder (d=64, 4 head, feed-forward 128).</div>
+    <div class="lbl">Làm gì</div><div>Mã hóa câu hỏi bằng self-attention song song; gộp các token thành 1 vector 64 chiều bằng masked-mean (không attn) hoặc attention pooling (có attn).</div>
+  </div>
+  <pre>tokens [B,32] → Embedding + Positional [B,32,64]
+             → 2× TransformerEncoderLayer(d=64, nhead=4, ff=128, dropout=0.1)
+             → [B,32,64]
+   pooling: masked-mean  (không attn)  |  attention pooling (có attn)
+             → LayerNorm → v_txt [B,64]</pre>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">tokens [B,32] + pad-mask</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">v_txt [B,64]</div></div>
+  </div>
+</section>
+
+<!-- ===== TEMPORAL ===== -->
+<section id="temporal">
+  <h2 class="sec"><span class="n">⑥</span> Temporal Attention (text)</h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>Additive attention</b> (Bahdanau, Cho, Bengio, 2014) trong dịch máy — thay vì lấy 1 hidden cuối, học trọng số cho từng bước thời gian rồi tổng có trọng số (attention pooling).</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Lớp attention 1 đầu, tính điểm cho từng token của chuỗi (LSTM hoặc Transformer).</div>
+    <div class="lbl">Làm gì</div><div>Cho từ khóa quan trọng ("effusion", "left lobe") trọng số cao thay vì phụ thuộc vị trí cuối câu. Có <b>pad-mask</b>: token PAD nhận trọng số 0.</div>
+  </div>
+  <div class="diagram">
+  <svg viewBox="0 0 880 120" style="width:100%;min-width:740px">
+    <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--txt)"/></marker>
+    <style>.q{fill:var(--surface2);stroke:var(--txt);stroke-width:1.4}.qt{fill:var(--text);font-size:11px}.qs{fill:var(--muted);font-size:9.5px}.ql{stroke:var(--txt);stroke-width:1.4;fill:none;marker-end:url(#a4)}</style></defs>
+    <rect class="q" x="8" y="35" width="130" height="50" rx="8"/><text class="qt" x="16" y="55">outputs</text><text class="qs" x="16" y="72">[B,T,H]</text>
+    <rect class="q" x="180" y="35" width="140" height="50" rx="8"/><text class="qt" x="188" y="55">Linear(H→1)</text><text class="qs" x="188" y="72">scores [B,T]</text>
+    <rect class="q" x="362" y="35" width="170" height="50" rx="8"/><text class="qt" x="370" y="55">mask PAD + softmax</text><text class="qs" x="370" y="72">αₜ [B,T], Σα=1</text>
+    <rect class="q" x="574" y="35" width="150" height="50" rx="8"/><text class="qt" x="582" y="55">Σ αₜ · hₜ</text><text class="qs" x="582" y="72">weighted sum</text>
+    <rect class="q" x="766" y="35" width="106" height="50" rx="8"/><text class="qt" x="774" y="55" fill="var(--good)">context</text><text class="qs" x="774" y="72">[B,H]</text>
+    <line class="ql" x1="138" y1="60" x2="178" y2="60"/><line class="ql" x1="320" y1="60" x2="360" y2="60"/><line class="ql" x1="532" y1="60" x2="572" y2="60"/><line class="ql" x1="724" y1="60" x2="764" y2="60"/>
+  </svg>
+  </div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">chuỗi [B,T,H] + pad-mask [B,T]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">context [B,H] + trọng số αₜ (để vẽ giải thích)</div></div>
+  </div>
+</section>
+
+<!-- ===== PROJECTOR ===== -->
+<section id="projector">
+  <h2 class="sec"><span class="n">⑦</span> Projector — MLP Mapper <span class="tag fuse">fusion</span></h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>mapping network</b> nối 2 modality — kiểu <b>ClipCap</b> (Mokady 2021), <b>prefix-tuning</b> (Li &amp; Liang 2021), <b>MedVInT / PMC-VQA</b> (Zhang 2023). Trong dự án này, chính là <b>MLP Mapper 512→768→768</b> nối CLIP→GPT-2 ở baseline <code>Open_Ended_VQA_fixed.ipynb</code>.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>MLP nhỏ chiếu vector mỗi modality về <b>một không gian latent chung</b> (chiều P) trước khi ghép.</div>
+    <div class="lbl">Làm gì</div><div>v_img (không gian thị giác) và v_txt (không gian ngữ nghĩa) khác nhau → concat thẳng buộc decoder tự "dịch". Projector căn chỉnh 2 modality về cùng không gian → fusion dễ hơn.</div>
+  </div>
+  <div class="diagram">
+  <svg viewBox="0 0 860 150" style="width:100%;min-width:720px">
+    <defs><marker id="a5" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--fuse)"/></marker>
+    <style>.f{fill:var(--surface2);stroke:var(--fuse);stroke-width:1.5}.ft{fill:var(--text);font-size:11px}.fs{fill:var(--muted);font-size:9.5px}.fl{stroke:var(--fuse);stroke-width:1.5;fill:none;marker-end:url(#a5)}</style></defs>
+    <rect class="f" x="8" y="20" width="110" height="42" rx="8"/><text class="ft" x="16" y="38" fill="var(--img)">v_img</text><text class="fs" x="16" y="54">[B,128]</text>
+    <rect class="f" x="8" y="90" width="110" height="42" rx="8"/><text class="ft" x="16" y="108" fill="var(--txt)">v_txt</text><text class="fs" x="16" y="124">[B,64]</text>
+    <rect class="f" x="180" y="45" width="380" height="42" rx="8"/><text class="ft" x="188" y="63">MLP: Linear(d→P) → GELU → Linear(P→P) → LayerNorm(P)</text><text class="fs" x="188" y="79">img: 128→P · txt: 64→P (cùng chiều P)</text>
+    <rect class="f" x="610" y="20" width="110" height="42" rx="8"/><text class="ft" x="618" y="38" fill="var(--fuse)">z_img</text><text class="fs" x="618" y="54">[B,P]</text>
+    <rect class="f" x="610" y="90" width="110" height="42" rx="8"/><text class="ft" x="618" y="108" fill="var(--fuse)">z_txt</text><text class="fs" x="618" y="124">[B,P]</text>
+    <rect class="f" x="762" y="55" width="90" height="42" rx="8"/><text class="ft" x="770" y="73">concat</text><text class="fs" x="770" y="89">[B,2P]</text>
+    <path class="fl" d="M118,41 L150,41 L178,58"/><path class="fl" d="M118,111 L150,111 L178,74"/>
+    <path class="fl" d="M560,58 L585,58 L608,41"/><path class="fl" d="M560,74 L585,74 L608,111"/>
+    <path class="fl" d="M720,41 L740,41 L740,66 L760,66"/><path class="fl" d="M720,111 L740,111 L740,86 L760,86"/>
+  </svg>
+  </div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">v_img [B,128], v_txt [B,64]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">z_img [B,P], z_txt [B,P] → concat [B,2P]</div></div>
+  </div>
+  <div class="callout warn">Khối này có trong <code>code_references.ipynb</code> (cờ <code>use_projector</code>) nhưng CHƯA có trong <code>src/models/fusion.py</code> (đang concat thẳng 128+64=192) — phần sẽ bổ sung vào code sau.</div>
+</section>
+
+<!-- ===== FUSION ===== -->
+<section id="fusion">
+  <h2 class="sec"><span class="n">⑧</span> Fusion — Concatenation</h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>joint/early fusion</b> trong multimodal learning — cách hợp nhất đơn giản, rẻ, dễ giải thích: nối 2 vector đặc trưng.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Phép ghép nối 2 vector modality thành 1 vector chung.</div>
+    <div class="lbl">Làm gì</div><div>Không projector: <code>[v_img;v_txt]=[B,192]</code>. Có projector: <code>[z_img;z_txt]=[B,2P]</code>. Vector này đưa xuống decoder.</div>
+  </div>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">2 vector modality</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">fused [B,192] hoặc [B,2P]</div></div>
+  </div>
+</section>
+
+<!-- ===== GATED ===== -->
+<section id="gated">
+  <h2 class="sec"><span class="n">⑨</span> Gated Attention (decoder)</h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> cơ chế <b>gating</b> — Highway Networks (Srivastava 2015), <b>GLU</b> (Dauphin et al. 2017): dùng cổng sigmoid để lọc/điều tiết thông tin đi qua.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>Một cổng sigmoid học được, áp lên fused vector trước khi phân loại.</div>
+    <div class="lbl">Làm gì</div><div><code>z' = z ⊙ σ(W·z)</code> — mỗi chiều của fused vector được nhân hệ số 0–1, lọc bớt chiều nhiễu sau khi concat 2 modality.</div>
+  </div>
+  <pre>fused z [B,D] → Linear(D→D) → σ → gate [B,D] (0..1)
+             → z' = z ⊙ gate → [B,D]</pre>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">fused [B,D]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">fused đã lọc [B,D] (cùng chiều)</div></div>
+  </div>
+</section>
+
+<!-- ===== DECODER ===== -->
+<section id="decoder">
+  <h2 class="sec"><span class="n">⑩</span> Decoder — GRU generative (sinh token-by-token)</h2>
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>encoder–decoder generation</b> (Sutskever seq2seq 2014; Bahdanau 2014) và <b>MedVInT-TD / prefix-tuning</b> cho VQA sinh. Coi VQA là <b>bài toán sinh chuỗi có điều kiện</b> <code>p(y₁:T | I,q)=Π p(yₜ|y&lt;t,I,q)</code>, KHÔNG phân loại trên answer class.</div>
+  <div class="meta">
+    <div class="lbl">Là gì</div><div>GRU 1 lớp, hidden 128, sinh answer từng token cho tới <code>&lt;eos&gt;</code> / <code>MAX_ANSWER_LEN</code>.</div>
+    <div class="lbl">Làm gì</div><div>Hidden khởi tạo lấy từ fusion vector qua <code>Linear(fused→128)</code>. Mỗi bước: embedding token trước + <b>cross-attention</b> lên image spatial tokens & question states → GRU → <code>Linear(128→V_answer)</code> ra logits token kế tiếp. Train bằng teacher forcing.</div>
+  </div>
+  <pre>prev_token_emb [B,64] + cross-attn context [B,128]
+   → GRU → hidden [B,128] → Linear(128 → V_answer)
+   → next-token logits [B, V_answer]     (lặp T bước → [B,T,V_answer])
+&lt;bos&gt; → token₁ → … → token_T → &lt;eos&gt;</pre>
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">decoder_input tokens + image tokens [B,256,128] + question states [B,T,64]</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">logits [B, T, V_answer] → greedy/beam → answer string</div></div>
+  </div>
+  <div class="callout warn"><b>Thay cho MLP classifier cũ:</b> bỏ hẳn <code>Linear(fused→128→C)</code> + <code>argmax→id2answer</code>. Đây là khối generative — xem đề cương <code>02_de_cuong_generative_medvqa.html</code>.</div>
+</section>
+
+<!-- ===== RL ===== -->
+<section id="rl">
+  <h2 class="sec"><span class="n">⑪</span> Reinforcement Learning — REINFORCE Self-Critical (SCST)</h2>
+  <p class="lead">Chạy <b>sau</b> khi SFT xong, chỉ trên checkpoint tốt nhất (nhóm D). File: <code>src/train/rl.py</code>.</p>
+
+  <div class="insp">💡 <b>Cảm hứng:</b> <b>REINFORCE / policy gradient</b> (Williams, 1992) + <b>Self-Critical Sequence Training</b> (Rennie et al., CVPR 2017) — vốn dùng cho image captioning để tối ưu trực tiếp BLEU/CIDEr.</div>
+
+  <h3>Dùng để làm gì?</h3>
+  <p>Cross-entropy (SFT) tối ưu xác suất token đúng, <b>không</b> tối ưu trực tiếp thước đo đánh giá (EM, F1) vì chúng <b>không khả vi</b> (rời rạc). RL cho phép tối ưu thẳng phần thưởng theo đúng metric.</p>
+
+  <h3>Kỹ thuật — vì sao "self-critical"</h3>
+  <ul>
+    <li><b>Policy</b> = chính model (phân phối softmax trên C answer).</li>
+    <li>Mỗi bước: <b>sample</b> 1 answer từ phân phối + lấy <b>greedy</b> (argmax) làm baseline.</li>
+    <li><b>Advantage</b> = reward(sample) − reward(greedy). Nếu sample tốt hơn greedy → đẩy xác suất lên; kém hơn → hạ xuống.</li>
+    <li>Baseline "self-critical" (chính greedy của model) giúp <b>giảm variance</b> mà <b>không cần value network</b> riêng.</li>
+    <li>Grad clip 1.0 cho ổn định.</li>
+  </ul>
+
+  <h3>Phần thưởng (reward)</h3>
+  <pre>reward = 0.5 · EM + 0.5 · token_F1   (giữa answer dự đoán và answer đúng)
+# answer là "unseen" (không có trong vocab train) → reward = 0</pre>
+
+  <h3>Hàm mất mát (policy gradient)</h3>
+  <pre>advantage = r(sample) − r(greedy)
+loss = − ( logπ(sample) · advantage ).mean()      # đẩy sample tốt, ép sample tệ</pre>
+
+  <div class="diagram">
+  <svg viewBox="0 0 980 190" style="width:100%;min-width:820px">
+    <defs><marker id="a6" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--warn)"/></marker>
+    <style>.w{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.5}.wb{fill:var(--surface2);stroke:var(--border);stroke-width:1.4}.wt{fill:var(--text);font-size:11px}.ws{fill:var(--muted);font-size:9.5px}.wl{stroke:var(--warn);stroke-width:1.5;fill:none;marker-end:url(#a6)}</style></defs>
+    <rect class="wb" x="8" y="70" width="120" height="50" rx="8"/><text class="wt" x="16" y="90">Model (SFT)</text><text class="ws" x="16" y="107">logits [B,C]</text>
+    <rect class="w" x="180" y="20" width="150" height="46" rx="8"/><text class="wt" x="188" y="40">Sample answer</text><text class="ws" x="188" y="56">Categorical(logits)</text>
+    <rect class="wb" x="180" y="122" width="150" height="46" rx="8"/><text class="wt" x="188" y="142">Greedy answer</text><text class="ws" x="188" y="158">argmax (baseline)</text>
+    <rect class="w" x="380" y="20" width="140" height="46" rx="8"/><text class="wt" x="388" y="40">reward(sample)</text><text class="ws" x="388" y="56">.5EM+.5F1</text>
+    <rect class="wb" x="380" y="122" width="140" height="46" rx="8"/><text class="wt" x="388" y="142">reward(greedy)</text><text class="ws" x="388" y="158">.5EM+.5F1</text>
+    <rect class="w" x="570" y="70" width="150" height="50" rx="8"/><text class="wt" x="578" y="90">Advantage</text><text class="ws" x="578" y="107">r(smp) − r(grdy)</text>
+    <rect class="w" x="770" y="70" width="150" height="50" rx="8"/><text class="wt" x="778" y="90">Loss + backprop</text><text class="ws" x="778" y="107">−logπ·adv, clip 1.0</text>
+    <line class="wl" x1="128" y1="88" x2="178" y2="44"/><line class="wl" x1="128" y1="100" x2="178" y2="145"/>
+    <line class="wl" x1="330" y1="43" x2="378" y2="43"/><line class="wl" x1="330" y1="145" x2="378" y2="145"/>
+    <path class="wl" d="M520,43 L545,43 L545,88 L568,88"/><path class="wl" d="M520,145 L545,145 L545,100 L568,100"/>
+    <line class="wl" x1="720" y1="95" x2="768" y2="95"/>
+    <path class="wl" d="M845,120 L845,175 L68,175 L68,122" stroke-dasharray="5"/>
+    <text class="ws" x="360" y="188">cập nhật policy (lr 1e-5, ~5 epoch) — giữ checkpoint có val EM cao nhất</text>
+  </svg>
+  </div>
+
+  <div class="io">
+    <div class="box"><div class="h">Input</div><div class="c">ảnh + tokens (train), checkpoint SFT tốt nhất</div></div>
+    <div class="box"><div class="h">Output</div><div class="c">model đã fine-tune (best val EM) → checkpoint <code>D1_scst_best.pt</code></div></div>
+  </div>
+  <div class="callout warn"><b>Lưu ý:</b> REINFORCE variance cao trên reward thưa → có thể không cải thiện. Đó vẫn là finding hợp lệ; nếu tệ hơn thì giữ SFT làm final. Thứ tự bắt buộc: <b>SFT trước → RL sau</b>.</div>
+</section>
+
+<footer>Kiến trúc chi tiết · VQA-RAD Multimodal · Master TDTU · 12/07/2026 · file HTML tự chứa, mở trực tiếp trong trình duyệt</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phân tích & Đánh giá Dữ liệu Gemma - VQA-RAD (Parquet)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #212529;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #0b5d4d;
+            border-bottom: 3px solid #0b5d4d;
+            padding-bottom: 12px;
+            text-align: center;
+        }
+        h2 {
+            color: #164f43;
+            border-bottom: 2px solid #cde5dc;
+            padding-bottom: 6px;
+            margin-top: 40px;
+        }
+        h3 {
+            color: #159071;
+            margin-top: 24px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-weight: bold;
+            font-size: 1.15rem;
+            color: #0b5d4d;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e3e6f0;
+            padding-bottom: 8px;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 18px;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+        .highlight-danger {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 12px 18px;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+            background: #ffffff;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #eaf5f0;
+            color: #0b5d4d;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .img-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .img-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        code {
+            background: #f1f3f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📊 Báo cáo Đánh giá Dữ liệu Gemma (VQA-RAD Parquet)</h1>
+    <p style="text-align: center; color: #6c757d;">
+        <i>Tài liệu phân tích trực tiếp 2 file Parquet cục bộ di chuyển bởi người dùng trong thư mục <code>data_audit_report/data/</code>.</i>
+    </p>
+
+    <div class="highlight-danger">
+        <strong>⚠️ PHÁT HIỆN LỚN NHẤT — RÒ RỈ DỮ LIỆU ẢNH (DATA LEAKAGE):</strong><br>
+        Tập dữ liệu Parquet của nguồn Gemma có sự rò rỉ hình ảnh cực kỳ lớn giữa 2 tập Train và Test.
+        Cụ thể: <strong>99.51%</strong> số ảnh trong tập Test (202/203 ảnh độc nhất) đã từng xuất hiện ở tập Train!
+        Mô hình Gemma khi đánh giá trên tập Test này thực chất đang trả lời câu hỏi trên <strong>ảnh cũ đã học</strong>. Điểm số đánh giá bị thổi phồng đáng kể và không phản ánh khả năng tổng quát hóa trên bệnh nhân mới.
+    </div>
+
+    <h2>1. Thống kê Phân bổ Kích thước Dữ liệu Parquet</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Kích thước Tập Splits</div>
+            <ul>
+                <li><strong>Train Split:</strong> 1793 mẫu</li>
+                <li><strong>Test Split:</strong> 451 mẫu</li>
+                <li><strong>Tổng số mẫu:</strong> 2244 mẫu</li>
+                <li><strong>Đường dẫn file Train:</strong> <code>data_audit_report/data/train-00000-of-00001-eb8844602202be60.parquet</code></li>
+                <li><strong>Đường dẫn file Test:</strong> <code>data_audit_report/data/test-00000-of-00001-e5bc3d208bb4deeb.parquet</code></li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-title">Hình ảnh độc nhất (Unique Images)</div>
+            <ul>
+                <li><strong>Số lượng ảnh trong Train:</strong> 313 ảnh độc nhất</li>
+                <li><strong>Số lượng ảnh trong Test:</strong> 203 ảnh độc nhất</li>
+                <li><strong>Tổng số ảnh độc nhất (gộp cả 2 tập):</strong> 314 ảnh độc nhất</li>
+                <li><strong>Số câu hỏi trung bình trên một ảnh:</strong> 7.15 câu hỏi/ảnh</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="img-container">
+        <img src="plots/split_comparison.png" alt="Kích thước các tập split Parquet">
+    </div>
+
+    <h2>2. Phân tích Rò rỉ Hình ảnh (Data Leakage Audit)</h2>
+    <p>
+        Trong Visual Question Answering, việc rò rỉ xảy ra khi cùng một bức ảnh (chỉ khác câu hỏi) nằm ở cả tập Train và tập Test.
+        Dưới đây là tỷ lệ rò rỉ hình ảnh được tính toán chi tiết bằng cách băm MD5 ma trận điểm ảnh (pixel data) của các ảnh:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tập dữ liệu (Split)</th>
+                <th>Tổng số mẫu</th>
+                <th>Số ảnh Unique</th>
+                <th>Số ảnh trùng với Train</th>
+                <th>Tỷ lệ Leakage (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Parquet Test (Gemma)</strong></td>
+                <td>451</td>
+                <td>203</td>
+                <td><strong>202</strong></td>
+                <td style="color: #dc3545; font-weight: bold;">99.51%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="img-container">
+        <img src="plots/image_leakage.png" alt="Tỷ lệ rò rỉ ảnh trong Parquet">
+    </div>
+
+    <div class="highlight">
+        <strong>💡 Nhận định khoa học:</strong><br>
+        Việc rò rỉ ảnh ở mức gần như 100% biến bài toán VQA từ <i>"mô hình hóa khả năng suy luận đa phương tiện trên dữ liệu mới"</i> thành bài toán <i>"nhớ lại thông tin đã học từ bức ảnh cũ và ghép cặp với câu hỏi mới"</i>.
+        Để đo đạc chính xác khả năng tổng quát hóa, bắt buộc phải sử dụng một tập test sạch <strong>Image-Disjoint (Không trùng ảnh)</strong>.
+    </div>
+
+    <h2>3. Phân tích Phân phối Câu hỏi & Đáp án</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Phân loại câu hỏi (Closed vs Open)</div>
+            <p>
+                Dựa trên câu trả lời nhị phân (yes/no) đại diện cho câu hỏi Closed-ended, ta có phân bố loại câu hỏi trong nguồn dữ liệu như sau:
+            </p>
+            <div class="img-container">
+                <img src="plots/question_type_dist.png" alt="Phân bố loại câu hỏi">
+            </div>
+            <ul>
+                <li><strong>Closed-ended (Yes/No):</strong> 940 mẫu (52.4%)</li>
+                <li><strong>Open-ended:</strong> 853 mẫu (47.6%)</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="card-title">Hiện tượng Long-tail của đáp án (Answer Tail)</div>
+            <p>
+                Tập dữ liệu chứa rất nhiều đáp án hiếm gặp (Long-tail). Top 10 đáp án phổ biến nhất chiếm hơn một nửa tổng số mẫu, tạo ra độ lệch dữ liệu cực lớn:
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hạng</th>
+                        <th>Đáp án</th>
+                        <th>Số lượng</th>
+                        <th>Tần suất</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td><code>no</code></td><td>473</td><td>26.38%</td></tr><tr><td>2</td><td><code>yes</code></td><td>467</td><td>26.05%</td></tr><tr><td>3</td><td><code>axial</code></td><td>31</td><td>1.73%</td></tr><tr><td>4</td><td><code>right</code></td><td>20</td><td>1.12%</td></tr><tr><td>5</td><td><code>pa</code></td><td>14</td><td>0.78%</td></tr><tr><td>6</td><td><code>left</code></td><td>13</td><td>0.73%</td></tr><tr><td>7</td><td><code>ct</code></td><td>10</td><td>0.56%</td></tr><tr><td>8</td><td><code>brain</code></td><td>8</td><td>0.45%</td></tr><tr><td>9</td><td><code>x-ray</code></td><td>7</td><td>0.39%</td></tr><tr><td>10</td><td><code>with contrast</code></td><td>7</td><td>0.39%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="img-container" style="margin-top: 30px;">
+        <img src="plots/top_answers.png" alt="Top 15 đáp án phổ biến nhất">
+    </div>
+
+    <h2>4. Phân tích OOV (Out-of-Vocabulary) cho sinh đáp án của Gemma</h2>
+    <div class="highlight">
+        <strong>Tỷ lệ đáp án chưa từng thấy (Unseen Answers) ở tập Test:</strong><br>
+        Trong tập Test của Parquet (451 mẫu), có tới <strong>117 mẫu (25.94%)</strong> chứa đáp án hoàn toàn chưa từng xuất hiện trong tập Train.
+        <ul>
+            <li>Với mô hình phân loại (Classification): Các mẫu này chắc chắn sẽ bị đoán sai (Accuracy = 0%).</li>
+            <li>Với mô hình sinh (Generative Gemma): Mô hình có thể sinh ra đáp án đúng nhờ khả năng tổng quát hóa ngôn ngữ hoặc tri thức y khoa đã được pre-train sẵn, thể hiện ưu thế vượt trội của hướng tiếp cận Generative.</li>
+        </ul>
+    </div>
+
+    <h2>5. Đề xuất Hướng Khắc Phục cho Gemma Fine-Tuning</h2>
+    <ol>
+        <li>
+            <strong>Áp dụng Đánh giá Song Song (Dual Evaluation):</strong>
+            Khi huấn luyện Gemma, cần chia làm 2 tập Test: 1 tập Test chuẩn từ Hugging Face (để đối chiếu công bằng với các paper khác) và 1 tập Test sạch được chia theo kiểu <i>Image-Disjoint Split</i> để biết độ chính xác thực tế trên ảnh mới.
+        </li>
+        <li>
+            <strong>Sử dụng Prompt Template tốt:</strong>
+            Thêm tiền tố hình ảnh (Image Prefix) kết hợp với cấu trúc Prompt rõ ràng nhằm định hướng câu trả lời của Gemma tránh rơi vào hiện tượng lặp từ hoặc trả lời quá dài so với đáp án ngắn của VQA-RAD.
+        </li>
+        <li>
+            <strong>Xử lý Out-of-Vocabulary:</strong>
+            Tận dụng Causal Language Modeling của Gemma thay vì giới hạn token trong train vocabulary.
+        </li>
+    </ol>
+
+</body>
+</html>

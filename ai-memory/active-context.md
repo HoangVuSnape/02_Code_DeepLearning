@@ -1,12 +1,13 @@
 # Active Context
 
 > Cập nhật: 2026-07-12  
-> Agent cuối cùng chỉnh sửa: Antigravity
+> Agent cuối cùng chỉnh sửa: Claude
 
 ## Đang làm gì
 
-- **Track thực nghiệm (Ưu tiên):** Chuẩn bị chạy Ablation study trên Kaggle/Colab cho dự án VQA-RAD bằng cách sử dụng các lệnh CLI `!python train.py` và `!python eval.py`.
-- Thiết lập xong tệp chạy chính `train.py`, `eval.py` và runner notebook `notebook/ablation_vqarad.ipynb`.
+- **🔴 QUYẾT ĐỊNH LỚN (2026-07-12): chuyển hẳn sang GENERATIVE VQA** (sinh answer token-by-token bằng GRU decoder + cross-attention), bỏ hướng classification. Xem [decisions/2026-07-12_switch-to-generative.md](decisions/2026-07-12_switch-to-generative.md) + đề cương `html_report/bo_sung_de_cuong_generative_medvqa.html`.
+- **Đã sửa HTML sang generative** (theo quy tắc "HTML trước, code sau"): index.html, technical_deep_dive.html, architecture.html (banner + decoder + workflow + matrix G0–G3/E1–E4 + metric bỏ AUC).
+- **Chưa sửa code** — code hiện tại vẫn là classification. Bước tiếp: rework src/ theo ADR.
 
 ## Vừa hoàn thành
 
