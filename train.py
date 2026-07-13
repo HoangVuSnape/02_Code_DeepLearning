@@ -86,10 +86,27 @@ def main():
     print("📦 Loading VQA-RAD dataset from Hugging Face...")
     ds = load_dataset("flaviagiammarino/vqa-rad")
     train_recs = [dict(r) for r in ds["train"]]
-    keys = [image_key(r["image"]) for r in train_recs]
 
-    # Split train/val
-    tr_idx, va_idx = group_split(keys, val_ratio=0.1, seed=args.seed)
+    # Split train/val using pre-computed indices if available to avoid redundant image hashing
+    os.makedirs("data", exist_ok=True)
+    train_idx_path = "data/train_indices.json"
+    val_idx_path = "data/val_indices.json"
+
+    if os.path.exists(train_idx_path) and os.path.exists(val_idx_path):
+        print("📖 Loading pre-computed split indices from data/ folder...")
+        with open(train_idx_path) as f:
+            tr_idx = json.load(f)
+        with open(val_idx_path) as f:
+            va_idx = json.load(f)
+    else:
+        print("⚙️ Computing image-disjoint split...")
+        keys = [image_key(r["image"]) for r in train_recs]
+        tr_idx, va_idx = group_split(keys, val_ratio=0.1, seed=args.seed)
+        with open(train_idx_path, "w") as f:
+            json.dump(tr_idx, f)
+        with open(val_idx_path, "w") as f:
+            json.dump(va_idx, f)
+
     tr = [train_recs[i] for i in tr_idx]
     va = [train_recs[i] for i in va_idx]
 
@@ -168,7 +185,8 @@ def main():
         comet_experiment=comet_exp,
         hf_repo_id=args.hf_repo_id if args.use_hf_push else None,
         hf_token=secrets.get("HF_TOKEN") if args.use_hf_push else None,
-        project_name=args.project_name
+        project_name=args.project_name,
+        out_dir=args.out_dir
     )
 
     if args.rl:
@@ -197,8 +215,11 @@ def main():
             id2answer=id2answer,
             device=device,
             out_dir=args.out_dir,
-            name=args.run_name
+            name=args.run_name,
+            callbacks=cb
         )
+        rl_result["params_trainable"] = params_trainable
+        cb.on_run_end(args.run_name, rl_result)
         print(f"🎉 RL Training Completed. Best Val EM: {rl_result['best_val_em']:.4f}")
     else:
         # Load checkpoint if provided (resume/finetune)

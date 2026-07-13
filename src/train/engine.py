@@ -92,6 +92,10 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
                 "train_em": tr["em_overall"], "val_loss": va_loss,
                 "val_em": va["em_overall"], "val_em_closed": va["em_closed"],
                 "val_em_open": va["em_open"], "epoch_sec": history["epoch_sec"][-1]})
+        # Save regular checkpoint at the end of every epoch
+        epoch_ckpt = os.path.join(out_dir, f"{name}_checkpoint.pt")
+        torch.save(model.state_dict(), epoch_ckpt)
+
         if va["em_overall"] > best_val_em:
             best_val_em, bad = va["em_overall"], 0
             torch.save(model.state_dict(), ckpt)
@@ -110,7 +114,8 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
     result = {"name": name, "history": history, "best_val_em": best_val_em,
               "params_total": sum(p.numel() for p in model.parameters()),
               "params_trainable": params_trainable,
-              "checkpoint": ckpt}
+              "checkpoint": ckpt,
+              "latest_checkpoint": epoch_ckpt}
     if callbacks is not None:
         callbacks.on_run_end(name, result)
     return result

@@ -50,7 +50,7 @@ def scst_epoch(model, loader, optimizer, id2answer, device):
 
 
 def scst_finetune(model, train_loader, val_eval_fn, epochs, lr, id2answer,
-                  device, out_dir, name="D1_scst"):
+                  device, out_dir, name="D1_scst", callbacks=None):
     """Chay SCST nhieu epoch; giu checkpoint co val EM cao nhat (val_eval_fn tra EM)."""
     import os
     optimizer = torch.optim.AdamW(
@@ -64,7 +64,17 @@ def scst_finetune(model, train_loader, val_eval_fn, epochs, lr, id2answer,
         em = val_eval_fn(model)
         print(f"[{name}] RL epoch {ep+1}/{epochs} loss={stats['loss']:.4f} "
               f"reward={stats['mean_reward']:.4f} val_em={em:.4f}")
+        # Save regular checkpoint at the end of every epoch
+        epoch_ckpt = os.path.join(out_dir, f"{name}_checkpoint.pt")
+        torch.save(model.state_dict(), epoch_ckpt)
+
+        if callbacks is not None:
+            callbacks.on_epoch_end(name, ep + 1, epochs, {
+                "epoch": ep + 1, "loss": stats["loss"],
+                "mean_reward": stats["mean_reward"], "val_em": em
+            })
+
         if em > best_em:
             best_em = em
             torch.save(model.state_dict(), ckpt)
-    return {"best_val_em": best_em, "checkpoint": ckpt}
+    return {"best_val_em": best_em, "checkpoint": ckpt, "latest_checkpoint": epoch_ckpt}
