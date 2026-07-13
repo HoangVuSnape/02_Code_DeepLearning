@@ -408,30 +408,169 @@
 
 <!-- ============ MATRIX ============ -->
 <section id="matrix">
-  <h2 class="sec"><span class="n">5</span> Ma trận 13 thí nghiệm</h2>
-  <p class="lead">Chỉ đổi biến đang khảo sát, mọi thứ khác cố định (seed 42, batch 32, AdamW lr 1e-3, 3 epoch, patience 3).</p>
+  <h2 class="sec"><span class="n">5</span> Ma trận 25 thí nghiệm</h2>
+  <p class="lead">Chỉ đổi biến đang khảo sát, mọi thứ khác cố định (seed 42, batch 32, AdamW lr 1e-3, 20 epoch, patience 5).</p>
 
-  <h4>Nhóm A — đủ 2³ = 8 tổ hợp attention (CustomCNN + BiLSTM)</h4>
+  <h4>Ma trận thực nghiệm triển khai chi tiết</h4>
   <div class="table-wrap"><table>
-    <tr><th>run_name</th><th class="center">image_attention</th><th class="center">text_attention</th><th class="center">decoder_attention</th></tr>
-    <tr><td>A1_000</td><td class="center tag-no">–</td><td class="center tag-no">–</td><td class="center tag-no">–</td></tr>
-    <tr><td>A2_001</td><td class="center tag-no">–</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td></tr>
-    <tr><td>A3_010</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td></tr>
-    <tr><td>A4_011</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td></tr>
-    <tr><td>A5_100</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td><td class="center tag-no">–</td></tr>
-    <tr><td>A6_101</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td><td class="center tag-yes">✓</td></tr>
-    <tr><td>A7_110</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td><td class="center tag-no">–</td></tr>
-    <tr><td>A8_111</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td><td class="center tag-yes">✓</td></tr>
+    <thead>
+      <tr>
+        <th>Nhóm</th>
+        <th>Run ID</th>
+        <th>Image Encoder</th>
+        <th>Text Encoder</th>
+        <th>Cấu hình Attention</th>
+        <th>Đóng băng (Freezing)</th>
+        <th>Decoder</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Nhóm A1 -->
+      <tr>
+        <td rowspan="8"><b>A1<br>(Đóng băng,<br>Không Attention)</b></td>
+        <td>A1_lstm_all</td>
+        <td rowspan="4">CustomCNN</td>
+        <td rowspan="4">BiLSTM</td>
+        <td rowspan="8">Tắt Attention</td>
+        <td>Không đóng băng (Train All)</td>
+        <td rowspan="8">MLP Classifier (Baseline)</td>
+      </tr>
+      <tr>
+        <td>A1_lstm_img</td>
+        <td>Đóng băng Image Encoder</td>
+      </tr>
+      <tr>
+        <td>A1_lstm_txt</td>
+        <td>Đóng băng Text Encoder</td>
+      </tr>
+      <tr>
+        <td>A1_lstm_dec</td>
+        <td>Đóng băng Decoder</td>
+      </tr>
+      <tr>
+        <td>A1_trans_all</td>
+        <td rowspan="4">CustomCNN</td>
+        <td rowspan="4">Transformer (Mean)</td>
+        <td>Không đóng băng (Train All)</td>
+      </tr>
+      <tr>
+        <td>A1_trans_img</td>
+        <td>Đóng băng Image Encoder</td>
+      </tr>
+      <tr>
+        <td>A1_trans_txt</td>
+        <td>Đóng băng Text Encoder</td>
+      </tr>
+      <tr>
+        <td>A1_trans_dec</td>
+        <td>Đóng băng Decoder</td>
+      </tr>
+      <!-- Nhóm A2 -->
+      <tr>
+        <td rowspan="8"><b>A2<br>(Đóng băng,<br>Có Attention)</b></td>
+        <td>A2_lstm_all</td>
+        <td rowspan="4">CustomCNN + SE</td>
+        <td rowspan="4">BiLSTM + Temporal</td>
+        <td rowspan="8">Bật Attention</td>
+        <td>Không đóng băng (Train All)</td>
+        <td rowspan="8">MLP Classifier (Baseline)</td>
+      </tr>
+      <tr>
+        <td>A2_lstm_img</td>
+        <td>Đóng băng Image Encoder</td>
+      </tr>
+      <tr>
+        <td>A2_lstm_txt</td>
+        <td>Đóng băng Text Encoder</td>
+      </tr>
+      <tr>
+        <td>A2_lstm_dec</td>
+        <td>Đóng băng Decoder</td>
+      </tr>
+      <tr>
+        <td>A2_trans_all</td>
+        <td rowspan="4">CustomCNN + SE</td>
+        <td rowspan="4">Transformer (Attn Pool)</td>
+        <td>Không đóng băng (Train All)</td>
+      </tr>
+      <tr>
+        <td>A2_trans_img</td>
+        <td>Đóng băng Image Encoder</td>
+      </tr>
+      <tr>
+        <td>A2_trans_txt</td>
+        <td>Đóng băng Text Encoder</td>
+      </tr>
+      <tr>
+        <td>A2_trans_dec</td>
+        <td>Đóng băng Decoder</td>
+      </tr>
+      <!-- Nhóm P -->
+      <tr>
+        <td rowspan="4"><b>P<br>(Pre-trained &<br>Generative Decoders)</b></td>
+        <td>P_resnet_lstm</td>
+        <td>ResNet-18 (Pretrained)</td>
+        <td>BiLSTM</td>
+        <td rowspan="4">Theo tối ưu nhất</td>
+        <td>Đóng băng ResNet-18</td>
+        <td>MLP Classifier</td>
+      </tr>
+      <tr>
+        <td>P_resnet_trans</td>
+        <td>ResNet-18 (Pretrained)</td>
+        <td>Transformer</td>
+        <td>Đóng băng ResNet-18</td>
+        <td>MLP Classifier</td>
+      </tr>
+      <tr>
+        <td>P_pubmed_mlp</td>
+        <td>PubMedCLIP (ViT)</td>
+        <td>PubMedBERT</td>
+        <td>Đóng băng PubMedCLIP</td>
+        <td>MLP Classifier</td>
+      </tr>
+      <tr>
+        <td>P_pubmed_gpt2</td>
+        <td>PubMedCLIP (ViT)</td>
+        <td>PubMedBERT</td>
+        <td>Đóng băng PubMedCLIP</td>
+        <td>GPT-2 Generative Decoder</td>
+      </tr>
+      <!-- Nhóm R -->
+      <tr>
+        <td><b>R<br>(Rules)</b></td>
+        <td>R_constrained</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>GPT-2 + Constrained (Yes/No)</td>
+      </tr>
+      <!-- Nhóm D -->
+      <tr>
+        <td><b>D<br>(RL / SCST)</b></td>
+        <td>D1_scst</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>Theo tối ưu nhất</td>
+        <td>GPT-2 + Học tăng cường (SCST)</td>
+      </tr>
+      <!-- Nhóm G -->
+      <tr>
+        <td rowspan="2"><b>G<br>(LLM/VLM Bench)</b></td>
+        <td>Gemma-2B-LoRA</td>
+        <td rowspan="2">MobileNet-V5 (ViT)</td>
+        <td rowspan="2">Gemma-it</td>
+        <td rowspan="2">Attention của Gemma</td>
+        <td rowspan="2">QLoRA 4-bit</td>
+        <td rowspan="2">Gemma Autoregressive Decoder</td>
+      </tr>
+      <tr>
+        <td>Gemma-4B-LoRA</td>
+      </tr>
+    </tbody>
   </table></div>
-
-  <div class="table-wrap"><table>
-    <tr><th>Nhóm</th><th>Runs</th><th>Nội dung</th><th>Loaders</th></tr>
-    <tr><td><b>B</b></td><td>2</td><td>Transformer text encoder (mean pooling vs attention pooling), giữ cờ tốt nhất từ A → so LSTM vs Transformer</td><td>ảnh 128</td></tr>
-    <tr><td><b>C</b></td><td>2</td><td>ResNet-18 frozen (C1 + BiLSTM, C2 + text tốt nhất) — chỉ train text + fusion</td><td>ảnh 224, ImageNet norm</td></tr>
-    <tr><td><b>D</b></td><td>1</td><td>SFT → RL (SCST) trên checkpoint tốt nhất toàn cục</td><td>theo best</td></tr>
-  </table></div>
-
-  <div class="callout warn"><b>Còn thiếu — chiều Projector:</b> nhóm A hiện chỉ quét 3 cờ attention (2³=8). Khi bổ sung Projector (cờ thứ 4) sẽ có thêm biến thể — theo <code>code_references.ipynb</code> tối thiểu 2 case: <b>Projector-only</b> <code>(0,0,proj,0)</code> và <b>Full+Projector</b> <code>(1,1,proj,1)</code>; hoặc mở đủ 2⁴=16 tổ hợp nếu đủ quota. Việc tích hợp vào A/B/C/D sẽ chốt khi sửa code (bước sau).</div>
 </section>
 
 <!-- ============ TRAIN SFT ============ -->
@@ -443,7 +582,7 @@
     <div class="card"><div class="k">Optimizer</div><div class="v">AdamW</div><div class="d">chỉ tham số trainable (backbone frozen bị loại)</div></div>
     <div class="card"><div class="k">Learning rate</div><div class="v">1e-3</div><div class="d">weight_decay 1e-4</div></div>
     <div class="card"><div class="k">Loss</div><div class="v">CrossEntropy</div><div class="d">label −1 clamp về 0 (chỉ ở val)</div></div>
-    <div class="card"><div class="k">Epochs</div><div class="v">3</div><div class="d">early-stop patience 3</div></div>
+    <div class="card"><div class="k">Epochs</div><div class="v">20</div><div class="d">early-stop patience 5</div></div>
     <div class="card"><div class="k">Batch size</div><div class="v">32</div><div class="d">→ 16 nếu OOM</div></div>
     <div class="card"><div class="k">Chọn checkpoint</div><div class="v">val EM ↑</div><div class="d">lưu best.pt khi cải thiện</div></div>
   </div>
@@ -489,10 +628,10 @@ em_overall / em_closed / em_open  = tỉ lệ đúng trên từng nhóm</pre>
     <tr><td><code>max_len</code></td><td>32</td><td>độ dài token câu hỏi</td></tr>
     <tr><td><code>image_size</code></td><td>224</td><td>chuẩn hóa 224×224 cho mọi model (fair comparison)</td></tr>
     <tr><td rowspan="5">Train</td><td><code>batch_size</code></td><td>32</td><td>kích thước batch</td></tr>
-    <tr><td><code>epochs</code></td><td>3</td><td>số epoch SFT tối đa</td></tr>
+    <tr><td><code>epochs</code></td><td>20</td><td>số epoch SFT tối đa</td></tr>
     <tr><td><code>lr</code></td><td>1e-3</td><td>learning rate SFT</td></tr>
     <tr><td><code>weight_decay</code></td><td>1e-4</td><td>AdamW weight decay</td></tr>
-    <tr><td><code>patience</code></td><td>3</td><td>early-stop theo val EM</td></tr>
+    <tr><td><code>patience</code></td><td>5</td><td>early-stop theo val EM</td></tr>
     <tr><td rowspan="2">RL</td><td><code>rl_epochs</code></td><td>5</td><td>số epoch SCST</td></tr>
     <tr><td><code>rl_lr</code></td><td>1e-5</td><td>lr RL (nhỏ hơn nhiều)</td></tr>
     <tr><td rowspan="4">Smoke</td><td><code>smoke</code></td><td>False</td><td>bật chế độ chạy nhanh</td></tr>

@@ -18,10 +18,11 @@ def test_dataset_shapes_and_types():
     a2i = build_answer_vocab([r["answer"] for r in recs])
     qv = build_question_vocab([r["question"] for r in recs])
     ds = VQARADClsDataset(recs, a2i, qv, default_transform(128, train=False), max_len=16)
-    img, tokens, label, closed = ds[0]
+    img, tokens, label, closed, dec_in, dec_tgt = ds[0]
     assert img.shape == (3, 128, 128)           # grayscale -> 3 kenh, resize 128
     assert tokens.shape == (16,) and tokens.dtype == torch.long
     assert label == a2i["yes"] and closed is True
+    assert dec_in.shape == (16,) and dec_tgt.shape == (16,)
 
 
 def test_imagenet_transform_size_224():
@@ -38,5 +39,5 @@ def test_unseen_answer_gets_minus_one():
     a2i = build_answer_vocab(["yes", "no"])      # vocab KHONG chua "right lung"
     qv = build_question_vocab([r["question"] for r in recs])
     ds = VQARADClsDataset(recs, a2i, qv, default_transform(128, train=False))
-    _, _, label, closed = ds[2]
+    _, _, label, closed, _, _ = ds[2]
     assert label == -1 and closed is False       # unseen answer -> khong bao gio dung

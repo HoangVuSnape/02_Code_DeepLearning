@@ -149,12 +149,10 @@
   <h1>📋 Báo cáo kế hoạch nghiên cứu<br>Ablation vị trí Attention — CNN–BiLSTM–Decoder trên VQA-RAD</h1>
   <div class="sub">Dự án Medical-VQA · Môn Deep Learning · Master TDTU · Ngày lập: 12/07/2026</div>
   <div class="badges">
-    <span class="badge">VQA-RAD (1793 train / 451 test)</span>
-    <span class="badge">Kaggle / Colab Free</span>
-    <span class="badge">13 runs: A(8) + B(2) + C(2) + D(1)</span>
+    <span class="badge">25 runs: A1(8) + A2(8) + P(4) + R(1) + D(1) + G(2) + Smoke(1)</span>
     <span class="badge">SFT → RL (SCST)</span>
     <span class="badge">PyTorch</span>
-    <span class="badge">Plan v2 — đã sửa theo feedback</span>
+    <span class="badge">Plan v3 — đã bổ sung Generative Decoders & Đóng băng</span>
   </div>
 </header>
 
@@ -163,7 +161,7 @@
   <div class="table-wrap">
     <table>
       <tr><th>File</th><th>Nội dung</th></tr>
-      <tr><td><a href="01_ke_hoach_tong_quan.html"><b>01_ke_hoach_tong_quan.html</b></a> <span class="muted">(đang xem)</span></td><td>Tổng quan kế hoạch: bối cảnh, kiến trúc, 13 runs, metric, tiến độ task</td></tr>
+      <tr><td><a href="01_ke_hoach_tong_quan.html"><b>01_ke_hoach_tong_quan.html</b></a> <span class="muted">(đang xem)</span></td><td>Tổng quan kế hoạch: bối cảnh, kiến trúc, 25 runs, metric, tiến độ task</td></tr>
       <tr><td><a href="04_technical_deep_dive.html"><b>04_technical_deep_dive.html</b></a></td><td>Deep dive: data · tiền xử lý · model · train (SFT+RL) · config/params · metric · test/inference · workflow</td></tr>
       <tr><td><a href="03_kien_truc_model.html"><b>03_kien_truc_model.html</b></a></td><td>Kiến trúc từng khối: cảm hứng (paper) · là gì · làm gì · sơ đồ khối · input/output; + Reinforcement Learning</td></tr>
       <tr><td><a href="02_de_cuong_generative_medvqa.html"><b>02_de_cuong_generative_medvqa.html</b></a> <span class="status done">đã chốt</span></td><td><b>Đề cương Generative VQA</b> (sinh answer token-by-token). Hướng chính thức của dự án.</td></tr>
@@ -172,12 +170,11 @@
     </table>
   </div>
   <div class="callout good">
-    <strong>✅ ĐÃ CHỐT: hướng Generative VQA.</strong> Bài toán = <em>image + question → sinh answer token-by-token</em>
-    (GRU decoder + cross-attention), không còn phân loại trên answer vocab. Lý do: trung thành với Gemma & baseline
-    PubMedCLIP+GPT-2, có baseline G0/G1 chống question-bias. Đánh đổi: EM tuyệt đối có thể thấp hơn classification
-    (data nhỏ 1793 mẫu) — giá trị nằm ở <b>ablation có kiểm soát (RQ1–RQ5)</b>, không phải số cao nhất.
+    <strong>✅ ĐÃ CHỐT: hướng Generative VQA &amp; Ablation.</strong> Bài toán = <em>image + question → sinh answer token-by-token</em>
+    (GRU/LSTM/Transformer decoder + cross-attention), không còn phân loại trên answer vocab. Lý do: trung thành với Gemma & baseline
+    PubMedCLIP+GPT-2, có baseline chống question-bias. Đánh đổi: EM tuyệt đối có thể thấp hơn classification
+    (data nhỏ 1793 mẫu) — giá trị nằm ở <b>ablation có kiểm soát (A1, A2, P, R, D)</b>, không phải số cao nhất.
     <br>Đề cương đầy đủ: <a href="02_de_cuong_generative_medvqa.html"><b>02_de_cuong_generative_medvqa.html</b></a>.
-    Các phần "classification" trong trang này &amp; <code>04_technical_deep_dive.html</code>/<code>03_kien_truc_model.html</code> đang được cập nhật dần sang generative; code cũng sẽ sửa theo.
   </div>
 </section>
 
@@ -203,25 +200,21 @@
 
 <section>
   <h2>2. Hướng nghiên cứu mới</h2>
-  <p><strong>Tên đề tài:</strong> <em>Ablation Study of Attention Placement in a Lightweight
+  <p><strong>Tên đề tài:</strong> <em>Ablation Study of Attention Placement and Freezing in a Lightweight
   CNN–BiLSTM–Decoder for Medical Visual Question Answering under Resource Constraints.</em></p>
-  <p><strong>Câu hỏi nghiên cứu:</strong> đặt attention ở <strong>CNN</strong> (ảnh),
-  <strong>BiLSTM</strong> (câu hỏi) hay <strong>Decoder</strong> (sau fusion) thì cấu hình nào
-  cho hiệu quả tốt nhất với chi phí thấp nhất — và mô hình nhẹ (~1–2M tham số) đứng ở đâu
-  so với VLM 2B/4B đã fine-tune?</p>
+  <p><strong>Câu hỏi nghiên cứu:</strong> So sánh cơ chế đóng băng (freezing) và thêm cơ chế attention (SE-block channel attention ở ảnh, temporal attention ở chữ) có ý nghĩa như thế nào đối với hiệu năng học và chống overfitting của mô hình nhẹ, và đối chứng với VLM?</p>
 
   <h3>Model sử dụng (chốt rõ)</h3>
   <div class="table-wrap">
     <table>
       <tr><th>Vai trò</th><th>Model</th><th>Nguồn</th><th>Train thế nào</th></tr>
-      <tr><td>Image encoder (chính)</td><td><strong>CustomCNN</strong> 3 block (3→32→64→128)</td><td>tự viết</td><td>train từ đầu</td></tr>
-      <tr><td>Image encoder (nhóm C)</td><td><strong>ResNet-18</strong> pretrained ImageNet</td><td>torchvision</td><td><strong>đóng băng toàn bộ</strong> — chỉ train projection + text + fusion</td></tr>
-      <tr><td>Text encoder (nhánh 1)</td><td><strong>BiLSTM</strong> (emb 64, hidden 32×2 → 64-d)</td><td>tự viết</td><td>train từ đầu</td></tr>
-      <tr><td>Text encoder (nhánh 2)</td><td><strong>TransformerEncoder</strong> (d=64, 4 head, 2 layer)</td><td>nn.TransformerEncoder</td><td>train từ đầu</td></tr>
-      <tr><td>Fusion</td><td>Concat pooled img+txt → <code>Linear(fused→128)</code> làm hidden khởi tạo decoder (Projector = extension)</td><td>tự viết</td><td>train từ đầu</td></tr>
-      <tr><td><strong>Decoder (generative)</strong></td><td><strong>GRU 1 layer, hidden 128</strong> — sinh answer token-by-token + <b>cross-attention</b> lên image tokens & question states → logits <code>[B,T,V_answer]</code></td><td>tự viết</td><td>train từ đầu (teacher forcing)</td></tr>
-      <tr><td>RL (extension E4)</td><td>REINFORCE self-critical (SCST)</td><td>tự viết</td><td>fine-tune sau SFT, lr 1e-5, reward = 0.5·EM + 0.5·token-F1</td></tr>
-      <tr><td>Đối chứng</td><td>Gemma 2B/4B LoRA · PubMedCLIP+GPT-2</td><td>đã train trước</td><td>chỉ chấm lại prediction bằng evaluator chung</td></tr>
+      <tr><td>Image encoder (Custom)</td><td><strong>CustomCNN</strong> 3 block (3→32→64→128)</td><td>tự viết</td><td>train từ đầu / đóng băng theo run</td></tr>
+      <tr><td>Image encoder (Pre-trained)</td><td><strong>ResNet-18</strong> (ImageNet) / <strong>PubMedCLIP</strong> (ViT)</td><td>torchvision / HF</td><td><strong>đóng băng backbone</strong> — chỉ học projection và decoder</td></tr>
+      <tr><td>Text encoder (Custom)</td><td><strong>BiLSTM</strong> (hidden 64) / <strong>Transformer</strong> (mean/attn pool)</td><td>tự viết</td><td>train từ đầu / đóng băng theo run</td></tr>
+      <tr><td>Text encoder (Pre-trained)</td><td><strong>PubMedBERT</strong> / <strong>GPT-2 Embedding</strong></td><td>HF</td><td>đóng băng / train nhẹ</td></tr>
+      <tr><td><strong>Decoder (Custom & LM)</strong></td><td><strong>MLP Classifier</strong> (phân lớp baseline) / <strong>Generative GRU/LSTM/Transformer</strong> / <strong>GPT-2 Decoder</strong></td><td>tự viết / HF</td><td>train từ đầu (teacher forcing / autoregressive)</td></tr>
+      <tr><td>RL (Học tăng cường)</td><td>REINFORCE self-critical (SCST)</td><td>tự viết</td><td>fine-tune sau SFT, lr 1e-5, reward = 0.5·EM + 0.5·token-F1</td></tr>
+      <tr><td>Đối chứng</td><td>Gemma 2B/4B LoRA</td><td>đã train trước</td><td>chấm lại prediction bằng evaluator chung</td></tr>
     </table>
   </div>
 
@@ -235,44 +228,184 @@
       <tr><td>Decoder (generative)</td><td>context fusion cố định cho mọi token</td><td><strong>Cross-attention:</strong> mỗi bước sinh token, GRU attend vào image spatial tokens & question states — chọn feature phù hợp token đang sinh</td></tr>
     </table>
   </div>
-  <p class="muted" style="font-size:.85rem">Decoder attention ở đây là <b>cross-attention theo từng token sinh ra</b> (không còn gated trên 1 vector fused) — đây là attention quan trọng nhất cho generative VQA.</p>
 
   <h3>Kiến trúc</h3>
-<pre>
-Ảnh ──▶ [CustomCNN | ResNet-18 frozen] ──[SE-Block?]──▶ v_img [B,128] ─┐
-                                                                        ├─ concat [B,192]
-Câu hỏi ──▶ [BiLSTM | Transformer] ──▶ question token states [B,T,64] ──┤
-                                                                        │
-                              fusion → Linear → hidden khởi tạo GRU     │
-                                                                        ▼
-              GRU decoder (hidden 128) + cross-attention lên image/question tokens
-                                                                        │
-                        <bos> → token_1 → ... → token_T → <eos>   (logits [B,T,V_answer])
-Sau SFT: SCST (extension E4) — reward 0.5·EM + 0.5·token-F1 trên answer sinh ra
-</pre>
+  <pre>
+Ảnh ──▶ [CustomCNN | ResNet/CLIP] ──[SE-Block?]──▶ v_img [B,128] ─┐
+                                                                  ├─ concat [B,192]
+Câu hỏi ──▶ [BiLSTM | Transformer/BERT] ────────▶ v_txt [B,64] ───┤
+                                                                  │
+                              fusion ─────────────────────────────┘
+                               │
+                               ▼
+            Decoder (MLP / Generative GRU/LSTM/Transformer/GPT-2)
+  </pre>
+</section>
 
-  <h3>Ma trận thực nghiệm — Core (G0–G3) + Extension (E1–E4)</h3>
+<section>
+  <h3>Ma trận thực nghiệm triển khai (25 runs)</h3>
   <div class="table-wrap">
     <table>
-      <tr><th>Run</th><th>Image</th><th>Question</th><th>Decoder</th><th>Mục tiêu</th></tr>
-      <tr><td><strong>G0</strong></td><td class="tag-no">–</td><td>BiLSTM</td><td>GRU</td><td>Question-only: đo question/language bias</td></tr>
-      <tr><td><strong>G1</strong></td><td>CustomCNN</td><td class="tag-no">– (dummy)</td><td>GRU</td><td>Image-only: đo đóng góp ảnh</td></tr>
-      <tr><td><strong>G2</strong></td><td>CustomCNN</td><td>BiLSTM</td><td>GRU, context cố định</td><td>Multimodal SFT baseline</td></tr>
-      <tr><td><strong>G3</strong></td><td>CustomCNN + SE</td><td>BiLSTM + temporal</td><td>GRU + cross-attention</td><td>Full-attention generative</td></tr>
+      <thead>
+        <tr>
+          <th>Nhóm</th>
+          <th>Run ID</th>
+          <th>Image Encoder</th>
+          <th>Text Encoder</th>
+          <th>Cấu hình Attention</th>
+          <th>Đóng băng (Freezing)</th>
+          <th>Decoder</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Nhóm A1 -->
+        <tr>
+          <td rowspan="8"><b>A1<br>(Đóng băng ablation,<br>Không Attention)</b></td>
+          <td>A1_lstm_all</td>
+          <td rowspan="4">CustomCNN</td>
+          <td rowspan="4">BiLSTM</td>
+          <td rowspan="8">Tắt Attention</td>
+          <td>Không đóng băng (Train All)</td>
+          <td rowspan="8">MLP Classifier (Baseline)</td>
+        </tr>
+        <tr>
+          <td>A1_lstm_img</td>
+          <td>Đóng băng Image Encoder</td>
+        </tr>
+        <tr>
+          <td>A1_lstm_txt</td>
+          <td>Đóng băng Text Encoder</td>
+        </tr>
+        <tr>
+          <td>A1_lstm_dec</td>
+          <td>Đóng băng Decoder</td>
+        </tr>
+        <tr>
+          <td>A1_trans_all</td>
+          <td rowspan="4">CustomCNN</td>
+          <td rowspan="4">Transformer (Mean)</td>
+          <td>Không đóng băng (Train All)</td>
+        </tr>
+        <tr>
+          <td>A1_trans_img</td>
+          <td>Đóng băng Image Encoder</td>
+        </tr>
+        <tr>
+          <td>A1_trans_txt</td>
+          <td>Đóng băng Text Encoder</td>
+        </tr>
+        <tr>
+          <td>A1_trans_dec</td>
+          <td>Đóng băng Decoder</td>
+        </tr>
+        <!-- Nhóm A2 -->
+        <tr>
+          <td rowspan="8"><b>A2<br>(Đóng băng ablation,<br>Có Attention)</b></td>
+          <td>A2_lstm_all</td>
+          <td rowspan="4">CustomCNN + SE</td>
+          <td rowspan="4">BiLSTM + Temporal</td>
+          <td rowspan="8">Bật Attention</td>
+          <td>Không đóng băng (Train All)</td>
+          <td rowspan="8">MLP Classifier (Baseline)</td>
+        </tr>
+        <tr>
+          <td>A2_lstm_img</td>
+          <td>Đóng băng Image Encoder</td>
+        </tr>
+        <tr>
+          <td>A2_lstm_txt</td>
+          <td>Đóng băng Text Encoder</td>
+        </tr>
+        <tr>
+          <td>A2_lstm_dec</td>
+          <td>Đóng băng Decoder</td>
+        </tr>
+        <tr>
+          <td>A2_trans_all</td>
+          <td rowspan="4">CustomCNN + SE</td>
+          <td rowspan="4">Transformer (Attn Pool)</td>
+          <td>Không đóng băng (Train All)</td>
+        </tr>
+        <tr>
+          <td>A2_trans_img</td>
+          <td>Đóng băng Image Encoder</td>
+        </tr>
+        <tr>
+          <td>A2_trans_txt</td>
+          <td>Đóng băng Text Encoder</td>
+        </tr>
+        <tr>
+          <td>A2_trans_dec</td>
+          <td>Đóng băng Decoder</td>
+        </tr>
+        <!-- Nhóm P -->
+        <tr>
+          <td rowspan="4"><b>P<br>(Pre-trained &<br>Generative Decoders)</b></td>
+          <td>P_resnet_lstm</td>
+          <td>ResNet-18 (Pretrained)</td>
+          <td>BiLSTM</td>
+          <td rowspan="4">Theo tối ưu nhất</td>
+          <td>Đóng băng ResNet-18</td>
+          <td>MLP Classifier</td>
+        </tr>
+        <tr>
+          <td>P_resnet_trans</td>
+          <td>ResNet-18 (Pretrained)</td>
+          <td>Transformer</td>
+          <td>Đóng băng ResNet-18</td>
+          <td>MLP Classifier</td>
+        </tr>
+        <tr>
+          <td>P_pubmed_mlp</td>
+          <td>PubMedCLIP (ViT)</td>
+          <td>PubMedBERT</td>
+          <td>Đóng băng PubMedCLIP</td>
+          <td>MLP Classifier</td>
+        </tr>
+        <tr>
+          <td>P_pubmed_gpt2</td>
+          <td>PubMedCLIP (ViT)</td>
+          <td>PubMedBERT</td>
+          <td>Đóng băng PubMedCLIP</td>
+          <td>GPT-2 Generative Decoder</td>
+        </tr>
+        <!-- Nhóm R -->
+        <tr>
+          <td><b>R<br>(Rules)</b></td>
+          <td>R_constrained</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>GPT-2 + Constrained (Yes/No)</td>
+        </tr>
+        <!-- Nhóm D -->
+        <tr>
+          <td><b>D<br>(RL / SCST)</b></td>
+          <td>D1_scst</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>Theo tối ưu nhất</td>
+          <td>GPT-2 + Học tăng cường (SCST)</td>
+        </tr>
+        <!-- Nhóm G -->
+        <tr>
+          <td rowspan="2"><b>G<br>(LLM/VLM Bench)</b></td>
+          <td>Gemma-2B-LoRA</td>
+          <td rowspan="2">MobileNet-V5 (ViT)</td>
+          <td rowspan="2">Gemma-it</td>
+          <td rowspan="2">Attention của Gemma</td>
+          <td rowspan="2">QLoRA 4-bit</td>
+          <td rowspan="2">Gemma Autoregressive Decoder</td>
+        </tr>
+        <tr>
+          <td>Gemma-4B-LoRA</td>
+        </tr>
+      </tbody>
     </table>
   </div>
-  <p class="muted">G0/G1 là <b>bắt buộc</b> — chứng minh model không chỉ học prior từ câu hỏi / chỉ từ ảnh (RQ1).</p>
-  <div class="table-wrap">
-    <table>
-      <tr><th>Extension</th><th>So sánh</th><th>Nguyên tắc</th></tr>
-      <tr><td><strong>E1</strong></td><td>BiLSTM vs small Transformer</td><td>giữ image encoder + decoder tốt nhất từ core</td></tr>
-      <tr><td><strong>E2</strong></td><td>CustomCNN vs ResNet-18 frozen</td><td>giữ question encoder + decoder tốt nhất; <b>cùng 224×224</b> để so sánh công bằng</td></tr>
-      <tr><td><strong>E3</strong></td><td>Concat vs Projector (shared space)</td><td>trên best encoder pair</td></tr>
-      <tr><td><strong>E4</strong></td><td>Best SFT vs Best SFT + SCST</td><td>1 checkpoint tốt nhất, 3–5 RL epoch</td></tr>
-    </table>
-  </div>
-  <p class="muted">Chạy <b>G0–G3 trước</b>, xong mới tới E1–E4 (mỗi extension chỉ đổi 1 yếu tố). Biến cố định: data split (seed 42, image-disjoint),
-  vocab, max-len, batch, AdamW lr 1e-3, early-stop patience 3, protocol decode. Test chỉ đánh giá 1 lần cuối; không tune theo test.</p>
+  <p class="muted">Biến cố định: data split (seed 42, image-disjoint), vocab, max-len, batch, AdamW lr 1e-3, early-stop patience 5.</p>
 
   <h3>Hyperparameters cố định</h3>
   <div class="grid2">
