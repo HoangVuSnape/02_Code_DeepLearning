@@ -77,6 +77,7 @@ def main():
                 project_name=args.project_name,
                 auto_metric_logging=False
             )
+            comet_exp.set_name(args.run_name)
             comet_exp.log_parameters(vars(args))
             print("🚀 Comet ML experiment initialized.")
         except Exception as e:
