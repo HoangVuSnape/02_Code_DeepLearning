@@ -38,9 +38,11 @@ class FusionModel(nn.Module):
 
 
 def build_model(vocab_size, num_classes, image_encoder="cnn", text_encoder="lstm",
-                image_attention=False, text_attention=False, decoder_attention=False,
-                pretrained=True, max_len=32):
-    """Factory dung chung cho ca 4 nhom thi nghiem A/B/C/D."""
+                decoder="mlp", image_attention=False, text_attention=False,
+                decoder_attention=False, pretrained=True, max_len=32):
+    """Factory dung chung cho ca 4 nhom thi nghiem A/B/C/D/E."""
+    if decoder != "mlp":
+        raise ValueError(f"Unsupported decoder: {decoder}")
     if image_encoder == "cnn":
         img = ImageEncoderCNN(use_attention=image_attention)
     elif image_encoder == "resnet18_frozen":

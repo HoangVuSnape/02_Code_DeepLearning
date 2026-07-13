@@ -196,7 +196,7 @@
 
     <rect class="bx" x="195" y="30" width="160" height="72" rx="9"/>
     <text class="hd" x="205" y="50">2. TIỀN XỬ LÝ</text>
-    <text class="sm" x="205" y="68">ảnh: resize 128/224, 3ch</text>
+    <text class="sm" x="205" y="68">ảnh: resize 224×224, 3ch</text>
     <text class="sm" x="205" y="82">text: tokenize, pad 32</text>
     <text class="sm" x="205" y="96">answer→class id (vocab train)</text>
 
@@ -230,7 +230,7 @@
     <!-- row2: train loop -> checkpoint -> (RL) -> eval -> metrics -> report -->
     <rect class="bx" x="10" y="180" width="160" height="66" rx="9"/>
     <text class="hd" x="20" y="200">5. SFT LOOP</text>
-    <text class="sm" x="20" y="217">12 epoch, early-stop</text>
+    <text class="sm" x="20" y="217">3 epoch, early-stop</text>
     <text class="sm" x="20" y="231">patience 3 (val EM)</text>
     <text class="sm" x="20" y="243">tqdm · callbacks</text>
 
@@ -331,7 +331,7 @@
   <h3>Nhánh ảnh — <code>default_transform()</code></h3>
   <div class="table-wrap"><table>
     <tr><th>Bước</th><th>Chi tiết</th><th>CustomCNN</th><th>ResNet-18</th></tr>
-    <tr><td>Resize</td><td>ép vuông</td><td>128×128</td><td>224×224</td></tr>
+    <tr><td>Resize</td><td>ép vuông</td><td>224×224</td><td>224×224</td></tr>
     <tr><td>Grayscale→3ch</td><td><code>Grayscale(num_output_channels=3)</code></td><td>✓</td><td>✓ (backbone RGB)</td></tr>
     <tr><td>Augment (chỉ train)</td><td><code>RandomAffine(degrees=5, translate=(0.02,0.02))</code> — xoay/dịch nhẹ, không phá dấu hiệu bệnh</td><td>✓</td><td>✓</td></tr>
     <tr><td>ToTensor</td><td>[0,1], shape [3,S,S]</td><td>✓</td><td>✓</td></tr>
@@ -409,7 +409,7 @@
 <!-- ============ MATRIX ============ -->
 <section id="matrix">
   <h2 class="sec"><span class="n">5</span> Ma trận 13 thí nghiệm</h2>
-  <p class="lead">Chỉ đổi biến đang khảo sát, mọi thứ khác cố định (seed 42, batch 32, AdamW lr 1e-3, 12 epoch, patience 3).</p>
+  <p class="lead">Chỉ đổi biến đang khảo sát, mọi thứ khác cố định (seed 42, batch 32, AdamW lr 1e-3, 3 epoch, patience 3).</p>
 
   <h4>Nhóm A — đủ 2³ = 8 tổ hợp attention (CustomCNN + BiLSTM)</h4>
   <div class="table-wrap"><table>
@@ -443,7 +443,7 @@
     <div class="card"><div class="k">Optimizer</div><div class="v">AdamW</div><div class="d">chỉ tham số trainable (backbone frozen bị loại)</div></div>
     <div class="card"><div class="k">Learning rate</div><div class="v">1e-3</div><div class="d">weight_decay 1e-4</div></div>
     <div class="card"><div class="k">Loss</div><div class="v">CrossEntropy</div><div class="d">label −1 clamp về 0 (chỉ ở val)</div></div>
-    <div class="card"><div class="k">Epochs</div><div class="v">12</div><div class="d">early-stop patience 3</div></div>
+    <div class="card"><div class="k">Epochs</div><div class="v">3</div><div class="d">early-stop patience 3</div></div>
     <div class="card"><div class="k">Batch size</div><div class="v">32</div><div class="d">→ 16 nếu OOM</div></div>
     <div class="card"><div class="k">Chọn checkpoint</div><div class="v">val EM ↑</div><div class="d">lưu best.pt khi cải thiện</div></div>
   </div>
@@ -483,14 +483,13 @@ em_overall / em_closed / em_open  = tỉ lệ đúng trên từng nhóm</pre>
   <p class="lead">Toàn bộ tham số là <b>động</b> (dataclass <code>Config</code> trong <code>src/config.py</code> + argparse trong <code>train.py</code>), không fix cứng.</p>
   <div class="table-wrap"><table>
     <tr><th>Nhóm</th><th>Tham số</th><th>Mặc định</th><th>Ý nghĩa</th></tr>
-    <tr><td rowspan="6">Data</td><td><code>hf_dataset</code></td><td>flaviagiammarino/vqa-rad</td><td>tên dataset HF</td></tr>
+    <tr><td rowspan="5">Data</td><td><code>hf_dataset</code></td><td>flaviagiammarino/vqa-rad</td><td>tên dataset HF</td></tr>
     <tr><td><code>seed</code></td><td>42</td><td>seed cho split + init</td></tr>
     <tr><td><code>val_ratio</code></td><td>0.1</td><td>tỉ lệ validation</td></tr>
     <tr><td><code>max_len</code></td><td>32</td><td>độ dài token câu hỏi</td></tr>
-    <tr><td><code>image_size</code></td><td>128</td><td>ảnh cho CustomCNN</td></tr>
-    <tr><td><code>image_size_resnet</code></td><td>224</td><td>ảnh cho ResNet-18</td></tr>
+    <tr><td><code>image_size</code></td><td>224</td><td>chuẩn hóa 224×224 cho mọi model (fair comparison)</td></tr>
     <tr><td rowspan="5">Train</td><td><code>batch_size</code></td><td>32</td><td>kích thước batch</td></tr>
-    <tr><td><code>epochs</code></td><td>12</td><td>số epoch SFT tối đa</td></tr>
+    <tr><td><code>epochs</code></td><td>3</td><td>số epoch SFT tối đa</td></tr>
     <tr><td><code>lr</code></td><td>1e-3</td><td>learning rate SFT</td></tr>
     <tr><td><code>weight_decay</code></td><td>1e-4</td><td>AdamW weight decay</td></tr>
     <tr><td><code>patience</code></td><td>3</td><td>early-stop theo val EM</td></tr>

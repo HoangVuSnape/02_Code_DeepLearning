@@ -151,7 +151,7 @@
   <h2 class="sec"><span class="n">0</span> Toàn cảnh — input đến output</h2>
   <p class="lead">Hai nhánh (ảnh, text) → hợp nhất → phân loại thành 1 answer. Màu <span style="color:var(--img)">■ ảnh</span> · <span style="color:var(--txt)">■ text</span> · <span style="color:var(--fuse)">■ fusion</span>.</p>
   <div class="io">
-    <div class="box"><div class="h">Input</div><div class="c">image [B,3,128/224,·] + question tokens [B,32]</div></div>
+    <div class="box"><div class="h">Input</div><div class="c">image [B,3,224,·] + question tokens [B,32]</div></div>
     <div class="box"><div class="h">Output</div><div class="c">logits [B,T,V_answer] → greedy/beam → answer string</div></div>
   </div>
   <div class="diagram">
@@ -171,7 +171,7 @@
     <!-- image branch -->
     <rect class="bi" x="12" y="24" width="120" height="52" rx="9"/>
     <text class="h" x="22" y="44" fill="var(--img)">Ảnh</text>
-    <text class="s" x="22" y="62">[B,3,128,128]</text>
+    <text class="s" x="22" y="62">[B,3,224,224]</text>
     <rect class="bi" x="165" y="20" width="150" height="60" rx="9"/>
     <text class="h" x="175" y="40" fill="var(--img)">CNN / ResNet-18</text>
     <text class="s" x="175" y="56">(+SE-block?)</text>
@@ -234,10 +234,10 @@
   <svg viewBox="0 0 1000 120" style="width:100%;min-width:820px">
     <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--img)"/></marker>
     <style>.k{fill:var(--surface2);stroke:var(--img);stroke-width:1.5}.kt{fill:var(--text);font-size:11px}.ks{fill:var(--muted);font-size:9.5px}.kl{stroke:var(--img);stroke-width:1.5;fill:none;marker-end:url(#a2)}</style></defs>
-    <rect class="k" x="8" y="35" width="96" height="46" rx="8"/><text class="kt" x="16" y="55">Input</text><text class="ks" x="16" y="72">3×128×128</text>
-    <rect class="k" x="140" y="30" width="120" height="56" rx="8"/><text class="kt" x="148" y="48">Block1</text><text class="ks" x="148" y="63">Conv3→32,BN,ReLU</text><text class="ks" x="148" y="77">MaxPool→32×64²</text>
-    <rect class="k" x="296" y="30" width="120" height="56" rx="8"/><text class="kt" x="304" y="48">Block2</text><text class="ks" x="304" y="63">Conv32→64,BN,ReLU</text><text class="ks" x="304" y="77">MaxPool→64×32²</text>
-    <rect class="k" x="452" y="30" width="120" height="56" rx="8"/><text class="kt" x="460" y="48">Block3</text><text class="ks" x="460" y="63">Conv64→128,BN,ReLU</text><text class="ks" x="460" y="77">MaxPool→128×16²</text>
+    <rect class="k" x="8" y="35" width="96" height="46" rx="8"/><text class="kt" x="16" y="55">Input</text><text class="ks" x="16" y="72">3×224×224</text>
+    <rect class="k" x="140" y="30" width="120" height="56" rx="8"/><text class="kt" x="148" y="48">Block1</text><text class="ks" x="148" y="63">Conv3→32,BN,ReLU</text><text class="ks" x="148" y="77">MaxPool→32×112²</text>
+    <rect class="k" x="296" y="30" width="120" height="56" rx="8"/><text class="kt" x="304" y="48">Block2</text><text class="ks" x="304" y="63">Conv32→64,BN,ReLU</text><text class="ks" x="304" y="77">MaxPool→64×56²</text>
+    <rect class="k" x="452" y="30" width="120" height="56" rx="8"/><text class="kt" x="460" y="48">Block3</text><text class="ks" x="460" y="63">Conv64→128,BN,ReLU</text><text class="ks" x="460" y="77">MaxPool→128×28²</text>
     <rect class="k" x="608" y="35" width="96" height="46" rx="8" style="stroke-dasharray:4"/><text class="kt" x="616" y="53">SE-block?</text><text class="ks" x="616" y="70">(tùy chọn)</text>
     <rect class="k" x="740" y="35" width="110" height="46" rx="8"/><text class="kt" x="748" y="53">AvgPool+LN</text><text class="ks" x="748" y="70">→ [B,128]</text>
     <rect class="k" x="886" y="35" width="100" height="46" rx="8"/><text class="kt" x="894" y="53" fill="var(--img)">v_img</text><text class="ks" x="894" y="70">[B,128]</text>
@@ -245,7 +245,7 @@
   </svg>
   </div>
   <div class="io">
-    <div class="box"><div class="h">Input</div><div class="c">ảnh [B, 3, 128, 128]</div></div>
+    <div class="box"><div class="h">Input</div><div class="c">ảnh [B, 3, 224, 224]</div></div>
     <div class="box"><div class="h">Output</div><div class="c">v_img [B, 128] (đã LayerNorm)</div></div>
   </div>
 </section>

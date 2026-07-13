@@ -133,7 +133,7 @@
 
 <h2>3. Tiền xử lý</h2>
 <h3>3.1. Ảnh</h3>
-<table><tr><th>Bước</th><th>CustomCNN</th><th>ResNet-18 frozen</th></tr><tr><td>Resize</td><td>128 x 128 (hoặc 224 x 224 để control confound)</td><td>224 x 224</td></tr><tr><td>Grayscale</td><td>Chuyển 3 channel</td><td>Chuyển 3 channel</td></tr><tr><td>Augmentation train</td><td>RandomAffine: degree 5, translate 0.02</td><td>Tương tự</td></tr><tr><td>Normalize</td><td>mean/std 0.5</td><td>ImageNet mean/std</td></tr></table>
+<table><tr><th>Bước</th><th>CustomCNN</th><th>ResNet-18 frozen</th></tr><tr><td>Resize</td><td>224 x 224</td><td>224 x 224</td></tr><tr><td>Grayscale</td><td>Chuyển 3 channel</td><td>Chuyển 3 channel</td></tr><tr><td>Augmentation train</td><td>RandomAffine: degree 5, translate 0.02</td><td>Tương tự</td></tr><tr><td>Normalize</td><td>mean/std 0.5</td><td>ImageNet mean/std</td></tr></table>
 <p>Không dùng augmentation ở validation/test. Không flip ngang mặc định vì có thể làm đổi tín hiệu trái/phải mang ý nghĩa lâm sàng.</p>
 <h3>3.2. Text và answer</h3>
 <ul><li><code>normalize_answer()</code>: lowercase, gộp whitespace, bỏ punctuation không cần thiết nhưng giữ các token có ý nghĩa.</li><li>Tạo <b>hai vocabulary train-only</b>: <code>question_vocab</code> và <code>answer_vocab</code>.</li><li>Token đặc biệt answer: <code>&lt;pad&gt;=0</code>, <code>&lt;unk&gt;=1</code>, <code>&lt;bos&gt;=2</code>, <code>&lt;eos&gt;=3</code>.</li><li><code>MAX_QUESTION_LEN=32</code>, <code>MAX_ANSWER_LEN=12</code> (kiểm tra phân vị độ dài trước khi chốt).</li><li>Không còn <code>answer → class_id</code>, không có <code>label=-1</code> cho unseen answer. Token chưa biết map về <code>&lt;unk&gt;</code>.</li></ul>
@@ -194,7 +194,7 @@ criterion = CrossEntropyLoss(ignore_index=PAD_ID)</pre>
 <div class="note">
     <b>🧪 Nguyên tắc loại bỏ Biến nhiễu (Confounding Control):</b>
     <ul>
-        <li><b>Kiểm soát so sánh Image Encoder (CustomCNN vs ResNet-18):</b> Sự khác biệt giữa CustomCNN (128x128, train từ đầu) và ResNet-18 (224x224, pretrain) có 3 biến đổi đồng thời (kiến trúc, độ phân giải, pretrain). Để so sánh công bằng: ta sẽ chạy thêm một run CustomCNN ở độ phân giải 224x224, hoặc ghi nhận rõ đây là so sánh "cấu hình thực dụng" (practical configs) chứ không kết luận thuần túy kiến trúc ResNet tốt hơn CNN.</li>
+        <li><b>Kiểm soát so sánh Image Encoder (CustomCNN vs ResNet-18):</b> Cả hai encoder đều dùng cùng độ phân giải 224×224 để đảm bảo so sánh công bằng — chỉ thay đổi duy nhất kiến trúc (architecture + pretrain vs train-from-scratch). Không còn confound về độ phân giải.</li>
         <li><b>Kiểm soát so sánh Text Encoder (BiLSTM vs Transformer):</b> Để tránh thay đổi cả encoder lẫn phương thức pooling đồng thời, cả BiLSTM và Transformer đều phải sử dụng chung cơ chế Pooling (masked-mean pooling) khi chạy baseline không có attention.</li>
     </ul>
 </div>
@@ -228,7 +228,7 @@ criterion = CrossEntropyLoss(ignore_index=PAD_ID)</pre>
 
 <h2>12. Checklist triển khai</h2>
 <h3>Data & Split</h3><ul><li>[ ] Tích hợp 2 chế độ split dữ liệu: Official Split (so sánh nghiên cứu) và Image-Disjoint Split (sạch, không rò rỉ ảnh)</li><li>[ ] Viết code kiểm tra và in thống kê overlap <code>image_key</code> giữa Train/Val/Test tự động trước khi train</li><li>[ ] Lọc/ánh xạ rare tokens (tần suất &lt; 3 trong Train) về <code>&lt;unk&gt;</code> trong từ điển</li><li>[ ] Tạo và lưu trữ <code>data_audit.json</code> để kiểm chứng</li></ul>
-<h3>Model & Confounding Control</h3><ul><li>[ ] Đồng bộ hóa Pooling: cài đặt masked-mean pooling cho cả BiLSTM và Transformer khi so sánh</li><li>[ ] Cài đặt CustomCNN hỗ trợ cả độ phân giải 224x224 để control confound khi so sánh với ResNet-18</li><li>[ ] Sửa dataset trả về <code>decoder_input</code>, <code>decoder_target</code> dạng token sequence, không dùng class label</li><li>[ ] Implement các khối attention (Image SE, Text Temporal, Decoder Cross-attention) có thể tắt/mở qua argument</li><li>[ ] Thực hiện test overfit trên 32 mẫu để xác thực kiến trúc trước khi chạy lớn</li></ul>
+<h3>Model & Confounding Control</h3><ul><li>[ ] Đồng bộ hóa Pooling: cài đặt masked-mean pooling cho cả BiLSTM và Transformer khi so sánh</li><li>[x] Chuẩn hóa input 224×224 cho tất cả model (CustomCNN + ResNet-18) — đã loại bỏ confound về độ phân giải</li><li>[ ] Sửa dataset trả về <code>decoder_input</code>, <code>decoder_target</code> dạng token sequence, không dùng class label</li><li>[ ] Implement các khối attention (Image SE, Text Temporal, Decoder Cross-attention) có thể tắt/mở qua argument</li><li>[ ] Thực hiện test overfit trên 32 mẫu để xác thực kiến trúc trước khi chạy lớn</li></ul>
 <h3>Train/eval</h3><ul><li>[ ] Teacher forcing và tối ưu hóa Cross Entropy Loss bỏ qua <code>&lt;pad&gt;</code></li><li>[ ] Greedy decoding phục vụ validation và test, lưu predictions dạng text</li><li>[ ] Đo lường đầy đủ EM, Token-F1, BLEU-1 cho cả hai loại split</li><li>[ ] Thực hiện G0–G3 trên cả hai split, chọn checkpoint theo công thức cân bằng <code>0.5 × Closed EM + 0.5 × Open Token-F1</code></li></ul>
 
 <h2>13. Giới hạn nghiên cứu</h2>

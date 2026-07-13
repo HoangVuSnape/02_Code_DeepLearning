@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--predictions_csv", type=str, default=None, help="Path to raw predictions CSV to evaluate (e.g. Gemma)")
     parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen"])
     parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer"])
+    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp"], help="Type of decoder (mlp corresponds to MLP Classifier)")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
@@ -29,6 +30,9 @@ def main():
     parser.add_argument("--save_predictions", type=str, default=None, help="Path to save prediction CSV (e.g. runs/preds_A1.csv)")
     parser.add_argument("--save_metrics", type=str, default=None, help="Path to save evaluation metrics as JSON (e.g. runs/metrics_A1.json)")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
+    parser.add_argument("--freeze_image", action="store_true", help="Freeze entire image encoder parameters")
+    parser.add_argument("--freeze_text", action="store_true", help="Freeze entire text encoder parameters")
+    parser.add_argument("--freeze_decoder", action="store_true", help="Freeze entire decoder/classifier parameters")
     args = parser.parse_args()
 
     # Mode 1: Evaluate raw prediction CSV (e.g., from Gemma)
@@ -84,6 +88,7 @@ def main():
         num_classes=len(answer2id),
         image_encoder=args.image_encoder,
         text_encoder=args.text_encoder,
+        decoder=args.decoder,
         image_attention=args.image_attention,
         text_attention=args.text_attention,
         decoder_attention=args.decoder_attention,
@@ -93,6 +98,21 @@ def main():
     
     # Load state dict
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+    
+    # Apply manual freezing based on arguments (for correct parameter counts)
+    if args.freeze_image:
+        for p in model.image.parameters():
+            p.requires_grad = False
+    if args.freeze_text:
+        for p in model.text.parameters():
+            p.requires_grad = False
+    if args.freeze_decoder:
+        for p in model.classifier.parameters():
+            p.requires_grad = False
+        if model.decoder_attention is not None:
+            for p in model.decoder_attention.parameters():
+                p.requires_grad = False
+
     model.to(device).eval()
 
     # Load dataset
@@ -100,9 +120,9 @@ def main():
     ds = load_dataset("flaviagiammarino/vqa-rad")
     test_recs = [dict(r) for r in ds["test"]]
 
-    # Setup transform
+    # Setup transform — CHUAN HOA 224x224 cho moi model (fair comparison)
     imagenet_norm = (args.image_encoder == "resnet18_frozen")
-    image_size = 224 if imagenet_norm else 128
+    image_size = 224                # cung resolution cho CNN va ResNet
     test_tf = default_transform(image_size, train=False, imagenet=imagenet_norm)
     
     test_ds = VQARADClsDataset(test_recs, answer2id, q_vocab, test_tf, max_len=32)

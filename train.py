@@ -23,13 +23,14 @@ def main():
     parser.add_argument("--run_name", type=str, required=True, help="Unique name for the run")
     parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen"])
     parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer"])
+    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp"], help="Type of decoder (mlp corresponds to MLP Classifier)")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
     parser.add_argument("--rl", action="store_true", help="Run REINFORCE self-critical fine-tuning after/instead SFT")
     parser.add_argument("--load_checkpoint", type=str, default=None, help="Path to load model state dict checkpoint")
     parser.add_argument("--smoke", action="store_true", help="Run in smoke test mode (small data/epochs)")
-    parser.add_argument("--epochs", type=int, default=12, help="Number of SFT epochs")
+    parser.add_argument("--epochs", type=int, default=3, help="Number of SFT epochs")
     parser.add_argument("--rl_epochs", type=int, default=5, help="Number of RL epochs")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for SFT")
     parser.add_argument("--rl_lr", type=float, default=1e-5, help="Learning rate for RL")
@@ -37,6 +38,7 @@ def main():
     parser.add_argument("--patience", type=int, default=3, help="Early stopping patience")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--image_size", type=int, default=224, help="Image resize (224 for all models, fair comparison)")
     parser.add_argument("--out_dir", type=str, default="runs", help="Output directory")
     parser.add_argument("--project_name", type=str, default="medvqa-attention-ablation", help="Comet project name")
     parser.add_argument("--use_comet", action="store_true", help="Log metrics to Comet ML")
@@ -44,6 +46,9 @@ def main():
     parser.add_argument("--use_hf_push", action="store_true", help="Push best checkpoint to Hugging Face Hub")
     parser.add_argument("--hf_repo_id", type=str, default="", help="Hugging Face repo ID")
     parser.add_argument("--device", type=str, default="cuda", help="Device to train on (cuda/cpu)")
+    parser.add_argument("--freeze_image", action="store_true", help="Freeze entire image encoder parameters")
+    parser.add_argument("--freeze_text", action="store_true", help="Freeze entire text encoder parameters")
+    parser.add_argument("--freeze_decoder", action="store_true", help="Freeze entire decoder/classifier parameters")
     args = parser.parse_args()
 
     # Set seeds
@@ -112,7 +117,7 @@ def main():
 
     # Data loaders
     imagenet_norm = (args.image_encoder == "resnet18_frozen")
-    image_size = 224 if imagenet_norm else 128
+    image_size = args.image_size    # 224 cho MOI model (fair comparison)
 
     train_tf = default_transform(image_size, train=True, imagenet=imagenet_norm)
     val_tf = default_transform(image_size, train=False, imagenet=imagenet_norm)
@@ -129,12 +134,30 @@ def main():
         num_classes=len(answer2id),
         image_encoder=args.image_encoder,
         text_encoder=args.text_encoder,
+        decoder=args.decoder,
         image_attention=args.image_attention,
         text_attention=args.text_attention,
         decoder_attention=args.decoder_attention,
         pretrained=True,
         max_len=32
     )
+
+    # Apply manual freezing based on arguments
+    if args.freeze_image:
+        print("❄️ Freezing entire image encoder parameters...")
+        for p in model.image.parameters():
+            p.requires_grad = False
+    if args.freeze_text:
+        print("❄️ Freezing entire text encoder parameters...")
+        for p in model.text.parameters():
+            p.requires_grad = False
+    if args.freeze_decoder:
+        print("❄️ Freezing entire decoder/classifier parameters...")
+        for p in model.classifier.parameters():
+            p.requires_grad = False
+        if model.decoder_attention is not None:
+            for p in model.decoder_attention.parameters():
+                p.requires_grad = False
 
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     print(f"💻 Running on device: {device}")

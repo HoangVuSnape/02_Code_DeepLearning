@@ -266,7 +266,7 @@ Sau SFT: SCST (extension E4) — reward 0.5·EM + 0.5·token-F1 trên answer sin
     <table>
       <tr><th>Extension</th><th>So sánh</th><th>Nguyên tắc</th></tr>
       <tr><td><strong>E1</strong></td><td>BiLSTM vs small Transformer</td><td>giữ image encoder + decoder tốt nhất từ core</td></tr>
-      <tr><td><strong>E2</strong></td><td>CustomCNN vs ResNet-18 frozen</td><td>giữ question encoder + decoder tốt nhất</td></tr>
+      <tr><td><strong>E2</strong></td><td>CustomCNN vs ResNet-18 frozen</td><td>giữ question encoder + decoder tốt nhất; <b>cùng 224×224</b> để so sánh công bằng</td></tr>
       <tr><td><strong>E3</strong></td><td>Concat vs Projector (shared space)</td><td>trên best encoder pair</td></tr>
       <tr><td><strong>E4</strong></td><td>Best SFT vs Best SFT + SCST</td><td>1 checkpoint tốt nhất, 3–5 RL epoch</td></tr>
     </table>
@@ -276,8 +276,8 @@ Sau SFT: SCST (extension E4) — reward 0.5·EM + 0.5·token-F1 trên answer sin
 
   <h3>Hyperparameters cố định</h3>
   <div class="grid2">
-    <div class="kpi"><div class="label">Image size / Max text len</div><div class="value">128 × 128 / 32 token</div></div>
-    <div class="kpi"><div class="label">Batch / Epochs / Patience</div><div class="value">32 / 12 / 3</div></div>
+    <div class="kpi"><div class="label">Image size / Max text len</div><div class="value">224 × 224 (tất cả model) / 32 token</div></div>
+    <div class="kpi"><div class="label">Batch / Epochs / Patience</div><div class="value">32 / 3 / 3</div></div>
     <div class="kpi"><div class="label">Optimizer</div><div class="value">AdamW, lr 1e-3, wd 1e-4</div></div>
     <div class="kpi"><div class="label">Seed / Val split</div><div class="value">42 / 10% (image-disjoint)</div></div>
   </div>

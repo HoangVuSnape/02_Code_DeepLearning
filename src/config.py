@@ -13,13 +13,13 @@ class Config:
     hf_dataset: str = "flaviagiammarino/vqa-rad"
     val_ratio: float = 0.1
     seed: int = 42
-    image_size: int = 128
-    image_size_resnet: int = 224
+    image_size: int = 224          # CHUAN HOA 224x224 cho MOI model (CNN va ResNet)
+                                   # de dam bao so sanh cong bang (cung input resolution)
     max_len: int = 32
 
     # --- Train ---
     batch_size: int = 32
-    epochs: int = 12
+    epochs: int = 3
     lr: float = 1e-3
     weight_decay: float = 1e-4
     patience: int = 3
