@@ -19,10 +19,10 @@ class Config:
 
     # --- Train ---
     batch_size: int = 32
-    epochs: int = 3
+    epochs: int = 20
     lr: float = 1e-3
     weight_decay: float = 1e-4
-    patience: int = 3
+    patience: int = 5
 
     # --- RL (nhom D) ---
     rl_epochs: int = 5
