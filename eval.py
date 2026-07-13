@@ -8,6 +8,7 @@ import pandas as pd
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 
+from config import Config
 from src.data.dataset import VQARADClsDataset, default_transform
 from src.data.vqa_rad import normalize_answer
 from src.models.fusion import build_model
@@ -16,6 +17,8 @@ from src.train.metrics import score_answers, closed_binary_report, score_predict
 
 
 def main():
+    default_cfg = Config()
+    
     parser = argparse.ArgumentParser(description="Evaluate VQA-RAD Ablation Model")
     parser.add_argument("--checkpoint", type=str, default=None, help="Path to PyTorch checkpoint (.pt file)")
     parser.add_argument("--predictions_csv", type=str, default=None, help="Path to raw predictions CSV to evaluate (e.g. Gemma)")
@@ -26,7 +29,7 @@ def main():
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
     parser.add_argument("--constrained_closed", action="store_true", help="Constrain Closed-ended answers to yes/no only")
-    parser.add_argument("--out_dir", type=str, default="runs", help="Output/Vocab directory")
+    parser.add_argument("--out_dir", type=str, default=default_cfg.out_dir, help="Output/Vocab directory")
     parser.add_argument("--save_predictions", type=str, default=None, help="Path to save prediction CSV (e.g. runs/preds_A1.csv)")
     parser.add_argument("--save_metrics", type=str, default=None, help="Path to save evaluation metrics as JSON (e.g. runs/metrics_A1.json)")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")

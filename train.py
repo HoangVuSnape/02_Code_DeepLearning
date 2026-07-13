@@ -8,7 +8,7 @@ import torch
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 
-from src.config import Config
+from config import Config
 from src.data.vqa_rad import build_answer_vocab, build_vocab, image_key, group_split, normalize_answer
 from src.data.dataset import VQARADClsDataset, default_transform
 from src.models.fusion import build_model
@@ -19,6 +19,8 @@ from src.train.metrics import score_answers
 
 
 def main():
+    default_cfg = Config()
+    
     parser = argparse.ArgumentParser(description="Train VQA-RAD Ablation Model")
     parser.add_argument("--run_name", type=str, required=True, help="Unique name for the run")
     parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen", "pubmedclip"])
@@ -30,17 +32,17 @@ def main():
     parser.add_argument("--rl", action="store_true", help="Run REINFORCE self-critical fine-tuning after/instead SFT")
     parser.add_argument("--load_checkpoint", type=str, default=None, help="Path to load model state dict checkpoint")
     parser.add_argument("--smoke", action="store_true", help="Run in smoke test mode (small data/epochs)")
-    parser.add_argument("--epochs", type=int, default=20, help="Number of SFT epochs")
-    parser.add_argument("--rl_epochs", type=int, default=5, help="Number of RL epochs")
-    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate for SFT")
-    parser.add_argument("--rl_lr", type=float, default=1e-5, help="Learning rate for RL")
-    parser.add_argument("--weight_decay", type=float, default=1e-4, help="Weight decay")
-    parser.add_argument("--patience", type=int, default=5, help="Early stopping patience")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--image_size", type=int, default=224, help="Image resize (224 for all models, fair comparison)")
-    parser.add_argument("--out_dir", type=str, default="runs", help="Output directory")
-    parser.add_argument("--project_name", type=str, default="medvqa-attention-ablation", help="Comet project name")
+    parser.add_argument("--epochs", type=int, default=default_cfg.epochs, help="Number of SFT epochs")
+    parser.add_argument("--rl_epochs", type=int, default=default_cfg.rl_epochs, help="Number of RL epochs")
+    parser.add_argument("--lr", type=float, default=default_cfg.lr, help="Learning rate for SFT")
+    parser.add_argument("--rl_lr", type=float, default=default_cfg.rl_lr, help="Learning rate for RL")
+    parser.add_argument("--weight_decay", type=float, default=default_cfg.weight_decay, help="Weight decay")
+    parser.add_argument("--patience", type=int, default=default_cfg.patience, help="Early stopping patience")
+    parser.add_argument("--batch_size", type=int, default=default_cfg.batch_size, help="Batch size")
+    parser.add_argument("--seed", type=int, default=default_cfg.seed, help="Random seed")
+    parser.add_argument("--image_size", type=int, default=default_cfg.image_size, help="Image resize (224 for all models, fair comparison)")
+    parser.add_argument("--out_dir", type=str, default=default_cfg.out_dir, help="Output directory")
+    parser.add_argument("--project_name", type=str, default=default_cfg.project_name, help="Comet project name")
     parser.add_argument("--use_comet", action="store_true", help="Log metrics to Comet ML")
     parser.add_argument("--use_discord", action="store_true", help="Send progress notifications to Discord webhook")
     parser.add_argument("--use_hf_push", action="store_true", help="Push best checkpoint to Hugging Face Hub")

@@ -2,7 +2,7 @@
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from src.config import Config
+from config import Config
 from src.integrations import discord, hf_push
 from src.integrations.callbacks import BaseCallbacks, ExperimentCallbacks
 from src.models.fusion import build_model
