@@ -19,9 +19,9 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate VQA-RAD Ablation Model")
     parser.add_argument("--checkpoint", type=str, default=None, help="Path to PyTorch checkpoint (.pt file)")
     parser.add_argument("--predictions_csv", type=str, default=None, help="Path to raw predictions CSV to evaluate (e.g. Gemma)")
-    parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen"])
-    parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer"])
-    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp"], help="Type of decoder (mlp corresponds to MLP Classifier)")
+    parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen", "pubmedclip"])
+    parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer", "pubmedbert"])
+    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp", "gru", "lstm", "transformer", "gpt2"], help="Type of decoder")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
@@ -107,10 +107,20 @@ def main():
         for p in model.text.parameters():
             p.requires_grad = False
     if args.freeze_decoder:
-        for p in model.classifier.parameters():
-            p.requires_grad = False
-        if model.decoder_attention is not None:
-            for p in model.decoder_attention.parameters():
+        if hasattr(model, "classifier"):
+            for p in model.classifier.parameters():
+                p.requires_grad = False
+        if hasattr(model, "decoder"):
+            for p in model.decoder.parameters():
+                p.requires_grad = False
+        if hasattr(model, "gpt2"):
+            for p in model.gpt2.parameters():
+                p.requires_grad = False
+        if hasattr(model, "gpt2_proj"):
+            for p in model.gpt2_proj.parameters():
+                p.requires_grad = False
+        if hasattr(model, "init_decoder"):
+            for p in model.init_decoder.parameters():
                 p.requires_grad = False
 
     model.to(device).eval()
@@ -136,6 +146,7 @@ def main():
         model=model,
         loader=test_loader,
         id2answer=id2answer,
+        q_vocab=q_vocab,
         device=device,
         yes_id=yes_id,
         no_id=no_id,

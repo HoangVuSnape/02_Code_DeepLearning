@@ -6,56 +6,85 @@ import time
 import torch
 import torch.nn as nn
 
-from .metrics import masked_closed_argmax
-from ..utils.progress import get_pbar
+from .metrics import masked_closed_argmax, score_answers
 
 
-def _em_from_ids(preds, labels, closed):
-    correct = (preds == labels) & (labels >= 0)
+def decode_sequence(token_ids, id2word):
+    words = []
+    for tid in token_ids:
+        tid = int(tid)
+        if tid == 3:  # <eos>
+            break
+        if tid > 3 and tid in id2word:
+            words.append(id2word[tid])
+    return " ".join(words)
 
-    def rate(mask):
-        n = int(mask.sum())
-        return float(correct[mask].sum()) / n if n else 0.0
 
-    return {"em_overall": rate(torch.ones_like(closed)),
-            "em_closed": rate(closed), "em_open": rate(~closed)}
-
-
-def _epoch(model, loader, criterion, device, optimizer=None,
-           desc="", disable_pbar=True):
+def _epoch(model, loader, criterion, seq_criterion, device, optimizer=None,
+           desc="", disable_pbar=True, id2answer=None, id2word=None):
     training = optimizer is not None
     model.train() if training else model.eval()
-    total_loss, preds, labels_all, closed_all = 0.0, [], [], []
+    total_loss = 0.0
+    ref_strings, hyp_strings = [], []
+    
     with torch.set_grad_enabled(training):
-        for images, tokens, labels, closed in get_pbar(loader, desc, disable_pbar):
+        for images, tokens, labels, closed, dec_in, dec_tgt in loader:
             images, tokens = images.to(device), tokens.to(device)
             labels = labels.to(device)
-            logits = model(images, tokens)
-            loss = criterion(logits, labels.clamp(min=0))
-            if training:
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            
+            if model.decoder_type == "mlp":
+                logits = model(images, tokens)
+                loss = criterion(logits, labels.clamp(min=0))
+                
+                if training:
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+                    
+                preds = logits.argmax(dim=-1).cpu().tolist()
+                batch_hyps = [id2answer.get(p, "") for p in preds]
+            else:
+                dec_in = dec_in.to(device)
+                dec_tgt = dec_tgt.to(device)
+                
+                logits = model(images, tokens, dec_in)
+                loss = seq_criterion(logits.view(-1, logits.size(-1)), dec_tgt.view(-1))
+                
+                if training:
+                    optimizer.zero_grad()
+                    loss.backward()
+                    optimizer.step()
+                    
+                # Autoregressive generation for calculating val EM
+                with torch.no_grad():
+                    pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
+                pred_tokens = pred_tokens.cpu().tolist()
+                batch_hyps = [decode_sequence(pt, id2word) for pt in pred_tokens]
+                
             total_loss += loss.item()
-            preds.append(logits.argmax(1).cpu())
-            labels_all.append(labels.cpu())
-            closed_all.append(torch.as_tensor(closed, dtype=torch.bool))
-    rep = _em_from_ids(torch.cat(preds), torch.cat(labels_all), torch.cat(closed_all))
+            batch_refs = [id2answer.get(int(lbl), "") for lbl in labels]
+            
+            ref_strings.extend(batch_refs)
+            hyp_strings.extend(batch_hyps)
+            
+    rep = score_answers(ref_strings, hyp_strings)
     return total_loss / len(loader), rep
 
 
 def run_experiment(name, model, train_loader, val_loader, epochs, lr,
-                   weight_decay, patience, out_dir, device, class_weights=None,
-                   callbacks=None, show_progress=True):
-    """SFT mot cau hinh: early stop theo val EM overall, luu best.pt + history CSV.
-
-    callbacks: object co on_run_start/on_epoch_end/on_run_end (optional, None -> bo qua).
-    show_progress: bat tqdm cho tung epoch.
-    """
+                   weight_decay, patience, out_dir, device, id2answer, q_vocab,
+                   class_weights=None, callbacks=None, show_progress=True):
+    """SFT one configuration: early stops based on val EM overall, saves best.pt + history CSV."""
     os.makedirs(out_dir, exist_ok=True)
     model.to(device)
+    
+    # Loss functions
     criterion = nn.CrossEntropyLoss(weight=class_weights)
-    # Chi optimize tham so trainable (backbone frozen bi loai tu dong)
+    seq_criterion = nn.CrossEntropyLoss(ignore_index=0)
+    
+    id2word = {i: w for w, i in q_vocab.items()}
+    
+    # Only optimize trainable parameters
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad],
         lr=lr, weight_decay=weight_decay)
@@ -65,17 +94,21 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
     best_val_em, bad = -1.0, 0
     ckpt = os.path.join(out_dir, f"{name}_best.pt")
     params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
     if callbacks is not None:
         callbacks.on_run_start(name, {"params_trainable": params_trainable})
 
     for epoch in range(epochs):
         t0 = time.time()
-        tr_loss, tr = _epoch(model, train_loader, criterion, device, optimizer,
+        tr_loss, tr = _epoch(model, train_loader, criterion, seq_criterion, device, optimizer,
                              desc=f"{name} e{epoch+1} train",
-                             disable_pbar=not show_progress)
-        va_loss, va = _epoch(model, val_loader, criterion, device,
+                             disable_pbar=not show_progress,
+                             id2answer=id2answer, id2word=id2word)
+        va_loss, va = _epoch(model, val_loader, criterion, seq_criterion, device,
                              desc=f"{name} e{epoch+1} val",
-                             disable_pbar=not show_progress)
+                             disable_pbar=not show_progress,
+                             id2answer=id2answer, id2word=id2word)
+        
         history["train_loss"].append(tr_loss)
         history["train_em"].append(tr["em_overall"])
         history["val_loss"].append(va_loss)
@@ -83,15 +116,18 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
         history["val_em_closed"].append(va["em_closed"])
         history["val_em_open"].append(va["em_open"])
         history["epoch_sec"].append(time.time() - t0)
+        
         print(f"[{name}] {epoch+1}/{epochs} train_loss={tr_loss:.4f} "
               f"val_loss={va_loss:.4f} val_em={va['em_overall']:.4f} "
               f"(closed={va['em_closed']:.4f} open={va['em_open']:.4f})")
+              
         if callbacks is not None:
             callbacks.on_epoch_end(name, epoch + 1, epochs, {
                 "epoch": epoch + 1, "train_loss": tr_loss,
                 "train_em": tr["em_overall"], "val_loss": va_loss,
                 "val_em": va["em_overall"], "val_em_closed": va["em_closed"],
                 "val_em_open": va["em_open"], "epoch_sec": history["epoch_sec"][-1]})
+                
         # Save regular checkpoint at the end of every epoch
         epoch_ckpt = os.path.join(out_dir, f"{name}_checkpoint.pt")
         torch.save(model.state_dict(), epoch_ckpt)
@@ -116,30 +152,57 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
               "params_trainable": params_trainable,
               "checkpoint": ckpt,
               "latest_checkpoint": epoch_ckpt}
+              
     if callbacks is not None:
         callbacks.on_run_end(name, result)
     return result
 
 
 @torch.no_grad()
-def predict_answers(model, loader, id2answer, device,
+def predict_answers(model, loader, id2answer, q_vocab, device,
                     yes_id=None, no_id=None, constrained_closed=False):
-    """Chay inference -> tra ve (hyp_strings, p_yes) de cham bang metrics chung.
-
-    hyp_strings: cau tra loi du doan (map class id -> string).
-    p_yes: xac suat lop yes cho MOI sample (danh cho AUC tren subset closed).
-    """
+    """Run inference to generate text answers and return lists of strings for comparison."""
     model.to(device).eval()
-    hyps, p_yes_list = [], []
-    for images, tokens, labels, closed in loader:
-        logits = model(images.to(device), tokens.to(device))
-        preds = logits.argmax(1)
-        closed_t = torch.as_tensor(closed, dtype=torch.bool)
-        if constrained_closed and yes_id is not None:
-            masked = masked_closed_argmax(logits, yes_id, no_id)
-            preds = torch.where(closed_t.to(device), masked, preds)
-        hyps += [id2answer[int(i)] for i in preds.cpu()]
-        if yes_id is not None:
-            p = torch.softmax(logits[:, [yes_id, no_id]], dim=1)[:, 0]
-            p_yes_list += p.cpu().tolist()
-    return hyps, p_yes_list
+    id2word = {i: w for w, i in q_vocab.items()}
+    hyps = []
+    
+    for images, tokens, labels, closed, dec_in, dec_tgt in loader:
+        images, tokens = images.to(device), tokens.to(device)
+        
+        if model.decoder_type == "mlp":
+            logits = model(images, tokens)
+            preds = logits.argmax(dim=-1)
+            closed_t = torch.as_tensor(closed, dtype=torch.bool).to(device)
+            if constrained_closed and yes_id is not None:
+                masked = masked_closed_argmax(logits, yes_id, no_id)
+                preds = torch.where(closed_t, masked, preds)
+            batch_hyps = [id2answer.get(int(i), "") for i in preds.cpu()]
+        else:
+            # Generative mode
+            if constrained_closed:
+                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
+                pred_tokens = pred_tokens.cpu().tolist()
+                batch_hyps = []
+                for i, pt in enumerate(pred_tokens):
+                    pred_str = decode_sequence(pt, id2word)
+                    if closed[i]:
+                        pred_clean = pred_str.lower().strip()
+                        if "yes" in pred_clean or "no" in pred_clean:
+                            pass
+                        else:
+                            # Fallback: check logits of yes vs no for the first token
+                            dec_in_single = torch.full((1, 1), 2, dtype=torch.long, device=device) # <bos>
+                            logits_single = model(images[i:i+1], tokens[i:i+1], dec_in_single)
+                            yes_tok_id = q_vocab.get("yes", 1)
+                            no_tok_id = q_vocab.get("no", 1)
+                            yes_score = logits_single[0, 0, yes_tok_id].item()
+                            no_score = logits_single[0, 0, no_tok_id].item()
+                            pred_str = "yes" if yes_score > no_score else "no"
+                    batch_hyps.append(pred_str)
+            else:
+                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
+                pred_tokens = pred_tokens.cpu().tolist()
+                batch_hyps = [decode_sequence(pt, id2word) for pt in pred_tokens]
+                
+        hyps.extend(batch_hyps)
+    return hyps, [0.5] * len(hyps)

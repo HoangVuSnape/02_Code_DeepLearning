@@ -22,14 +22,16 @@ def test_resnet18_frozen_backbone_and_output():
 
 def test_bilstm_output_dim():
     enc = TextEncoderBiLSTM(vocab_size=50, use_attention=False)
-    assert enc(torch.randint(1, 50, (2, 32))).shape == (2, 64)
+    out, H_txt = enc(torch.randint(1, 50, (2, 32)))
+    assert out.shape == (2, 64)
+    assert H_txt.shape[0] == 2 and H_txt.shape[2] == 64
 
 
 def test_bilstm_attention_handles_padding():
     enc = TextEncoderBiLSTM(vocab_size=50, use_attention=True)
     tokens = torch.zeros(2, 32, dtype=torch.long)
     tokens[:, :3] = torch.randint(1, 50, (2, 3))
-    out = enc(tokens)
+    out, _ = enc(tokens)
     assert out.shape == (2, 64) and torch.isfinite(out).all()
 
 
@@ -38,5 +40,5 @@ def test_transformer_output_dim_both_poolings():
     tokens[:, :5] = torch.randint(1, 50, (2, 5))
     for attn in (False, True):    # mean pooling vs attention pooling
         enc = TextEncoderTransformer(vocab_size=50, use_attention=attn)
-        out = enc(tokens)
+        out, _ = enc(tokens)
         assert out.shape == (2, 64) and torch.isfinite(out).all()

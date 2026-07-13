@@ -52,10 +52,19 @@ def test_callbacks_receive_hooks(tmp_path):
     imgs = torch.randn(16, 3, 128, 128)
     toks = torch.randint(1, 30, (16, 32))
     labels = torch.randint(0, 4, (16,))
-    loader = DataLoader(TensorDataset(imgs, toks, labels, labels < 2), batch_size=8)
+    dec_in = torch.randint(1, 30, (16, 16))
+    dec_tgt = torch.randint(1, 30, (16, 16))
+    loader = DataLoader(TensorDataset(imgs, toks, labels, labels < 2, dec_in, dec_tgt), batch_size=8)
+    
+    id2answer = {0: "yes", 1: "no", 2: "left", 3: "right"}
+    q_vocab = {f"word_{i}": i for i in range(30)}
+    q_vocab["yes"] = 4
+    q_vocab["no"] = 5
+    
     run_experiment("cb", build_model(30, 4), loader, loader, epochs=2, lr=1e-3,
                    weight_decay=1e-4, patience=3, out_dir=str(tmp_path),
-                   device="cpu", callbacks=Spy(), show_progress=False)
+                   device="cpu", id2answer=id2answer, q_vocab=q_vocab,
+                   callbacks=Spy(), show_progress=False)
     assert events[0][0] == "start"
     assert sum(1 for e in events if e[0] == "epoch") == 2
     assert events[-1][0] == "end"
@@ -67,9 +76,17 @@ def test_experiment_callbacks_all_optional_noop(tmp_path):
     imgs = torch.randn(8, 3, 128, 128)
     toks = torch.randint(1, 30, (8, 32))
     labels = torch.randint(0, 4, (8,))
-    loader = DataLoader(TensorDataset(imgs, toks, labels, labels < 2), batch_size=8)
+    dec_in = torch.randint(1, 30, (8, 16))
+    dec_tgt = torch.randint(1, 30, (8, 16))
+    loader = DataLoader(TensorDataset(imgs, toks, labels, labels < 2, dec_in, dec_tgt), batch_size=8)
+    
+    id2answer = {0: "yes", 1: "no", 2: "left", 3: "right"}
+    q_vocab = {f"word_{i}": i for i in range(30)}
+    q_vocab["yes"] = 4
+    q_vocab["no"] = 5
+    
     res = run_experiment("cb2", build_model(30, 4), loader, loader, epochs=1,
                          lr=1e-3, weight_decay=1e-4, patience=3,
-                         out_dir=str(tmp_path), device="cpu", callbacks=cb,
-                         show_progress=False)
+                         out_dir=str(tmp_path), device="cpu", id2answer=id2answer,
+                         q_vocab=q_vocab, callbacks=cb, show_progress=False)
     assert res["best_val_em"] >= 0.0

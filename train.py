@@ -9,7 +9,7 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 
 from src.config import Config
-from src.data.vqa_rad import build_answer_vocab, build_question_vocab, image_key, group_split, normalize_answer
+from src.data.vqa_rad import build_answer_vocab, build_vocab, image_key, group_split, normalize_answer
 from src.data.dataset import VQARADClsDataset, default_transform
 from src.models.fusion import build_model
 from src.integrations.secrets import load_secrets, hf_login_if_possible
@@ -21,9 +21,9 @@ from src.train.metrics import score_answers
 def main():
     parser = argparse.ArgumentParser(description="Train VQA-RAD Ablation Model")
     parser.add_argument("--run_name", type=str, required=True, help="Unique name for the run")
-    parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen"])
-    parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer"])
-    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp"], help="Type of decoder (mlp corresponds to MLP Classifier)")
+    parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen", "pubmedclip"])
+    parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer", "pubmedbert"])
+    parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp", "gru", "lstm", "transformer", "gpt2"], help="Type of decoder")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
@@ -122,7 +122,8 @@ def main():
 
     # Build vocabularies
     answer2id = build_answer_vocab([r["answer"] for r in tr])
-    q_vocab = build_question_vocab([r["question"] for r in tr])
+    # Build unified vocabulary (for both questions and answers)
+    q_vocab = build_vocab([r["question"] for r in tr], [r["answer"] for r in tr])
     id2answer = {i: a for a, i in answer2id.items()}
 
     # Save vocab files for eval.py consistency
@@ -171,10 +172,20 @@ def main():
             p.requires_grad = False
     if args.freeze_decoder:
         print("❄️ Freezing entire decoder/classifier parameters...")
-        for p in model.classifier.parameters():
-            p.requires_grad = False
-        if model.decoder_attention is not None:
-            for p in model.decoder_attention.parameters():
+        if hasattr(model, "classifier"):
+            for p in model.classifier.parameters():
+                p.requires_grad = False
+        if hasattr(model, "decoder"):
+            for p in model.decoder.parameters():
+                p.requires_grad = False
+        if hasattr(model, "gpt2"):
+            for p in model.gpt2.parameters():
+                p.requires_grad = False
+        if hasattr(model, "gpt2_proj"):
+            for p in model.gpt2_proj.parameters():
+                p.requires_grad = False
+        if hasattr(model, "init_decoder"):
+            for p in model.init_decoder.parameters():
                 p.requires_grad = False
 
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
@@ -201,7 +212,7 @@ def main():
         # Define eval function for RL validation
         va_refs = [normalize_answer(r["answer"]) for r in va]
         def val_eval_fn(m):
-            hyps, _ = predict_answers(m, val_loader, id2answer, device)
+            hyps, _ = predict_answers(m, val_loader, id2answer, q_vocab, device)
             return score_answers(va_refs, hyps)["em_overall"]
 
         # Run REINFORCE self-critical fine-tuning
@@ -214,11 +225,13 @@ def main():
             epochs=args.rl_epochs,
             lr=args.rl_lr,
             id2answer=id2answer,
+            q_vocab=q_vocab,
             device=device,
             out_dir=args.out_dir,
             name=args.run_name,
             callbacks=cb
         )
+        params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
         rl_result["params_trainable"] = params_trainable
         cb.on_run_end(args.run_name, rl_result)
         print(f"🎉 RL Training Completed. Best Val EM: {rl_result['best_val_em']:.4f}")
@@ -241,6 +254,8 @@ def main():
             patience=args.patience,
             out_dir=args.out_dir,
             device=device,
+            id2answer=id2answer,
+            q_vocab=q_vocab,
             callbacks=cb,
             show_progress=True
         )
