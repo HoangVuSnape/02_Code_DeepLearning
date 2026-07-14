@@ -18,7 +18,7 @@ class Config:
     max_ans_len: int = 16          # Độ dài tối đa của câu trả lời sinh ra (tokens)
 
     # ==================== TRAINING CONFIG ====================
-    batch_size: int = 64
+    batch_size: int = 32
     epochs: int = 20               # Số epoch tối đa khi train SFT
     lr: float = 1e-3               # Learning rate cho SFT
     weight_decay: float = 1e-4     # AdamW weight decay
