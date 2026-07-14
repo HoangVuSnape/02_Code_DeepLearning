@@ -37,9 +37,11 @@ class ExperimentCallbacks(BaseCallbacks):
         # 1. Log to Comet
         if self.comet is not None:
             try:
+                # KHONG dung prefix=run_name: moi run da la 1 Experiment rieng (set_name).
+                # Giu ten metric thuan (train_loss, val_em...) de Compare gop cung metric len 1 panel.
                 self.comet.log_metrics(
                     {k: v for k, v in logs.items() if isinstance(v, (int, float))},
-                    prefix=run_name, step=epoch)
+                    step=epoch)
             except Exception as e:
                 print(f"(comet log bo qua: {e})")
 
