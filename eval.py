@@ -29,7 +29,7 @@ _META_KEYS = ("params_total", "params_trainable", "inference_time_sec")
 
 
 def _push_metrics(repo_id, paths, verbose=True):
-    """Push cac file ket qua (metrics json / predictions csv) len HF Hub neu co token."""
+    """Push ket qua eval (metrics json + predictions csv) len HF trong 1 COMMIT (tranh 429)."""
     if not repo_id:
         return
     token = secrets_mod.load_secrets(verbose=False).get("HF_TOKEN")
@@ -37,9 +37,12 @@ def _push_metrics(repo_id, paths, verbose=True):
         if verbose:
             print("⚠️ Thieu HF_TOKEN — bo qua push metrics len Hub.")
         return
-    for p in paths:
-        if p and os.path.exists(p):
-            hf_push.push_file(repo_id, p, token)
+    existing = [p for p in paths if p and os.path.exists(p)]
+    if not existing:
+        return
+    folder = os.path.dirname(existing[0]) or "."
+    names = [os.path.basename(p) for p in existing]
+    hf_push.push_folder(repo_id, folder, token, allow_patterns=names)
 
 
 def main():

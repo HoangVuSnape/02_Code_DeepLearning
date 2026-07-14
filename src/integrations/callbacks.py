@@ -19,13 +19,17 @@ class BaseCallbacks:
 
 class ExperimentCallbacks(BaseCallbacks):
     def __init__(self, discord_webhook=None, comet_experiment=None,
-                 hf_repo_id=None, hf_token=None, project_name="medvqa", out_dir="runs"):
+                 hf_repo_id=None, hf_token=None, project_name="medvqa", out_dir="runs",
+                 push_every_epochs=10):
         self.webhook = discord_webhook
         self.comet = comet_experiment
         self.hf_repo_id = hf_repo_id
         self.hf_token = hf_token
         self.project_name = project_name
         self.out_dir = out_dir
+        # Chi push HF moi N epoch de tranh 429 (HF free gioi han 128 commit/gio).
+        # 0 = tat push giua chung, chi push cuoi run (on_run_end).
+        self.push_every_epochs = push_every_epochs
 
     def on_run_start(self, run_name, info=None):
         n = (info or {}).get("params_trainable")
@@ -45,17 +49,14 @@ class ExperimentCallbacks(BaseCallbacks):
             except Exception as e:
                 print(f"(comet log bo qua: {e})")
 
-        # 2. Push checkpoints to Hugging Face Hub at the end of EVERY epoch
-        if self.hf_repo_id and self.hf_token:
+        # 2. Backup HF Hub — CHI moi push_every_epochs epoch, va CHI 'latest' (du de resume).
+        #    'best' se duoc push day du o on_run_end. Tranh spam commit -> 429 rate limit.
+        if (self.hf_repo_id and self.hf_token and self.push_every_epochs > 0
+                and epoch % self.push_every_epochs == 0):
             import os
-            best_ckpt = os.path.join(self.out_dir, f"{run_name}_best.pt")
             latest_ckpt = os.path.join(self.out_dir, f"{run_name}_checkpoint.pt")
-            
-            if os.path.exists(best_ckpt):
-                print(f"🤗 [Epoch {epoch}] Pushing best checkpoint to Hugging Face Hub...")
-                hf_push.push_file(self.hf_repo_id, best_ckpt, self.hf_token, verbose=False)
             if os.path.exists(latest_ckpt):
-                print(f"🤗 [Epoch {epoch}] Pushing latest checkpoint to Hugging Face Hub...")
+                print(f"🤗 [Epoch {epoch}] Backup latest checkpoint len HF Hub (moi {self.push_every_epochs} epoch)...")
                 hf_push.push_file(self.hf_repo_id, latest_ckpt, self.hf_token, verbose=False)
 
         # 3. Auto-sync to Google Drive if mounted (Colab)
@@ -87,14 +88,14 @@ class ExperimentCallbacks(BaseCallbacks):
         msg += f"params train: {params_str} | epochs chay: {epochs_run}"
         discord.notify(self.webhook, msg)
 
-        # Push checkpoints to Hugging Face Hub if configured
+        # Backup HF Hub: gom best + latest + history vao 1 COMMIT (tranh 429)
         if self.hf_repo_id and self.hf_token:
-            if result.get("checkpoint"):
-                print(f"🤗 Pushing best checkpoint to Hugging Face Hub: {result['checkpoint']}")
-                hf_push.push_file(self.hf_repo_id, result["checkpoint"], self.hf_token)
-            if result.get("latest_checkpoint"):
-                print(f"🤗 Pushing latest epoch checkpoint to Hugging Face Hub: {result['latest_checkpoint']}")
-                hf_push.push_file(self.hf_repo_id, result["latest_checkpoint"], self.hf_token)
+            print(f"🤗 Backup {run_name} (best+latest+history) len HF Hub trong 1 commit...")
+            hf_push.push_folder(
+                self.hf_repo_id, self.out_dir, self.hf_token,
+                allow_patterns=[f"{run_name}_best.pt",
+                                f"{run_name}_checkpoint.pt",
+                                f"{run_name}_history.csv"])
 
         # Auto-sync to Google Drive if mounted (Colab)
         import os
