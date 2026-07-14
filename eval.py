@@ -10,6 +10,8 @@ try:
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 except ImportError:
     pass
+# Tat Xet backend (tranh 403 SignatureError tren xet-bridge CDN) -> dung LFS classic
+os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 
 import time
 import torch
