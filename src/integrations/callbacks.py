@@ -56,6 +56,21 @@ class ExperimentCallbacks(BaseCallbacks):
                 print(f"🤗 [Epoch {epoch}] Pushing latest checkpoint to Hugging Face Hub...")
                 hf_push.push_file(self.hf_repo_id, latest_ckpt, self.hf_token, verbose=False)
 
+        # 3. Auto-sync to Google Drive if mounted (Colab)
+        import os
+        import shutil
+        drive_dir = "/content/drive/MyDrive/VQA-DeepLearning/runs"
+        if os.path.exists("/content/drive/MyDrive"):
+            try:
+                os.makedirs(drive_dir, exist_ok=True)
+                for fname in [f"{run_name}_best.pt", f"{run_name}_checkpoint.pt", f"{run_name}_history.csv"]:
+                    local_p = os.path.join(self.out_dir, fname)
+                    if os.path.exists(local_p):
+                        shutil.copy(local_p, os.path.join(drive_dir, fname))
+                print(f"💾 [Epoch {epoch}] Auto-synced checkpoints and logs to Google Drive!")
+            except Exception as e:
+                print(f"⚠️ Google Drive sync failed: {e}")
+
     def on_run_end(self, run_name, result):
         h = result.get("history", {})
         msg = (f"✅ [{self.project_name}] **{run_name}** xong\n"
@@ -78,3 +93,18 @@ class ExperimentCallbacks(BaseCallbacks):
             if result.get("latest_checkpoint"):
                 print(f"🤗 Pushing latest epoch checkpoint to Hugging Face Hub: {result['latest_checkpoint']}")
                 hf_push.push_file(self.hf_repo_id, result["latest_checkpoint"], self.hf_token)
+
+        # Auto-sync to Google Drive if mounted (Colab)
+        import os
+        import shutil
+        drive_dir = "/content/drive/MyDrive/VQA-DeepLearning/runs"
+        if os.path.exists("/content/drive/MyDrive"):
+            try:
+                os.makedirs(drive_dir, exist_ok=True)
+                for fname in [f"{run_name}_best.pt", f"{run_name}_checkpoint.pt", f"{run_name}_history.csv"]:
+                    local_p = os.path.join(self.out_dir, fname)
+                    if os.path.exists(local_p):
+                        shutil.copy(local_p, os.path.join(drive_dir, fname))
+                print("💾 Final auto-sync to Google Drive completed!")
+            except Exception as e:
+                print(f"⚠️ Google Drive final sync failed: {e}")
