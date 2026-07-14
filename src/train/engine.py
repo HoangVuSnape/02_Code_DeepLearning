@@ -161,14 +161,23 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
 @torch.no_grad()
 def predict_answers(model, loader, id2answer, q_vocab, device,
                     yes_id=None, no_id=None, constrained_closed=False):
-    """Run inference to generate text answers and return lists of strings for comparison."""
+    """Run inference: tra ve (hyps, p_yes).
+
+    p_yes = xac suat lop 'yes' that su cho tung mau (khong con hard-code 0.5):
+      - MLP: softmax tren cap logit [yes_id, no_id] cua answer vocab.
+      - Generative: softmax tren logit token dau [yes, no] trong q_vocab.
+    Nho vay clin_auc/sensitivity/specificity moi co y nghia.
+    """
     model.to(device).eval()
     id2word = {i: w for w, i in q_vocab.items()}
+    yes_tok = q_vocab.get("yes")
+    no_tok = q_vocab.get("no")
     hyps = []
-    
+    p_yes = []
+
     for images, tokens, labels, closed, dec_in, dec_tgt in loader:
         images, tokens = images.to(device), tokens.to(device)
-        
+
         if model.decoder_type == "mlp":
             logits = model(images, tokens)
             preds = logits.argmax(dim=-1)
@@ -177,6 +186,11 @@ def predict_answers(model, loader, id2answer, q_vocab, device,
                 masked = masked_closed_argmax(logits, yes_id, no_id)
                 preds = torch.where(closed_t, masked, preds)
             batch_hyps = [id2answer.get(int(i), "") for i in preds.cpu()]
+            if yes_id is not None and no_id is not None:
+                pair = logits[:, [yes_id, no_id]].softmax(dim=-1)
+                batch_pyes = pair[:, 0].detach().cpu().tolist()
+            else:
+                batch_pyes = [0.5] * len(batch_hyps)
         else:
             # Generative mode
             if constrained_closed:
@@ -203,6 +217,19 @@ def predict_answers(model, loader, id2answer, q_vocab, device,
                 pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
                 pred_tokens = pred_tokens.cpu().tolist()
                 batch_hyps = [decode_sequence(pt, id2word) for pt in pred_tokens]
-                
+
+            # p_yes generative: softmax logit token dau tren cap [yes, no]
+            if yes_tok is not None and no_tok is not None:
+                try:
+                    bos = torch.full((images.size(0), 1), 2, dtype=torch.long, device=device)
+                    first_logits = model(images, tokens, bos)  # (B, 1, V)
+                    pair = first_logits[:, 0, [yes_tok, no_tok]].softmax(dim=-1)
+                    batch_pyes = pair[:, 0].detach().cpu().tolist()
+                except Exception:
+                    batch_pyes = [0.5] * len(batch_hyps)
+            else:
+                batch_pyes = [0.5] * len(batch_hyps)
+
         hyps.extend(batch_hyps)
-    return hyps, [0.5] * len(hyps)
+        p_yes.extend(batch_pyes)
+    return hyps, p_yes

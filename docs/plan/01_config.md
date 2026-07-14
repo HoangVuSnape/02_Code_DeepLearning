@@ -19,7 +19,7 @@ CFG = Config(project_name="gemma4-medical-vqa", use_hf_push=True,
 | RL | `rl_epochs`, `rl_lr` | 5, 1e-5 |
 | Run | `run_groups` (A/B/C/D) | ("A","B","C","D") |
 | Smoke | `smoke`, `smoke_subset`, `smoke_epochs`, `smoke_runs_per_group` | False, 64, 1, 2 |
-| IO | `out_dir`, `project_name` | "runs", "medvqa-attention-ablation" |
+| IO | `out_dir`, `project_name` | "runs", "medvqa-generative-ablation" |
 | Tích hợp | `use_comet`, `use_discord`, `use_hf_push`, `hf_repo_id`, `num_workers`, `show_progress` | True, True, False, "", 2, True |
 
 ## Quy tắc

@@ -303,8 +303,8 @@
   <h3>Closed vs Open (định nghĩa dùng trong code)</h3>
   <div class="table-wrap"><table>
     <tr><th>Loại</th><th>Điều kiện</th><th>Ví dụ answer</th><th>Đo riêng</th></tr>
-    <tr><td><b>Closed</b></td><td><code>normalize_answer(a) ∈ {"yes","no"}</code></td><td>yes, no</td><td>EM closed + AUC/sens/spec</td></tr>
-    <tr><td><b>Open</b></td><td>còn lại</td><td>right lung, axial, pneumonia, 2 cm…</td><td>EM open + token-F1 + BLEU-1</td></tr>
+    <tr><td><b>Closed</b></td><td><code>normalize_answer(a) ∈ {"yes","no"}</code></td><td>yes, no</td><td>EM/token-F1/BLEU-1 (closed) + AUC/sens/spec</td></tr>
+    <tr><td><b>Open</b></td><td>còn lại</td><td>right lung, axial, pneumonia, 2 cm…</td><td>EM/token-F1/BLEU-1 (open)</td></tr>
   </table></div>
   <p class="muted" style="font-size:.85rem">Hàm: <code>src/data/vqa_rad.py → is_closed()</code>. Chuẩn hóa <code>normalize_answer()</code>: lowercase → gộp khoảng trắng → bỏ dấu chấm cuối.</p>
 
@@ -639,7 +639,7 @@ em_overall / em_closed / em_open  = tỉ lệ đúng trên từng nhóm</pre>
     <tr><td><code>smoke_epochs</code></td><td>1</td><td>epoch khi smoke</td></tr>
     <tr><td><code>smoke_runs_per_group</code></td><td>2</td><td>số run mỗi nhóm khi smoke</td></tr>
     <tr><td rowspan="6">IO / tích hợp</td><td><code>out_dir</code></td><td>runs</td><td>nơi lưu checkpoint/CSV</td></tr>
-    <tr><td><code>project_name</code></td><td>medvqa-attention-ablation</td><td>tên project Comet</td></tr>
+    <tr><td><code>project_name</code></td><td>medvqa-generative-ablation</td><td>tên project Comet</td></tr>
     <tr><td><code>use_comet / use_discord</code></td><td>True</td><td>bật log/notify</td></tr>
     <tr><td><code>use_hf_push / hf_repo_id</code></td><td>False / ""</td><td>push checkpoint lên HF</td></tr>
     <tr><td><code>num_workers</code></td><td>2</td><td>DataLoader workers</td></tr>
@@ -655,12 +655,14 @@ em_overall / em_closed / em_open  = tỉ lệ đúng trên từng nhóm</pre>
   <div class="table-wrap"><table>
     <tr><th>#</th><th>Metric</th><th>Công thức / định nghĩa</th><th>Áp cho</th></tr>
     <tr><td>1</td><td><b>EM overall / closed / open</b> <span class="pill">chính</span></td><td>pred_string == ref_string sau normalize; tách theo closed(yes/no) và open</td><td>mọi model + Gemma</td></tr>
-    <tr><td>2</td><td><b>Token-F1</b></td><td>SQuAD-style: <code>2·P·R/(P+R)</code> trên token overlap (<code>token_f1</code>)</td><td>open-ended, Gemma</td></tr>
-    <tr><td>3</td><td><b>BLEU-1</b></td><td>unigram precision có clip × brevity penalty (tự implement, không cần nltk)</td><td>open-ended</td></tr>
+    <tr><td>2</td><td><b>Token-F1 (overall / closed / open)</b></td><td>SQuAD-style <code>2·P·R/(P+R)</code> trên token overlap (<code>token_f1</code>); tách riêng <code>token_f1_closed</code>, <code>token_f1_open</code></td><td>mọi model + Gemma</td></tr>
+    <tr><td>3</td><td><b>BLEU-1 (overall / closed / open)</b></td><td>unigram precision có clip × brevity penalty (tự implement, không cần nltk); tách <code>bleu1_closed</code>, <code>bleu1_open</code></td><td>mọi model + Gemma</td></tr>
     <tr><td>4</td><td><b>Sensitivity / Specificity</b></td><td>trên subset yes/no, yes=positive: <code>TP/(TP+FN)</code>, <code>TN/(TN+FP)</code></td><td>closed (y tế)</td></tr>
-    <tr><td>5</td><td><b>Precision / ROC-AUC</b></td><td><code>TP/(TP+FP)</code>; AUC từ softmax hạn chế trên {yes,no} (sklearn)</td><td>closed (y tế)</td></tr>
+    <tr><td>5</td><td><b>Precision / ROC-AUC</b></td><td><code>TP/(TP+FP)</code>; AUC từ <b>p_yes thật</b> = softmax hạn chế trên {yes,no} — MLP lấy từ logit answer-class, generative lấy từ logit token đầu; Gemma CSV suy từ chuỗi (yes→1 / no→0)</td><td>closed (y tế)</td></tr>
     <tr><td>6</td><td><b>Chi phí</b></td><td>params_total, params_trainable, inference_time_sec, epoch_sec</td><td>trade-off mọi model</td></tr>
   </table></div>
+  <div class="callout"><b>Bộ 18 cột thống nhất</b> — một hàm chấm duy nhất <code>score_predictions(refs, hyps, p_yes)</code> dùng cho <i>mọi</i> run (checkpoint + Gemma CSV) nên bảng so sánh không lệch cột: <code>em_overall/closed/open</code>, <code>token_f1[_closed/_open]</code>, <code>bleu1[_closed/_open]</code>, <code>clin_sensitivity/specificity/precision/auc</code>, <code>n_closed/n_open</code>, <code>params_total/trainable</code>, <code>inference_time_sec</code>. Gemma CSV không có logit → <code>clin_*</code> suy từ chuỗi, <code>params/time</code> = <code>null</code> (cùng cột, khác giá trị).</div>
+  <div class="callout" style="border-left-color:#c0392b"><b>Đã fix:</b> <code>predict_answers</code> trước đây trả <code>p_yes = 0.5</code> cứng → mọi <code>clin_auc</code> = 0.5, <code>sensitivity</code> = 1.0 (vô nghĩa). Nay tính <code>p_yes</code> thật từ logit, các chỉ số y tế mới dùng được. Các <code>*_metrics.json</code> eval trước bản fix cần <b>eval lại</b>.</div>
   <div class="callout"><b>Constrained closed</b> (tùy chọn eval): với câu closed, chỉ cho chọn giữa lớp <code>yes</code>/<code>no</code> (<code>masked_closed_argmax</code>) — phiên bản classification của Constrained Decoding. Báo cáo riêng cột <code>em_closed_constrained</code>.</div>
   <p class="muted" style="font-size:.85rem">Metric chọn checkpoint & best-config = <b>val EM overall</b>. Metric 2–6 chỉ báo cáo, không dùng để tune.</p>
 </section>

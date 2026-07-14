@@ -16,11 +16,30 @@ except ImportError:
     pass
 
 from config import Config
-from src.data.dataset import VQARADClsDataset, default_transform
+from src.data.dataset import VQARADClsDataset, default_transform, build_text_tokenizer
 from src.data.vqa_rad import normalize_answer
 from src.models.fusion import build_model
 from src.train.engine import predict_answers
-from src.train.metrics import score_answers, closed_binary_report, score_predictions_csv
+from src.train.metrics import score_predictions, score_predictions_csv
+from src.integrations import secrets as secrets_mod
+from src.integrations import hf_push
+
+# Bo cot meta chung cho MOI run de bang so sanh dong nhat (CSV khong dem duoc -> None)
+_META_KEYS = ("params_total", "params_trainable", "inference_time_sec")
+
+
+def _push_metrics(repo_id, paths, verbose=True):
+    """Push cac file ket qua (metrics json / predictions csv) len HF Hub neu co token."""
+    if not repo_id:
+        return
+    token = secrets_mod.load_secrets(verbose=False).get("HF_TOKEN")
+    if not token:
+        if verbose:
+            print("⚠️ Thieu HF_TOKEN — bo qua push metrics len Hub.")
+        return
+    for p in paths:
+        if p and os.path.exists(p):
+            hf_push.push_file(repo_id, p, token)
 
 
 def main():
@@ -39,6 +58,8 @@ def main():
     parser.add_argument("--out_dir", type=str, default=default_cfg.out_dir, help="Output/Vocab directory")
     parser.add_argument("--save_predictions", type=str, default=None, help="Path to save prediction CSV (e.g. runs/preds_A1.csv)")
     parser.add_argument("--save_metrics", type=str, default=None, help="Path to save evaluation metrics as JSON (e.g. runs/metrics_A1.json)")
+    parser.add_argument("--hf_repo_id", type=str, default="VQA-DeepLearning/vqa-rad-generative", help="HF repo de auto-push ket qua eval (metrics json + predictions csv)")
+    parser.add_argument("--no_hf_push", action="store_true", help="Tat viec tu dong push ket qua eval len HF Hub")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
     parser.add_argument("--freeze_image", action="store_true", help="Freeze entire image encoder parameters")
     parser.add_argument("--freeze_text", action="store_true", help="Freeze entire text encoder parameters")
@@ -53,14 +74,19 @@ def main():
             return
         
         metrics = score_predictions_csv(args.predictions_csv)
+        # Giu dung bo cot voi run checkpoint: CSV khong dem duoc params/thoi gian -> None
+        for k in _META_KEYS:
+            metrics.setdefault(k, None)
         print("\n✨ Unified Evaluation Metrics for CSV:")
         print(json.dumps(metrics, indent=2))
-        
+
         if args.save_metrics:
             os.makedirs(os.path.dirname(args.save_metrics) or ".", exist_ok=True)
             with open(args.save_metrics, "w") as f:
                 json.dump(metrics, f, indent=2)
             print(f"💾 Saved CSV metrics to: {args.save_metrics}")
+            if not args.no_hf_push:
+                _push_metrics(args.hf_repo_id, [args.save_metrics])
         return
 
     # Mode 2: Evaluate PyTorch checkpoint
@@ -142,10 +168,13 @@ def main():
 
     # Setup transform — CHUAN HOA 224x224 cho moi model (fair comparison)
     imagenet_norm = (args.image_encoder == "resnet18_frozen")
+    clip_norm = (args.image_encoder == "pubmedclip")
     image_size = 224                # cung resolution cho CNN va ResNet
-    test_tf = default_transform(image_size, train=False, imagenet=imagenet_norm)
-    
-    test_ds = VQARADClsDataset(test_recs, answer2id, q_vocab, test_tf, max_len=32)
+    test_tf = default_transform(image_size, train=False, imagenet=imagenet_norm, clip=clip_norm)
+
+    text_tokenizer = build_text_tokenizer(args.text_encoder)  # PubMedBERT dung tokenizer rieng
+    test_ds = VQARADClsDataset(test_recs, answer2id, q_vocab, test_tf, max_len=32,
+                               text_tokenizer=text_tokenizer)
     test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
     print("🏃 Running model inference on test set...")
@@ -166,17 +195,9 @@ def main():
     inference_time = time.time() - t0
     print(f"⚡ Inference finished in {inference_time:.2f} seconds.")
 
-    # Calculate metrics
+    # Calculate metrics — dung CHUNG bo cham voi run CSV (score_predictions)
     test_refs = [normalize_answer(r["answer"]) for r in test_recs]
-    metrics = score_answers(test_refs, hyps)
-    
-    # Add clinical binary metrics for closed-ended questions
-    closed_idx = [i for i, r in enumerate(test_refs) if r in ("yes", "no")]
-    if closed_idx and yes_id is not None:
-        y_true_yes = [int(test_refs[i] == "yes") for i in closed_idx]
-        p_yes_closed = [p_yes[i] for i in closed_idx]
-        bin_rep = closed_binary_report(y_true_yes, p_yes_closed)
-        metrics.update({f"clin_{k}": v for k, v in bin_rep.items()})
+    metrics = score_predictions(test_refs, hyps, p_yes=p_yes)
 
     # Count parameters
     params_total = sum(p.numel() for p in model.parameters())
@@ -206,6 +227,10 @@ def main():
         with open(args.save_metrics, "w") as f:
             json.dump(metrics, f, indent=2)
         print(f"💾 Saved metrics to: {args.save_metrics}")
+
+    # Auto-push ket qua eval len HF Hub (chong mat metrics khi Kaggle crash)
+    if not args.no_hf_push and (args.save_metrics or args.save_predictions):
+        _push_metrics(args.hf_repo_id, [args.save_metrics, args.save_predictions])
 
 
 if __name__ == "__main__":

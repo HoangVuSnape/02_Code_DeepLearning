@@ -36,7 +36,7 @@ class Config:
 
     # --- IO & Logging ---
     out_dir: str = "runs"          # Thư mục lưu kết quả và checkpoints
-    project_name: str = "medvqa-attention-ablation"
+    project_name: str = "medvqa-generative-ablation"
 
     # --- Tích hợp hệ thống ---
     use_comet: bool = True

@@ -15,8 +15,9 @@ import os
 import pandas as pd
 
 SUFFIX = "_metrics.json"
-SHOW = ["model", "em_overall", "em_closed", "em_open", "token_f1", "bleu1",
-        "clin_auc", "params_trainable"]
+SHOW = ["model", "em_overall", "em_closed", "em_open",
+        "token_f1", "token_f1_open", "bleu1",
+        "clin_sensitivity", "clin_specificity", "clin_auc", "params_trainable"]
 
 
 def main():

@@ -17,7 +17,7 @@ except ImportError:
 
 from config import Config
 from src.data.vqa_rad import build_answer_vocab, build_vocab, image_key, group_split, normalize_answer
-from src.data.dataset import VQARADClsDataset, default_transform
+from src.data.dataset import VQARADClsDataset, default_transform, build_text_tokenizer
 from src.models.fusion import build_model
 from src.integrations.secrets import load_secrets, hf_login_if_possible
 from src.integrations.callbacks import ExperimentCallbacks
@@ -143,15 +143,18 @@ def main():
         json.dump(q_vocab, f, indent=2)
     print(f"📂 Saved vocabularies: C={len(answer2id)} classes, V={len(q_vocab)} words.")
 
-    # Data loaders
+    # Data loaders — chuan hoa anh & tokenize theo dung encoder
     imagenet_norm = (args.image_encoder == "resnet18_frozen")
+    clip_norm = (args.image_encoder == "pubmedclip")
     image_size = args.image_size    # 224 cho MOI model (fair comparison)
 
-    train_tf = default_transform(image_size, train=True, imagenet=imagenet_norm)
-    val_tf = default_transform(image_size, train=False, imagenet=imagenet_norm)
+    train_tf = default_transform(image_size, train=True, imagenet=imagenet_norm, clip=clip_norm)
+    val_tf = default_transform(image_size, train=False, imagenet=imagenet_norm, clip=clip_norm)
 
-    train_ds = VQARADClsDataset(tr, answer2id, q_vocab, train_tf, max_len=32)
-    val_ds = VQARADClsDataset(va, answer2id, q_vocab, val_tf, max_len=32)
+    text_tokenizer = build_text_tokenizer(args.text_encoder)  # HF tokenizer cho PubMedBERT, None -> q_vocab
+
+    train_ds = VQARADClsDataset(tr, answer2id, q_vocab, train_tf, max_len=32, text_tokenizer=text_tokenizer)
+    val_ds = VQARADClsDataset(va, answer2id, q_vocab, val_tf, max_len=32, text_tokenizer=text_tokenizer)
 
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
