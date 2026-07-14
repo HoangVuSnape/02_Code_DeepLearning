@@ -32,8 +32,8 @@ from src.integrations import hf_push
 _META_KEYS = ("params_total", "params_trainable", "inference_time_sec")
 
 
-def _push_metrics(repo_id, paths, verbose=True):
-    """Push ket qua eval (metrics json + predictions csv) len HF trong 1 COMMIT (tranh 429)."""
+def _push_metrics(repo_id, files, verbose=True):
+    """Push ket qua eval len HF trong 1 COMMIT. files: list (local_path, path_in_repo)."""
     if not repo_id:
         return
     token = secrets_mod.load_secrets(verbose=False).get("HF_TOKEN")
@@ -41,12 +41,19 @@ def _push_metrics(repo_id, paths, verbose=True):
         if verbose:
             print("⚠️ Thieu HF_TOKEN — bo qua push metrics len Hub.")
         return
-    existing = [p for p in paths if p and os.path.exists(p)]
-    if not existing:
-        return
-    folder = os.path.dirname(existing[0]) or "."
-    names = [os.path.basename(p) for p in existing]
-    hf_push.push_folder(repo_id, folder, token, allow_patterns=names)
+    hf_push.push_files(repo_id, files, token)
+
+
+def _subfolder_from(args):
+    """Suy sub-folder tren HF repo = ten run. Uu tien --hf_subfolder, roi ten file metrics."""
+    if args.hf_subfolder:
+        return args.hf_subfolder
+    if args.save_metrics:
+        base = os.path.basename(args.save_metrics)
+        if base.endswith("_metrics.json"):
+            return base[:-len("_metrics.json")]
+        return os.path.splitext(base)[0]
+    return "eval"
 
 
 def main():
@@ -67,6 +74,7 @@ def main():
     parser.add_argument("--save_metrics", type=str, default=None, help="Path to save evaluation metrics as JSON (e.g. runs/metrics_A1.json)")
     parser.add_argument("--hf_repo_id", type=str, default="VQA-DeepLearning/vqa-rad-generative", help="HF repo de auto-push ket qua eval (metrics json + predictions csv)")
     parser.add_argument("--no_hf_push", action="store_true", help="Tat viec tu dong push ket qua eval len HF Hub")
+    parser.add_argument("--hf_subfolder", type=str, default=None, help="Sub-folder tren repo HF (mac dinh suy tu ten file metrics = ten run)")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
     parser.add_argument("--freeze_image", action="store_true", help="Freeze entire image encoder parameters")
     parser.add_argument("--freeze_text", action="store_true", help="Freeze entire text encoder parameters")
@@ -93,7 +101,8 @@ def main():
                 json.dump(metrics, f, indent=2)
             print(f"💾 Saved CSV metrics to: {args.save_metrics}")
             if not args.no_hf_push:
-                _push_metrics(args.hf_repo_id, [args.save_metrics])
+                sub = _subfolder_from(args)
+                _push_metrics(args.hf_repo_id, [(args.save_metrics, f"{sub}/metrics.json")])
         return
 
     # Mode 2: Evaluate PyTorch checkpoint
@@ -235,9 +244,15 @@ def main():
             json.dump(metrics, f, indent=2)
         print(f"💾 Saved metrics to: {args.save_metrics}")
 
-    # Auto-push ket qua eval len HF Hub (chong mat metrics khi Kaggle crash)
+    # Auto-push ket qua eval len HF Hub (chong mat metrics khi Kaggle crash), sub-folder = ten run
     if not args.no_hf_push and (args.save_metrics or args.save_predictions):
-        _push_metrics(args.hf_repo_id, [args.save_metrics, args.save_predictions])
+        sub = _subfolder_from(args)
+        files = []
+        if args.save_metrics:
+            files.append((args.save_metrics, f"{sub}/metrics.json"))
+        if args.save_predictions:
+            files.append((args.save_predictions, f"{sub}/predictions.csv"))
+        _push_metrics(args.hf_repo_id, files)
 
 
 if __name__ == "__main__":

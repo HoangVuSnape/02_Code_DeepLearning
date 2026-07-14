@@ -48,7 +48,8 @@ def _epoch(model, loader, criterion, seq_criterion, device, optimizer=None,
                 dec_tgt = dec_tgt.to(device)
                 
                 logits = model(images, tokens, dec_in)
-                loss = seq_criterion(logits.view(-1, logits.size(-1)), dec_tgt.view(-1))
+                # reshape (khong view): logits gpt2 la slice khong lien mach -> view se loi
+                loss = seq_criterion(logits.reshape(-1, logits.size(-1)), dec_tgt.reshape(-1))
                 
                 if training:
                     optimizer.zero_grad()

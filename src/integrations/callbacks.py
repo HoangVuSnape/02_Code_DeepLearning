@@ -57,7 +57,8 @@ class ExperimentCallbacks(BaseCallbacks):
             latest_ckpt = os.path.join(self.out_dir, f"{run_name}_checkpoint.pt")
             if os.path.exists(latest_ckpt):
                 print(f"🤗 [Epoch {epoch}] Backup latest checkpoint len HF Hub (moi {self.push_every_epochs} epoch)...")
-                hf_push.push_file(self.hf_repo_id, latest_ckpt, self.hf_token, verbose=False)
+                hf_push.push_file(self.hf_repo_id, latest_ckpt, self.hf_token,
+                                  path_in_repo=f"{run_name}/checkpoint.pt", verbose=False)
 
         # 3. Auto-sync to Google Drive if mounted (Colab)
         import os
@@ -88,14 +89,15 @@ class ExperimentCallbacks(BaseCallbacks):
         msg += f"params train: {params_str} | epochs chay: {epochs_run}"
         discord.notify(self.webhook, msg)
 
-        # Backup HF Hub: gom best + latest + history vao 1 COMMIT (tranh 429)
+        # Backup HF Hub: gom best + latest + history vao 1 COMMIT, sub-folder = run_name
         if self.hf_repo_id and self.hf_token:
-            print(f"🤗 Backup {run_name} (best+latest+history) len HF Hub trong 1 commit...")
-            hf_push.push_folder(
-                self.hf_repo_id, self.out_dir, self.hf_token,
-                allow_patterns=[f"{run_name}_best.pt",
-                                f"{run_name}_checkpoint.pt",
-                                f"{run_name}_history.csv"])
+            import os
+            print(f"🤗 Backup {run_name}/ (best+checkpoint+history) len HF Hub trong 1 commit...")
+            hf_push.push_files(self.hf_repo_id, [
+                (os.path.join(self.out_dir, f"{run_name}_best.pt"), f"{run_name}/best.pt"),
+                (os.path.join(self.out_dir, f"{run_name}_checkpoint.pt"), f"{run_name}/checkpoint.pt"),
+                (os.path.join(self.out_dir, f"{run_name}_history.csv"), f"{run_name}/history.csv"),
+            ], self.hf_token)
 
         # Auto-sync to Google Drive if mounted (Colab)
         import os
