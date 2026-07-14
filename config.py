@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 @dataclass
 class Config:
     # --- Data ---
-    hf_dataset: str = "flaviagiammarino/vqa-rad"
+    hf_dataset: str = "VQA-DeepLearning/vqa-rad"
     val_ratio: float = 0.1
     seed: int = 42
     image_size: int = 224          # Kích thước ảnh chuẩn hóa (224 cho tất cả mô hình)
