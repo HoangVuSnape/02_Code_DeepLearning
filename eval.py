@@ -8,6 +8,13 @@ import pandas as pd
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 
+# Tự động kích hoạt hf_transfer nếu có để tải dataset/weights siêu tốc và chống nghẽn CDN
+try:
+    import hf_transfer
+    os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+except ImportError:
+    pass
+
 from config import Config
 from src.data.dataset import VQARADClsDataset, default_transform
 from src.data.vqa_rad import normalize_answer
