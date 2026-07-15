@@ -64,11 +64,16 @@ class ImageEncoderResNet18Frozen(nn.Module):
 class ImageEncoderPubMedCLIP(nn.Module):
     """PubMedCLIP (ViT) Vision Tower - Dong bang backbone, chi train projection."""
 
-    def __init__(self, out_dim=128):
+    def __init__(self, out_dim=128, pretrained=True):
         super().__init__()
         try:
-            from transformers import CLIPVisionModel
-            self.model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+            from transformers import CLIPVisionModel, CLIPVisionConfig
+            if pretrained:
+                self.model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+            else:
+                # Eval: dung khung tu config (random), checkpoint se nap weights that
+                # -> tranh buoc "Materializing" cua from_pretrained hay treo tren Kaggle
+                self.model = CLIPVisionModel(CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch32"))
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None
@@ -147,11 +152,17 @@ class TextEncoderTransformer(nn.Module):
 class TextEncoderPubMedBERT(nn.Module):
     """PubMedBERT text backbone - Dong bang, chi train projection."""
 
-    def __init__(self, out_dim=64):
+    def __init__(self, out_dim=64, pretrained=True):
         super().__init__()
+        _bert = "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext"
         try:
             from transformers import AutoModel
-            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext")
+            if pretrained:
+                self.model = AutoModel.from_pretrained(_bert)
+            else:
+                # Eval: khung tu config (random), checkpoint nap weights that -> tranh treo
+                from transformers import AutoConfig
+                self.model = AutoModel.from_config(AutoConfig.from_pretrained(_bert))
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None

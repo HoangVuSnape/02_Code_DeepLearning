@@ -193,7 +193,7 @@ def build_model(vocab_size, num_classes, image_encoder="cnn", text_encoder="lstm
     elif image_encoder == "resnet18_frozen":
         img = ImageEncoderResNet18Frozen(use_attention=image_attention, pretrained=pretrained)
     elif image_encoder == "pubmedclip":
-        img = ImageEncoderPubMedCLIP()
+        img = ImageEncoderPubMedCLIP(pretrained=pretrained)
     else:
         raise ValueError(f"Unknown image encoder: {image_encoder}")
 
@@ -203,7 +203,7 @@ def build_model(vocab_size, num_classes, image_encoder="cnn", text_encoder="lstm
     elif text_encoder == "transformer":
         txt = TextEncoderTransformer(vocab_size, use_attention=text_attention, max_len=max_len)
     elif text_encoder == "pubmedbert":
-        txt = TextEncoderPubMedBERT()
+        txt = TextEncoderPubMedBERT(pretrained=pretrained)
     else:
         raise ValueError(f"Unknown text encoder: {text_encoder}")
 
