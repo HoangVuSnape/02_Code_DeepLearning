@@ -16,8 +16,8 @@ import pandas as pd
 
 SUFFIX = "_metrics.json"
 SHOW = ["model", "em_overall", "em_closed", "em_open",
-        "token_f1", "token_f1_open", "bleu1",
-        "clin_sensitivity", "clin_specificity", "clin_auc", "params_trainable"]
+        "token_f1_open", "sem_open",
+        "clin_balanced_acc", "clin_auc", "params_trainable"]
 
 
 def main():
@@ -42,10 +42,12 @@ def main():
     if "em_overall" in df.columns:
         df = df.sort_values("em_overall", ascending=False)
     out_csv = args.out_csv or os.path.join(args.out_dir, "metrics_summary.csv")
-    df.to_csv(out_csv, index=False)
+    df.to_csv(out_csv, index=False)   # CSV giu full precision + ca run smoke
 
-    cols = [c for c in SHOW if c in df.columns]
-    print(df[cols].to_string(index=False))
+    # Bang so sanh in ra: bo run smoke (1 epoch, degenerate) + format 6 chu so thap phan
+    show_df = df[~df["model"].str.startswith("smoke")] if "model" in df.columns else df
+    cols = [c for c in SHOW if c in show_df.columns]
+    print(show_df[cols].to_string(index=False, float_format=lambda x: f"{x:.6f}"))
     print(f"\n💾 Da luu: {out_csv}")
 
 

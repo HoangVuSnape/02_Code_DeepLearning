@@ -92,10 +92,45 @@ def pyes_from_text(hyp):
     return 0.5
 
 
+# --- Semantic similarity (CHI dung o eval, KHONG goi trong training loop) ---
+_SEM_MODEL = None
+_SEM_TRIED = False
+_SEM_MODEL_NAME = "all-MiniLM-L6-v2"   # nhe, on dinh; doi sang biomedical (vd pritamdeka/S-PubMedBert-MS-MARCO) neu muon
+
+
+def _get_sem_model():
+    """Nap sentence-transformer 1 lan/tien trinh. Loi -> None (metric semantic tu tat)."""
+    global _SEM_MODEL, _SEM_TRIED
+    if _SEM_TRIED:
+        return _SEM_MODEL
+    _SEM_TRIED = True
+    try:
+        from sentence_transformers import SentenceTransformer
+        _SEM_MODEL = SentenceTransformer(_SEM_MODEL_NAME)
+    except Exception as e:
+        print(f"(semantic metric tat: {e})")
+        _SEM_MODEL = None
+    return _SEM_MODEL
+
+
+def semantic_sim(refs, hyps):
+    """Cosine trung binh giua ref & hyp bang sentence-embedding. None neu khong co model."""
+    model = _get_sem_model()
+    if model is None or not refs:
+        return None
+    try:
+        r = model.encode([normalize_answer(x) for x in refs], convert_to_numpy=True, normalize_embeddings=True)
+        h = model.encode([normalize_answer(x) for x in hyps], convert_to_numpy=True, normalize_embeddings=True)
+        return float((r * h).sum(axis=1).mean())
+    except Exception as e:
+        print(f"(semantic metric loi: {e})")
+        return None
+
+
 def score_predictions(refs, hyps, p_yes=None):
     """Bo cham DUY NHAT cho moi run (checkpoint + CSV) -> dam bao trung bo cot.
 
-    Gop string metrics (score_answers) + clinical binary tren subset closed.
+    Gop string metrics (score_answers) + clinical binary tren subset closed + semantic (open).
     p_yes: xac suat lop 'yes' cung do dai refs/hyps. None -> suy tu chuoi sinh
     (pyes_from_text) de run CSV van co du cot clin_*.
     """
@@ -110,8 +145,14 @@ def score_predictions(refs, hyps, p_yes=None):
             p_closed = [pyes_from_text(hyps[i]) for i in closed_idx]
         rep = closed_binary_report(y_true_yes, p_closed)
     else:
-        rep = {"sensitivity": 0.0, "specificity": 0.0, "precision": 0.0, "auc": 0.5}
+        rep = {"sensitivity": 0.0, "specificity": 0.0, "precision": 0.0,
+               "balanced_acc": 0.0, "f1": 0.0, "auc": 0.5}
     m.update({f"clin_{k}": v for k, v in rep.items()})
+
+    # Semantic similarity tren subset OPEN (eval-only, best-effort)
+    open_idx = [i for i, r in enumerate(refs_n) if not is_closed(r)]
+    m["sem_open"] = semantic_sim([refs[i] for i in open_idx],
+                                 [hyps[i] for i in open_idx]) if open_idx else None
     return m
 
 
@@ -127,10 +168,15 @@ def closed_binary_report(y_true_yes, p_yes, threshold=0.5):
     fn = sum(1 for t, p in zip(y_true_yes, preds) if t == 1 and p == 0)
     tn = sum(1 for t, p in zip(y_true_yes, preds) if t == 0 and p == 0)
     fp = sum(1 for t, p in zip(y_true_yes, preds) if t == 0 and p == 1)
+    sens = tp / (tp + fn) if tp + fn else 0.0   # recall lop yes
+    spec = tn / (tn + fp) if tn + fp else 0.0
+    prec = tp / (tp + fp) if tp + fp else 0.0
     return {
-        "sensitivity": tp / (tp + fn) if tp + fn else 0.0,   # recall lop yes
-        "specificity": tn / (tn + fp) if tn + fp else 0.0,
-        "precision": tp / (tp + fp) if tp + fp else 0.0,
+        "sensitivity": sens,
+        "specificity": spec,
+        "precision": prec,
+        "balanced_acc": (sens + spec) / 2,                       # 1 so cong bang khi yes/no lech
+        "f1": 2 * prec * sens / (prec + sens) if (prec + sens) else 0.0,
         "auc": roc_auc_score(y_true_yes, p_yes) if len(set(y_true_yes)) > 1 else 0.5,
     }
 
