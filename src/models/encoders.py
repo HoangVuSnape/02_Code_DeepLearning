@@ -68,9 +68,7 @@ class ImageEncoderPubMedCLIP(nn.Module):
         super().__init__()
         try:
             from transformers import CLIPVisionModel
-            # low_cpu_mem_usage=False: nap thang, ne buoc "Materializing param" cua transformers 5.x hay treo
-            self.model = CLIPVisionModel.from_pretrained(
-                "openai/clip-vit-base-patch32", low_cpu_mem_usage=False)
+            self.model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None
@@ -153,9 +151,7 @@ class TextEncoderPubMedBERT(nn.Module):
         super().__init__()
         try:
             from transformers import AutoModel
-            self.model = AutoModel.from_pretrained(
-                "microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
-                low_cpu_mem_usage=False)
+            self.model = AutoModel.from_pretrained("microsoft/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext")
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None
