@@ -84,11 +84,22 @@ def main():
     comet_exp = None
     if args.use_comet and secrets.get("COMET_API_KEY"):
         try:
+            # Tat toan bo auto-logging cua Comet TRUOC khi import comet_ml.
+            # Comet monkey-patch torch/transformers de log model graph + histogram;
+            # vi import sau torch (warning), no hook vao qua trinh tao param cua
+            # from_pretrained -> treo o buoc "Materializing param..." tren Kaggle.
+            os.environ["COMET_DISABLE_AUTO_LOGGING"] = "1"
             import comet_ml
             comet_exp = comet_ml.Experiment(
                 api_key=secrets["COMET_API_KEY"],
                 project_name=args.project_name,
-                auto_metric_logging=False
+                auto_metric_logging=False,
+                auto_param_logging=False,
+                auto_output_logging=False,
+                log_graph=False,
+                log_env_details=False,
+                parse_args=False,
+                disabled=False,
             )
             comet_exp.set_name(args.run_name)
             comet_exp.log_parameters(vars(args))
