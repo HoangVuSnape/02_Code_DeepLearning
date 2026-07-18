@@ -12,7 +12,7 @@ class FusionModel(nn.Module):
     """Unified VQA Model: supports classification (MLP) and generation (GRU, LSTM, Transformer, GPT2)."""
 
     def __init__(self, image_enc, text_enc, vocab_size, num_classes, decoder_type="mlp",
-                 decoder_attention=False):
+                 decoder_attention=False, pretrained=True):
         super().__init__()
         self.image = image_enc
         self.text = text_enc
@@ -31,11 +31,20 @@ class FusionModel(nn.Module):
             self.gpt2_proj = nn.Linear(fused_dim, 768)
             try:
                 from transformers import GPT2LMHeadModel
-                # low_cpu_mem_usage=False -> tranh vong "Materializing param..." treo tren Kaggle
-                self.gpt2 = GPT2LMHeadModel.from_pretrained("gpt2", low_cpu_mem_usage=False)
+                if pretrained:
+                    print("[fusion] Loading GPT2 (pretrained)...", flush=True)
+                    self.gpt2 = GPT2LMHeadModel.from_pretrained("gpt2", low_cpu_mem_usage=False)
+                else:
+                    # Checkpoint se nap weights that -> khung tu config (random),
+                    # khong goi from_pretrained -> tranh treo tren Kaggle. Giong eval.
+                    from transformers import GPT2Config
+                    print("[fusion] Building GPT2 from config (no pretrained)...", flush=True)
+                    self.gpt2 = GPT2LMHeadModel(GPT2Config.from_pretrained("gpt2"))
                 # Resize token embeddings to vocab_size
                 self.gpt2.resize_token_embeddings(vocab_size)
-            except Exception:
+                print("[fusion] GPT2 ready.", flush=True)
+            except Exception as e:
+                print(f"[fusion] GPT2 init failed: {e}", flush=True)
                 self.gpt2 = None
         else:
             self.init_decoder = nn.Linear(fused_dim, 128)
@@ -208,6 +217,11 @@ def build_model(vocab_size, num_classes, image_encoder="cnn", text_encoder="lstm
     else:
         raise ValueError(f"Unknown text encoder: {text_encoder}")
 
+    print(f"[build_model] encoders built (img={image_encoder}, txt={text_encoder}, "
+          f"pretrained={pretrained}). Building fusion+decoder ({decoder})...", flush=True)
+
     # 3. Complete Fusion model
-    return FusionModel(img, txt, vocab_size, num_classes, decoder_type=decoder,
-                       decoder_attention=decoder_attention)
+    model = FusionModel(img, txt, vocab_size, num_classes, decoder_type=decoder,
+                        decoder_attention=decoder_attention, pretrained=pretrained)
+    print("[build_model] model built OK.", flush=True)
+    return model

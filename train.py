@@ -174,7 +174,14 @@ def main():
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
 
-    # Build model
+    # Build model.
+    # Neu se nap checkpoint day du (RL/resume) -> build backbone tu config
+    # (pretrained=False, KHONG goi from_pretrained cho CLIP/BERT/GPT2) roi
+    # checkpoint nap weights that. Tranh hoan toan buoc from_pretrained hay
+    # treo tren Kaggle. Giong het duong eval (da chung minh khong treo).
+    use_pretrained = not bool(args.load_checkpoint)
+    if not use_pretrained:
+        print(f"🔧 Build backbone tu config (pretrained=False) vi se nap checkpoint: {args.load_checkpoint}")
     model = build_model(
         vocab_size=len(q_vocab),
         num_classes=len(answer2id),
@@ -184,7 +191,7 @@ def main():
         image_attention=args.image_attention,
         text_attention=args.text_attention,
         decoder_attention=args.decoder_attention,
-        pretrained=True,
+        pretrained=use_pretrained,
         max_len=32
     )
 

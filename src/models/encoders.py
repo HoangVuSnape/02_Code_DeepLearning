@@ -79,7 +79,9 @@ class ImageEncoderPubMedCLIP(nn.Module):
             else:
                 # Eval: dung khung tu config (random), checkpoint se nap weights that
                 # -> tranh buoc "Materializing" cua from_pretrained hay treo tren Kaggle
+                print("[encoders] Building PubMedCLIP vision from config (no pretrained)...", flush=True)
                 self.model = CLIPVisionModel(CLIPVisionConfig.from_pretrained("openai/clip-vit-base-patch32"))
+            print("[encoders] PubMedCLIP vision ready.", flush=True)
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None
@@ -164,12 +166,15 @@ class TextEncoderPubMedBERT(nn.Module):
         try:
             from transformers import AutoModel
             if pretrained:
+                print("[encoders] Loading PubMedBERT (pretrained)...", flush=True)
                 # low_cpu_mem_usage=False -> tranh vong "Materializing param..." treo tren Kaggle
                 self.model = AutoModel.from_pretrained(_bert, low_cpu_mem_usage=False)
             else:
                 # Eval: khung tu config (random), checkpoint nap weights that -> tranh treo
+                print("[encoders] Building PubMedBERT from config (no pretrained)...", flush=True)
                 from transformers import AutoConfig
                 self.model = AutoModel.from_config(AutoConfig.from_pretrained(_bert))
+            print("[encoders] PubMedBERT ready.", flush=True)
             self.proj = nn.Linear(768, out_dim)
         except Exception:
             self.model = None
