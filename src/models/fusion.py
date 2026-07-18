@@ -31,7 +31,8 @@ class FusionModel(nn.Module):
             self.gpt2_proj = nn.Linear(fused_dim, 768)
             try:
                 from transformers import GPT2LMHeadModel
-                self.gpt2 = GPT2LMHeadModel.from_pretrained("gpt2")
+                # low_cpu_mem_usage=False -> tranh vong "Materializing param..." treo tren Kaggle
+                self.gpt2 = GPT2LMHeadModel.from_pretrained("gpt2", low_cpu_mem_usage=False)
                 # Resize token embeddings to vocab_size
                 self.gpt2.resize_token_embeddings(vocab_size)
             except Exception:

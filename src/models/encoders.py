@@ -69,7 +69,11 @@ class ImageEncoderPubMedCLIP(nn.Module):
         try:
             from transformers import CLIPVisionModel, CLIPVisionConfig
             if pretrained:
-                self.model = CLIPVisionModel.from_pretrained("openai/clip-vit-base-patch32")
+                # low_cpu_mem_usage=False -> ep duong nap co dien (khoi tao full model
+                # tren CPU roi load_state_dict), bo han vong "Materializing param..."
+                # cua accelerate/meta-device hay treo tren Kaggle.
+                self.model = CLIPVisionModel.from_pretrained(
+                    "openai/clip-vit-base-patch32", low_cpu_mem_usage=False)
             else:
                 # Eval: dung khung tu config (random), checkpoint se nap weights that
                 # -> tranh buoc "Materializing" cua from_pretrained hay treo tren Kaggle
@@ -158,7 +162,8 @@ class TextEncoderPubMedBERT(nn.Module):
         try:
             from transformers import AutoModel
             if pretrained:
-                self.model = AutoModel.from_pretrained(_bert)
+                # low_cpu_mem_usage=False -> tranh vong "Materializing param..." treo tren Kaggle
+                self.model = AutoModel.from_pretrained(_bert, low_cpu_mem_usage=False)
             else:
                 # Eval: khung tu config (random), checkpoint nap weights that -> tranh treo
                 from transformers import AutoConfig
