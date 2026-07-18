@@ -72,8 +72,10 @@ class ImageEncoderPubMedCLIP(nn.Module):
                 # low_cpu_mem_usage=False -> ep duong nap co dien (khoi tao full model
                 # tren CPU roi load_state_dict), bo han vong "Materializing param..."
                 # cua accelerate/meta-device hay treo tren Kaggle.
+                print("[encoders] Loading PubMedCLIP vision (classic path, no-meta)...", flush=True)
                 self.model = CLIPVisionModel.from_pretrained(
                     "openai/clip-vit-base-patch32", low_cpu_mem_usage=False)
+                print("[encoders] PubMedCLIP vision loaded OK.", flush=True)
             else:
                 # Eval: dung khung tu config (random), checkpoint se nap weights that
                 # -> tranh buoc "Materializing" cua from_pretrained hay treo tren Kaggle
