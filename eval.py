@@ -75,6 +75,7 @@ def main():
     parser.add_argument("--hf_repo_id", type=str, default="VQA-DeepLearning/vqa-rad-generative", help="HF repo de auto-push ket qua eval (metrics json + predictions csv)")
     parser.add_argument("--no_hf_push", action="store_true", help="Tat viec tu dong push ket qua eval len HF Hub")
     parser.add_argument("--hf_subfolder", type=str, default=None, help="Sub-folder tren repo HF (mac dinh suy tu ten file metrics = ten run)")
+    parser.add_argument("--test_parquet", type=str, default=None, help="Eval tren 1 file parquet tuy y (vd RadImageNet-VQA) thay vi test VQA-RAD")
     parser.add_argument("--device", type=str, default="cuda", help="Device (cuda/cpu)")
     parser.add_argument("--freeze_image", action="store_true", help="Freeze entire image encoder parameters")
     parser.add_argument("--freeze_text", action="store_true", help="Freeze entire text encoder parameters")
@@ -177,10 +178,22 @@ def main():
 
     model.to(device).eval()
 
-    # Load dataset
-    print("📦 Loading VQA-RAD test dataset from Hugging Face...")
-    ds = load_dataset("flaviagiammarino/vqa-rad")
-    test_recs = [dict(r) for r in ds["test"]]
+    # Load dataset — mac dinh VQA-RAD test; hoac 1 parquet tuy y (--test_parquet) de eval cheo dataset
+    if args.test_parquet:
+        print(f"📦 Loading test set tu parquet: {args.test_parquet}")
+        ds = load_dataset("parquet", data_files=args.test_parquet, split="train")
+        test_recs = [dict(r) for r in ds]
+        # Parquet co the luu image dang {bytes, path} -> decode ve PIL cho dataset dung
+        import io
+        from PIL import Image as _PILImage
+        for _r in test_recs:
+            _im = _r.get("image")
+            if isinstance(_im, dict) and _im.get("bytes"):
+                _r["image"] = _PILImage.open(io.BytesIO(_im["bytes"]))
+    else:
+        print("📦 Loading VQA-RAD test dataset from Hugging Face...")
+        ds = load_dataset("flaviagiammarino/vqa-rad")
+        test_recs = [dict(r) for r in ds["test"]]
 
     # Setup transform — CHUAN HOA 224x224 cho moi model (fair comparison)
     imagenet_norm = (args.image_encoder == "resnet18_frozen")
