@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen", "pubmedclip"])
     parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer", "pubmedbert"])
     parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp", "gru", "lstm", "transformer", "gpt2"], help="Type of decoder")
+    parser.add_argument("--image_proj", type=str, default="pooled", choices=["pooled", "qformer"], help="Projector anh->GPT2: pooled (1 token, baseline) hoac qformer (K visual token)")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
@@ -47,6 +48,7 @@ def main():
     parser.add_argument("--rl_epochs", type=int, default=default_cfg.rl_epochs, help="Number of RL epochs")
     parser.add_argument("--lr", type=float, default=default_cfg.lr, help="Learning rate for SFT")
     parser.add_argument("--rl_lr", type=float, default=default_cfg.rl_lr, help="Learning rate for RL")
+    parser.add_argument("--rl_reward", type=str, default="lexical", choices=["lexical", "semantic", "mixed"], help="Reward SCST: lexical (0.5EM+0.5F1) | semantic (cosine) | mixed")
     parser.add_argument("--weight_decay", type=float, default=default_cfg.weight_decay, help="Weight decay")
     parser.add_argument("--patience", type=int, default=default_cfg.patience, help="Early stopping patience")
     parser.add_argument("--batch_size", type=int, default=default_cfg.batch_size, help="Batch size")
@@ -192,7 +194,8 @@ def main():
         text_attention=args.text_attention,
         decoder_attention=args.decoder_attention,
         pretrained=use_pretrained,
-        max_len=32
+        max_len=32,
+        image_proj=args.image_proj
     )
 
     # Apply manual freezing based on arguments
@@ -243,11 +246,13 @@ def main():
         else:
             print("⚠️ WARNING: Running RL from scratch (no load_checkpoint provided)!")
 
-        # Define eval function for RL validation
+        # Define eval function for RL validation.
+        # Tra ve dict day du (em_overall/em_closed/em_open) -> scst_finetune log
+        # duoc breakdown vao history.csv; no tu lay em_overall de theo doi best.
         va_refs = [normalize_answer(r["answer"]) for r in va]
         def val_eval_fn(m):
             hyps, _ = predict_answers(m, val_loader, id2answer, q_vocab, device)
-            return score_answers(va_refs, hyps)["em_overall"]
+            return score_answers(va_refs, hyps)
 
         # Run REINFORCE self-critical fine-tuning
         from src.train.rl import scst_finetune
@@ -263,7 +268,8 @@ def main():
             device=device,
             out_dir=args.out_dir,
             name=args.run_name,
-            callbacks=cb
+            callbacks=cb,
+            reward_mode=args.rl_reward
         )
         params_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
         rl_result["params_trainable"] = params_trainable

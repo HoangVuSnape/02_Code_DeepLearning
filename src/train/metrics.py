@@ -115,13 +115,20 @@ def _get_sem_model():
 
 def semantic_sim(refs, hyps):
     """Cosine trung binh giua ref & hyp bang sentence-embedding. None neu khong co model."""
+    each = semantic_sim_each(refs, hyps)
+    return None if each is None else float(sum(each) / len(each))
+
+
+def semantic_sim_each(refs, hyps):
+    """Cosine TUNG MAU (list) giua ref & hyp. None neu khong co sentence-model.
+    Dung cho reward semantic trong RL (SCST)."""
     model = _get_sem_model()
     if model is None or not refs:
         return None
     try:
         r = model.encode([normalize_answer(x) for x in refs], convert_to_numpy=True, normalize_embeddings=True)
         h = model.encode([normalize_answer(x) for x in hyps], convert_to_numpy=True, normalize_embeddings=True)
-        return float((r * h).sum(axis=1).mean())
+        return (r * h).sum(axis=1).tolist()   # [n] cosine moi mau
     except Exception as e:
         print(f"(semantic metric loi: {e})")
         return None

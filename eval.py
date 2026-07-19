@@ -65,10 +65,12 @@ def main():
     parser.add_argument("--image_encoder", type=str, default="cnn", choices=["cnn", "resnet18_frozen", "pubmedclip"])
     parser.add_argument("--text_encoder", type=str, default="lstm", choices=["lstm", "transformer", "pubmedbert"])
     parser.add_argument("--decoder", type=str, default="mlp", choices=["mlp", "gru", "lstm", "transformer", "gpt2"], help="Type of decoder")
+    parser.add_argument("--image_proj", type=str, default="pooled", choices=["pooled", "qformer"], help="Projector anh->GPT2 (phai khop luc train): pooled hoac qformer")
     parser.add_argument("--image_attention", action="store_true", help="Use channel/SE attention in image encoder")
     parser.add_argument("--text_attention", action="store_true", help="Use temporal attention in text encoder")
     parser.add_argument("--decoder_attention", action="store_true", help="Use gated attention in decoder fusion")
     parser.add_argument("--constrained_closed", action="store_true", help="Constrain Closed-ended answers to yes/no only")
+    parser.add_argument("--decode", type=str, default="greedy", choices=["greedy", "beam", "contrastive"], help="Chien luoc giai ma cho generative (chi anh huong luc eval)")
     parser.add_argument("--out_dir", type=str, default=default_cfg.out_dir, help="Output/Vocab directory")
     parser.add_argument("--save_predictions", type=str, default=None, help="Path to save prediction CSV (e.g. runs/preds_A1.csv)")
     parser.add_argument("--save_metrics", type=str, default=None, help="Path to save evaluation metrics as JSON (e.g. runs/metrics_A1.json)")
@@ -146,9 +148,10 @@ def main():
         text_attention=args.text_attention,
         decoder_attention=args.decoder_attention,
         pretrained=False,
-        max_len=32
+        max_len=32,
+        image_proj=args.image_proj
     )
-    
+
     # Load state dict
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
     
@@ -218,7 +221,8 @@ def main():
         device=device,
         yes_id=yes_id,
         no_id=no_id,
-        constrained_closed=args.constrained_closed
+        constrained_closed=args.constrained_closed,
+        decode=args.decode
     )
     
     inference_time = time.time() - t0

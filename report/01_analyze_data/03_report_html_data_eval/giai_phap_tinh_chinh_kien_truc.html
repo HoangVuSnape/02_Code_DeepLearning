@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giải pháp Tinh chỉnh Kiến trúc — Nâng chất lượng câu hỏi Open-Ended</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-2: #172033;
+    --border: #475569;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-2: #60a5fa;
+    --purple: #a78bfa;
+    --good: #10b981;
+    --good-soft: rgba(16, 185, 129, 0.12);
+    --warn: #f59e0b;
+    --warn-soft: rgba(245, 158, 11, 0.12);
+    --bad: #ef4444;
+    --bad-soft: rgba(239, 68, 68, 0.12);
+    --code-bg: #0f172a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    padding: 2rem 1.5rem;
+  }
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  header {
+    background: linear-gradient(135deg, rgba(59,130,246,0.22), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.4rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.6rem;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header .sub { color: var(--text-muted); font-size: 1.02rem; }
+  header .tag {
+    display:inline-block; margin-top:1rem; font-size:0.8rem; color:var(--warn);
+    background:var(--warn-soft); border:1px solid rgba(245,158,11,0.4);
+    padding:0.25rem 0.7rem; border-radius:20px;
+  }
+
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  }
+  h2 {
+    font-size: 1.45rem; margin-bottom: 1.1rem;
+    border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; color: #60a5fa;
+  }
+  h3 { font-size: 1.12rem; margin: 1.4rem 0 0.5rem; color: var(--purple); }
+  p { margin-bottom: 0.9rem; font-size: 0.97rem; }
+  ul, ol { margin-left: 1.4rem; margin-bottom: 1rem; font-size: 0.95rem; }
+  li { margin-bottom: 0.35rem; }
+  code {
+    font-family: Consolas, monospace; background: var(--code-bg); color: var(--purple);
+    padding: 0.13rem 0.4rem; border-radius: 5px; font-size: 0.86em;
+  }
+  b, strong { color: #eef2ff; }
+
+  .svg-wrap { width:100%; overflow-x:auto; margin:1.2rem 0; background:var(--surface-2);
+    border:1px solid var(--border); border-radius:12px; padding:1rem; }
+  svg { display:block; margin:0 auto; }
+
+  .legend { display:flex; flex-wrap:wrap; gap:1rem; margin-top:0.6rem; font-size:0.85rem; color:var(--text-muted); }
+  .legend span { display:inline-flex; align-items:center; gap:0.4rem; }
+  .dot { width:14px; height:14px; border-radius:4px; display:inline-block; }
+
+  .fix-card {
+    border:1px solid var(--border); border-left:4px solid var(--accent);
+    border-radius:10px; padding:1.2rem 1.4rem; margin:1.2rem 0; background:var(--surface-2);
+  }
+  .fix-card.f1 { border-left-color:#ef4444; }
+  .fix-card.f2 { border-left-color:#f59e0b; }
+  .fix-card.f3 { border-left-color:#a78bfa; }
+  .fix-card.f4 { border-left-color:#3b82f6; }
+  .fix-card.f5 { border-left-color:#10b981; }
+  .fix-head { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.6rem; flex-wrap:wrap; }
+  .fix-badge {
+    font-size:0.8rem; font-weight:700; color:#fff; width:26px; height:26px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .fix-title { font-size:1.1rem; font-weight:600; color:#eef2ff; }
+  .file-pill {
+    font-family:Consolas,monospace; font-size:0.78rem; color:var(--accent-2);
+    background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35);
+    padding:0.15rem 0.55rem; border-radius:6px;
+  }
+
+  .ba { display:grid; grid-template-columns:1fr; gap:1rem; margin:1rem 0; }
+  @media(min-width:820px){ .ba { grid-template-columns:1fr auto 1fr; align-items:center; } }
+  .box {
+    border-radius:10px; padding:1rem; font-size:0.88rem;
+  }
+  .box.before { background:var(--bad-soft); border:1px solid rgba(239,68,68,0.4); }
+  .box.after { background:var(--good-soft); border:1px solid rgba(16,185,129,0.4); }
+  .box h4 { font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem; }
+  .box.before h4 { color:#fca5a5; }
+  .box.after h4 { color:#6ee7b7; }
+  .arrow { text-align:center; font-size:1.8rem; color:var(--text-muted); }
+
+  table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.9rem; }
+  th, td { border:1px solid var(--border); padding:0.6rem 0.8rem; text-align:left; vertical-align:top; }
+  th { background:var(--code-bg); color:var(--accent-2); }
+  tr:nth-child(even) td { background:rgba(255,255,255,0.02); }
+  .diff-easy { color:var(--good); font-weight:600; }
+  .diff-mid { color:var(--warn); font-weight:600; }
+  .diff-hard { color:var(--bad); font-weight:600; }
+
+  .callout { background:var(--warn-soft); border:1px solid rgba(245,158,11,0.4);
+    border-radius:10px; padding:1rem 1.2rem; margin:1rem 0; font-size:0.92rem; }
+  .callout.info { background:rgba(59,130,246,0.1); border-color:rgba(59,130,246,0.4); }
+  footer { text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🔧 Giải pháp Tinh chỉnh Kiến trúc</h1>
+    <p class="sub">Nâng chất lượng trả lời câu hỏi <b>Open-Ended</b> — <b>Sửa ở đâu · Sửa cái gì · Sơ đồ điểm chỉnh sửa</b></p>
+    <p class="sub" style="margin-top:0.4rem;">Đối chiếu 5 giải pháp trong báo cáo <code>evaluation_report.html</code> với kiến trúc <code>FusionModel</code> hiện tại.</p>
+    <span class="tag">⚠️ Tài liệu định hướng — KHÔNG chỉnh sửa code, chỉ mô tả điểm cần sửa</span>
+  </header>
+
+  <!-- BỐI CẢNH -->
+  <section>
+    <h2>0. Vấn đề & vì sao phải sửa</h2>
+    <p>Chỉ số <b>EM Open</b> của mọi mô hình đều rất thấp (~8–9%). Nguyên nhân không hoàn toàn do mô hình "sai", mà do <b>câu hỏi mở y khoa có nhiều cách diễn đạt đồng nghĩa</b> trong khi EM chỉ đúng khi khớp từng từ. Muốn cải thiện chất lượng thực tế, ta cần sửa đúng vào <b>3 nút thắt kiến trúc</b> bên dưới — chứ không phải train thêm epoch.</p>
+    <div class="callout info">
+      <b>Tư duy chủ đạo:</b> Pipeline hiện tại nén toàn bộ ảnh + câu hỏi thành <b>một vector 192 chiều → một prefix token duy nhất</b> cho GPT-2, rồi giải mã <b>greedy</b>, và tối ưu RL bằng <b>reward từ vựng</b>. Cả ba chỗ này đều là "cổ chai" làm mất thông tin đối với câu mở.
+    </div>
+  </section>
+
+  <!-- KIẾN TRÚC HIỆN TẠI + ĐIỂM SỬA -->
+  <section>
+    <h2>1. Kiến trúc hiện tại & 3 điểm cần sửa</h2>
+    <p>Sơ đồ luồng dữ liệu nhánh <code>decoder = "gpt2"</code> (nhóm P / D1_scst). Ba khối viền đỏ đứt là các điểm chỉnh sửa trọng tâm.</p>
+
+    <div class="svg-wrap">
+      <svg viewBox="0 0 980 470" width="980" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif">
+        <defs>
+          <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+
+        <!-- INPUT -->
+        <rect x="20" y="60" width="150" height="54" rx="8" fill="#0f172a" stroke="#475569"/>
+        <text x="95" y="83" fill="#f8fafc" font-size="14" text-anchor="middle">🖼️ Ảnh y khoa</text>
+        <text x="95" y="102" fill="#94a3b8" font-size="11" text-anchor="middle">224×224</text>
+
+        <rect x="20" y="300" width="150" height="54" rx="8" fill="#0f172a" stroke="#475569"/>
+        <text x="95" y="323" fill="#f8fafc" font-size="14" text-anchor="middle">💬 Câu hỏi</text>
+        <text x="95" y="342" fill="#94a3b8" font-size="11" text-anchor="middle">tokens [B,T]</text>
+
+        <!-- ENCODERS -->
+        <rect x="210" y="52" width="170" height="70" rx="8" fill="#1e293b" stroke="#3b82f6"/>
+        <text x="295" y="78" fill="#60a5fa" font-size="13" text-anchor="middle" font-weight="600">PubMedCLIP</text>
+        <text x="295" y="96" fill="#94a3b8" font-size="11" text-anchor="middle">vision → 768</text>
+        <text x="295" y="112" fill="#94a3b8" font-size="11" text-anchor="middle">proj 768→128</text>
+
+        <rect x="210" y="292" width="170" height="70" rx="8" fill="#1e293b" stroke="#3b82f6"/>
+        <text x="295" y="318" fill="#60a5fa" font-size="13" text-anchor="middle" font-weight="600">PubMedBERT</text>
+        <text x="295" y="336" fill="#94a3b8" font-size="11" text-anchor="middle">text → 768</text>
+        <text x="295" y="352" fill="#94a3b8" font-size="11" text-anchor="middle">proj 768→64</text>
+
+        <!-- CONCAT -->
+        <rect x="430" y="175" width="120" height="64" rx="8" fill="#172033" stroke="#475569"/>
+        <text x="490" y="200" fill="#f8fafc" font-size="12" text-anchor="middle">concat</text>
+        <text x="490" y="220" fill="#94a3b8" font-size="11" text-anchor="middle">v_img⊕v_txt</text>
+        <text x="490" y="234" fill="#a78bfa" font-size="11" text-anchor="middle">[B, 192]</text>
+
+        <!-- FIX 1: PROJECTOR -->
+        <rect x="600" y="168" width="150" height="80" rx="8" fill="#1e293b" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6 4"/>
+        <circle cx="612" cy="180" r="13" fill="#ef4444"/>
+        <text x="612" y="185" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">1</text>
+        <text x="683" y="196" fill="#fca5a5" font-size="12.5" text-anchor="middle" font-weight="600">gpt2_proj</text>
+        <text x="675" y="215" fill="#94a3b8" font-size="11" text-anchor="middle">Linear 192→768</text>
+        <text x="675" y="232" fill="#f59e0b" font-size="10.5" text-anchor="middle">⇒ 1 prefix token</text>
+
+        <!-- FIX 2: DECODER -->
+        <rect x="795" y="150" width="160" height="118" rx="8" fill="#1e293b" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4"/>
+        <circle cx="807" cy="162" r="13" fill="#f59e0b"/>
+        <text x="807" y="167" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">2</text>
+        <text x="875" y="180" fill="#fcd34d" font-size="13" text-anchor="middle" font-weight="600">GPT-2</text>
+        <text x="875" y="198" fill="#94a3b8" font-size="11" text-anchor="middle">124M params</text>
+        <text x="875" y="222" fill="#94a3b8" font-size="11" text-anchor="middle">giải mã:</text>
+        <text x="875" y="238" fill="#fca5a5" font-size="11" text-anchor="middle" font-weight="600">Greedy argmax</text>
+        <text x="875" y="256" fill="#94a3b8" font-size="10.5" text-anchor="middle">→ câu trả lời</text>
+
+        <!-- FIX 3: RL REWARD -->
+        <rect x="600" y="330" width="355" height="86" rx="8" fill="#1e293b" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="6 4"/>
+        <circle cx="612" cy="342" r="13" fill="#a78bfa"/>
+        <text x="612" y="347" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">3</text>
+        <text x="778" y="356" fill="#c4b5fd" font-size="12.5" text-anchor="middle" font-weight="600">RL Reward (SCST) — src/train/rl.py</text>
+        <text x="778" y="378" fill="#94a3b8" font-size="11.5" text-anchor="middle">reward = 0.5·EM + 0.5·Token-F1  (từ vựng / lexical)</text>
+        <text x="778" y="398" fill="#f59e0b" font-size="10.5" text-anchor="middle">⇒ thưa & phương sai lớn → không cải thiện câu mở</text>
+
+        <!-- ARROWS -->
+        <line x1="170" y1="87" x2="208" y2="87" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="170" y1="327" x2="208" y2="327" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="380" y1="100" x2="470" y2="173" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="380" y1="330" x2="470" y2="240" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="550" y1="207" x2="598" y2="207" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="750" y1="207" x2="793" y2="207" stroke="#94a3b8" marker-end="url(#arr)"/>
+        <line x1="875" y1="268" x2="875" y2="328" stroke="#a78bfa" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+        <text x="20" y="30" fill="#60a5fa" font-size="14" font-weight="700">Luồng hiện tại — nhánh decoder = "gpt2"</text>
+      </svg>
+      <div class="legend">
+        <span><span class="dot" style="background:#3b82f6"></span> Khối giữ nguyên</span>
+        <span><span class="dot" style="background:#ef4444"></span> ① Projector (cổ chai nặng nhất)</span>
+        <span><span class="dot" style="background:#f59e0b"></span> ② Decoder + giải mã</span>
+        <span><span class="dot" style="background:#a78bfa"></span> ③ Reward RL</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Đọc sơ đồ:</b> thông tin ảnh (128) + chữ (64) bị ép qua <b>một</b> lớp <code>Linear</code> thành <b>một</b> token 768 chiều duy nhất trước khi vào GPT-2 → mất gần hết chi tiết không gian của ảnh. Đây là lý do câu mở (mô tả bệnh lý/vị trí) kém nhất.
+    </div>
+  </section>
+
+  <!-- FIX 1 -->
+  <section>
+    <h2>2. Chi tiết từng điểm sửa</h2>
+
+    <div class="fix-card f1">
+      <div class="fix-head">
+        <span class="fix-badge" style="background:#ef4444">1</span>
+        <span class="fix-title">Nâng cấp Projector — từ Linear đơn thành Q-Former / Perceiver</span>
+        <span class="file-pill">src/models/fusion.py → FusionModel.__init__ / forward</span>
+      </div>
+      <p><b>Sửa cái gì:</b> thay <code>self.gpt2_proj = nn.Linear(192, 768)</code> (nén thành 1 token) bằng một <b>bộ căn chỉnh nhiều visual token</b> có cross-attention.</p>
+      <div class="ba">
+        <div class="box before">
+          <h4>Hiện tại</h4>
+          concat[128+64] → <code>Linear(192→768)</code> → <b>1</b> prefix token → GPT-2.
+          <br><span style="color:#fca5a5">Mất chi tiết không gian ảnh.</span>
+        </div>
+        <div class="arrow">→</div>
+        <div class="box after">
+          <h4>Đề xuất</h4>
+          Giữ <b>bản đồ đặc trưng ảnh</b> (patch tokens từ CLIP) → <b>Q-Former</b> (BLIP-2) hoặc <b>Perceiver Resampler</b> (Flamingo) với <em>learnable query tokens</em> → <b>K visual tokens</b> (vd 8–32) → nối vào GPT-2.
+        </div>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-muted)"><b>Nơi lấy đầu vào giàu hơn:</b> hiện <code>ImageEncoderPubMedCLIP</code> chỉ trả <code>pooler_output</code> (1 vector). Cần lấy thêm <code>last_hidden_state</code> (chuỗi patch) làm nguồn cho cross-attention.</p>
+    </div>
+
+    <div class="fix-card f2">
+      <div class="fix-head">
+        <span class="fix-badge" style="background:#f59e0b">2</span>
+        <span class="fix-title">Nâng cấp Decoder & Chiến lược giải mã</span>
+        <span class="file-pill">fusion.py (model) · fusion.py generate() / engine.py (decoding)</span>
+      </div>
+      <p><b>Sửa cái gì (2 lớp):</b></p>
+      <ul>
+        <li><b>Mô hình:</b> thay GPT-2 (124M, không có tri thức y khoa) bằng <b>VLM y khoa</b>: <code>PaliGemma</code>, <code>LLaVA-Med</code>, <code>Med-Alpaca</code>. Khi đó Projector ở ① chính là cầu nối ảnh→LLM.</li>
+        <li><b>Giải mã:</b> thay <b>greedy argmax</b> (<code>fusion.py:112</code>) bằng <b>Beam Search + length penalty</b> hoặc <b>Contrastive Search</b> để câu mở mạch lạc, không lặp/cụt ý.</li>
+      </ul>
+      <div class="ba">
+        <div class="box before">
+          <h4>Hiện tại</h4>
+          <code>next_token = logits.argmax()</code> lặp từng bước → dễ lặp từ, cụt ý với câu dài.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box after">
+          <h4>Đề xuất</h4>
+          Beam Search (num_beams, length_penalty) hoặc Contrastive Search (top_k, penalty_alpha) — chỉ đổi bước sinh, không đổi trọng số.
+        </div>
+      </div>
+    </div>
+
+    <div class="fix-card f3">
+      <div class="fix-head">
+        <span class="fix-badge" style="background:#a78bfa">3</span>
+        <span class="fix-title">Reward RL theo Ngữ nghĩa (hoặc chuyển sang DPO)</span>
+        <span class="file-pill">src/train/rl.py → answer_reward()</span>
+      </div>
+      <p><b>Sửa cái gì:</b> hàm <code>answer_reward()</code> hiện tính <code>0.5·EM + 0.5·Token-F1</code> (từ vựng) — thưa và phương sai lớn nên SCST không tìm được checkpoint tốt hơn baseline. Thay bằng tín hiệu <b>mịn, liên tục</b>.</p>
+      <div class="ba">
+        <div class="box before">
+          <h4>Hiện tại</h4>
+          <code>reward = 0.5·EM + 0.5·TokenF1</code><br>
+          EM ∈ {0,1}, F1 trên câu cực ngắn → reward gần nhị phân.
+        </div>
+        <div class="arrow">→</div>
+        <div class="box after">
+          <h4>Đề xuất</h4>
+          Dùng <b>semantic similarity</b> (đã có <code>sem_open</code> / <code>all-MiniLM-L6-v2</code>, nâng lên <code>S-PubMedBert-MS-MARCO</code>), hoặc <b>BERTScore y khoa / RadGraph-F1</b>. Hiện đại hơn: <b>DPO</b> (tối ưu theo cặp ưa thích/từ chối, bỏ reward rời rạc).
+        </div>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-muted)">Lưu ý: <code>sem_open</code> đã dùng ở <b>eval</b> nhưng <b>chưa</b> đưa vào vòng lặp reward RL — đây chính là chỗ tích hợp.</p>
+    </div>
+
+    <div class="fix-card f4">
+      <div class="fix-head">
+        <span class="fix-badge" style="background:#3b82f6">4</span>
+        <span class="fix-title">Retrieval-Augmented Generation (RAG) — module mới TRƯỚC decoder</span>
+        <span class="file-pill">Thêm module truy hồi (mới) + chèn vào prompt của decoder</span>
+      </div>
+      <p><b>Sửa cái gì:</b> thêm một khối <b>truy hồi</b> chèn vào <em>trước</em> bước sinh: dùng PubMedCLIP truy vấn 3–5 ca tương tự trong vector DB → đưa Q/A tham chiếu vào context làm ví dụ few-shot. Không thay lõi mô hình, chèn thêm nhánh dữ liệu.</p>
+    </div>
+
+    <div class="fix-card f5">
+      <div class="fix-head">
+        <span class="fix-badge" style="background:#10b981">5</span>
+        <span class="fix-title">Thay toàn bộ bằng Large VLM (định hướng dài hạn)</span>
+        <span class="file-pill">Thay cả encoder + projector + decoder</span>
+      </div>
+      <p><b>Sửa cái gì:</b> bỏ pipeline tự ghép (CLIP + BERT + GPT-2), fine-tune trực tiếp một VLM y khoa hợp nhất (PaliGemma 3B/8B, LLaVA-Med). Gộp ①②④ vào một mô hình có sẵn tri thức nền.</p>
+    </div>
+  </section>
+
+  <!-- SƠ ĐỒ KIẾN TRÚC ĐỀ XUẤT -->
+  <section>
+    <h2>3. Kiến trúc sau khi sửa (① + ② + ③)</h2>
+    <p>Cùng khung mô hình, thay 3 khối cổ chai. Khối xanh lá = phần được nâng cấp.</p>
+    <div class="svg-wrap">
+      <svg viewBox="0 0 980 430" width="980" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif">
+        <defs>
+          <marker id="arr2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="55" width="150" height="54" rx="8" fill="#0f172a" stroke="#475569"/>
+        <text x="95" y="78" fill="#f8fafc" font-size="14" text-anchor="middle">🖼️ Ảnh</text>
+        <text x="95" y="97" fill="#94a3b8" font-size="11" text-anchor="middle">224×224</text>
+
+        <rect x="20" y="300" width="150" height="54" rx="8" fill="#0f172a" stroke="#475569"/>
+        <text x="95" y="323" fill="#f8fafc" font-size="14" text-anchor="middle">💬 Câu hỏi</text>
+
+        <!-- CLIP giữ patch tokens -->
+        <rect x="205" y="48" width="180" height="70" rx="8" fill="#1e293b" stroke="#3b82f6"/>
+        <text x="295" y="73" fill="#60a5fa" font-size="13" text-anchor="middle" font-weight="600">PubMedCLIP</text>
+        <text x="295" y="91" fill="#6ee7b7" font-size="11" text-anchor="middle">giữ PATCH tokens</text>
+        <text x="295" y="107" fill="#94a3b8" font-size="11" text-anchor="middle">[B, N_patch, 768]</text>
+
+        <rect x="205" y="300" width="180" height="56" rx="8" fill="#1e293b" stroke="#3b82f6"/>
+        <text x="295" y="325" fill="#60a5fa" font-size="13" text-anchor="middle" font-weight="600">PubMedBERT</text>
+        <text x="295" y="343" fill="#94a3b8" font-size="11" text-anchor="middle">text features</text>
+
+        <!-- FIX1 Q-Former -->
+        <rect x="420" y="150" width="170" height="96" rx="8" fill="#0f291f" stroke="#10b981" stroke-width="2.5"/>
+        <circle cx="432" cy="162" r="12" fill="#10b981"/>
+        <text x="432" y="167" fill="#fff" font-size="12" text-anchor="middle" font-weight="700">1</text>
+        <text x="505" y="180" fill="#6ee7b7" font-size="12.5" text-anchor="middle" font-weight="600">Q-Former /</text>
+        <text x="505" y="196" fill="#6ee7b7" font-size="12.5" text-anchor="middle" font-weight="600">Perceiver</text>
+        <text x="505" y="216" fill="#94a3b8" font-size="10.5" text-anchor="middle">learnable queries</text>
+        <text x="505" y="232" fill="#a78bfa" font-size="11" text-anchor="middle">→ K visual tokens</text>
+
+        <!-- FIX2 VLM + decoding -->
+        <rect x="640" y="140" width="180" height="116" rx="8" fill="#0f291f" stroke="#10b981" stroke-width="2.5"/>
+        <circle cx="652" cy="152" r="12" fill="#10b981"/>
+        <text x="652" y="157" fill="#fff" font-size="12" text-anchor="middle" font-weight="700">2</text>
+        <text x="725" y="170" fill="#6ee7b7" font-size="12.5" text-anchor="middle" font-weight="600">VLM y khoa</text>
+        <text x="725" y="187" fill="#94a3b8" font-size="10.5" text-anchor="middle">PaliGemma / LLaVA-Med</text>
+        <text x="725" y="211" fill="#94a3b8" font-size="10.5" text-anchor="middle">giải mã:</text>
+        <text x="725" y="228" fill="#6ee7b7" font-size="11" text-anchor="middle" font-weight="600">Beam / Contrastive</text>
+        <text x="725" y="246" fill="#94a3b8" font-size="10.5" text-anchor="middle">→ câu mở mạch lạc</text>
+
+        <!-- RAG optional -->
+        <rect x="420" y="290" width="400" height="44" rx="8" fill="#0f1e33" stroke="#3b82f6" stroke-dasharray="5 4"/>
+        <circle cx="432" cy="302" r="11" fill="#3b82f6"/>
+        <text x="432" y="306" fill="#fff" font-size="11" text-anchor="middle" font-weight="700">4</text>
+        <text x="625" y="308" fill="#93c5fd" font-size="11.5" text-anchor="middle" font-weight="600">RAG (tuỳ chọn): truy hồi ca tương tự → few-shot context</text>
+        <text x="625" y="325" fill="#94a3b8" font-size="10" text-anchor="middle">chèn vào prompt trước khi sinh</text>
+
+        <!-- FIX3 reward -->
+        <rect x="640" y="290" width="180" height="0" rx="8" fill="none"/>
+        <rect x="855" y="150" width="110" height="96" rx="8" fill="#211a33" stroke="#a78bfa" stroke-width="2.5"/>
+        <circle cx="867" cy="162" r="12" fill="#a78bfa"/>
+        <text x="867" y="167" fill="#fff" font-size="12" text-anchor="middle" font-weight="700">3</text>
+        <text x="910" y="184" fill="#c4b5fd" font-size="11" text-anchor="middle" font-weight="600">Reward</text>
+        <text x="910" y="202" fill="#6ee7b7" font-size="10.5" text-anchor="middle">Semantic</text>
+        <text x="910" y="218" fill="#6ee7b7" font-size="10.5" text-anchor="middle">/ DPO</text>
+        <text x="910" y="238" fill="#94a3b8" font-size="9.5" text-anchor="middle">tín hiệu mịn</text>
+
+        <line x1="170" y1="82" x2="203" y2="82" stroke="#94a3b8" marker-end="url(#arr2)"/>
+        <line x1="170" y1="327" x2="203" y2="327" stroke="#94a3b8" marker-end="url(#arr2)"/>
+        <line x1="385" y1="95" x2="418" y2="170" stroke="#94a3b8" marker-end="url(#arr2)"/>
+        <line x1="385" y1="325" x2="418" y2="230" stroke="#94a3b8" marker-end="url(#arr2)"/>
+        <line x1="590" y1="198" x2="638" y2="198" stroke="#94a3b8" marker-end="url(#arr2)"/>
+        <line x1="820" y1="198" x2="853" y2="198" stroke="#a78bfa" stroke-dasharray="4 3" marker-end="url(#arr2)"/>
+
+        <text x="20" y="28" fill="#10b981" font-size="14" font-weight="700">Luồng đề xuất — nâng cấp 3 cổ chai</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- BẢNG TỔNG HỢP -->
+  <section>
+    <h2>4. Bảng tổng hợp: sửa ở đâu · độ khó · kỳ vọng</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Điểm sửa</th><th>File / Module</th><th>Đổi từ → thành</th><th>Độ khó</th><th>Kỳ vọng</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>①</td><td>Projector</td>
+          <td><code>src/models/fusion.py</code><br>(gpt2_proj)</td>
+          <td>Linear 192→768 (1 token) → Q-Former / Perceiver (K token)</td>
+          <td class="diff-hard">Cao</td>
+          <td>Giữ chi tiết ảnh → tăng mạnh câu mở</td>
+        </tr>
+        <tr>
+          <td>②a</td><td>Decoder</td>
+          <td><code>fusion.py</code></td>
+          <td>GPT-2 124M → VLM y khoa (PaliGemma/LLaVA-Med)</td>
+          <td class="diff-hard">Cao</td>
+          <td>Tri thức nền y khoa, câu mạch lạc</td>
+        </tr>
+        <tr>
+          <td>②b</td><td>Giải mã</td>
+          <td><code>fusion.py generate()</code></td>
+          <td>Greedy argmax → Beam / Contrastive Search</td>
+          <td class="diff-easy">Thấp</td>
+          <td>Bớt lặp/cụt ý — dễ làm, hiệu quả nhanh</td>
+        </tr>
+        <tr>
+          <td>③</td><td>Reward RL</td>
+          <td><code>src/train/rl.py</code><br>(answer_reward)</td>
+          <td>0.5·EM+0.5·F1 → Semantic / BERTScore / DPO</td>
+          <td class="diff-mid">Trung bình</td>
+          <td>Reward mịn → SCST học được</td>
+        </tr>
+        <tr>
+          <td>④</td><td>RAG</td>
+          <td>Module mới (truy hồi)</td>
+          <td>Không có → truy hồi few-shot trước decode</td>
+          <td class="diff-mid">Trung bình</td>
+          <td>Bổ sung ngữ cảnh ca tương tự</td>
+        </tr>
+        <tr>
+          <td>⑤</td><td>Large VLM</td>
+          <td>Thay cả pipeline</td>
+          <td>CLIP+BERT+GPT2 → 1 VLM hợp nhất</td>
+          <td class="diff-hard">Rất cao</td>
+          <td>Trần chất lượng cao nhất (dài hạn)</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <b>Gợi ý thứ tự thực thi:</b> làm <b>②b (Beam/Contrastive)</b> trước — rẻ, nhanh thấy kết quả; rồi <b>③ (semantic reward)</b>; sau đó mới đầu tư <b>① (Q-Former)</b> và <b>②a/⑤ (VLM lớn)</b> vốn tốn tài nguyên.
+    </div>
+  </section>
+
+  <footer>
+    Đại học Tôn Đức Thắng (TDTU) — Master Subject 2026<br>
+    Tài liệu định hướng tinh chỉnh kiến trúc VQA (dựa trên <code>evaluation_report.html</code>) · Không chỉnh sửa mã nguồn
+  </footer>
+
+</div>
+</body>
+</html>

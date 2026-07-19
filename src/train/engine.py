@@ -161,7 +161,7 @@ def run_experiment(name, model, train_loader, val_loader, epochs, lr,
 
 @torch.no_grad()
 def predict_answers(model, loader, id2answer, q_vocab, device,
-                    yes_id=None, no_id=None, constrained_closed=False):
+                    yes_id=None, no_id=None, constrained_closed=False, decode="greedy"):
     """Run inference: tra ve (hyps, p_yes).
 
     p_yes = xac suat lop 'yes' that su cho tung mau (khong con hard-code 0.5):
@@ -195,7 +195,7 @@ def predict_answers(model, loader, id2answer, q_vocab, device,
         else:
             # Generative mode
             if constrained_closed:
-                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
+                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1), decode=decode)
                 pred_tokens = pred_tokens.cpu().tolist()
                 batch_hyps = []
                 for i, pt in enumerate(pred_tokens):
@@ -215,7 +215,7 @@ def predict_answers(model, loader, id2answer, q_vocab, device,
                             pred_str = "yes" if yes_score > no_score else "no"
                     batch_hyps.append(pred_str)
             else:
-                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1))
+                pred_tokens = model.generate(images, tokens, max_len=dec_tgt.size(1), decode=decode)
                 pred_tokens = pred_tokens.cpu().tolist()
                 batch_hyps = [decode_sequence(pt, id2word) for pt in pred_tokens]
 

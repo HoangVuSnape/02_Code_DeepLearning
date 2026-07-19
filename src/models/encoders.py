@@ -103,6 +103,17 @@ class ImageEncoderPubMedCLIP(nn.Module):
             x = self.proj(mock_feat)
         return self.norm(x)
 
+    def forward_patches(self, x):
+        """Tra ve CHUOI patch token cua CLIP-ViT [B, N, 768] (last_hidden_state)
+        lam nguon cho Q-Former. Backbone dong bang (no_grad)."""
+        if self.model is not None:
+            self.model.eval()
+            with torch.no_grad():
+                out = self.model(x).last_hidden_state  # [B, N(=50), 768]
+            return out
+        # Fallback: 1 token gia (giu shape hop le)
+        return torch.zeros(x.size(0), 1, 768, device=x.device)
+
 
 class TextEncoderBiLSTM(nn.Module):
     """Embedding(64) + BiLSTM(32x2) -> v_txt [B,64], H_txt [B, T, 64]."""
