@@ -113,15 +113,15 @@
 
 <section id="em">
   <h2 class="sec"><span class="n">2</span> Exact Match — EM <span class="pill">chính</span></h2>
-  <p>Câu sinh <b>khớp chính xác từng ký tự</b> với đáp án (sau normalize) thì được 1 điểm, khác đi là 0. Báo cáo 3 mức: <code>em_overall</code>, <code>em_closed</code>, <code>em_open</code>.</p>
-  <div class="formula">em = (số câu khớp hoàn toàn) / (số câu)</div>
+  <p><b>Logic Code:</b> Được cài đặt bằng Python thuần (Pure Python). Hàm <code>normalize_answer(s)</code> thực hiện: chuyển chữ thường (lowercase) → loại bỏ các ký tự đặc biệt, dấu câu cuối câu → chuẩn hóa khoảng trắng thừa. Sau đó, so sánh bằng toán tử <code>==</code> giữa chuỗi tham chiếu (ref) và chuỗi dự đoán (pred).</p>
+  <div class="formula">em = sum(normalize_answer(ref) == normalize_answer(pred)) / N</div>
   <div class="eg"><b>Ví dụ:</b> ref <code>"yes"</code> · pred <code>"yes"</code> → <b>1</b>. &nbsp; ref <code>"right lung"</code> · pred <code>"left lung"</code> → <b>0</b>. &nbsp; ref <code>"pleural effusion"</code> · pred <code>"effusion"</code> → <b>0</b> (thiếu 1 chữ là trượt).</div>
   <div class="callout"><b>Hạn chế:</b> với câu <b>open</b>, EM quá khắt khe — model đúng gần hết vẫn bị 0. Trong kết quả, <code>em_open</code> gần như bằng 0 ở mọi model → dùng để so sánh <b>closed</b> thì tốt, nhưng <b>open</b> nên nhìn token-F1 / Semantic bên dưới.</div>
 </section>
 
 <section id="f1">
   <h2 class="sec"><span class="n">3</span> Token-F1 (SQuAD-style)</h2>
-  <p>Đo <b>độ trùng token</b> giữa câu sinh và đáp án — cho điểm phần. Báo cáo <code>token_f1</code>, <code>token_f1_closed</code>, <code>token_f1_open</code>.</p>
+  <p><b>Logic Code:</b> Được cài đặt bằng Python thuần theo phong cách đánh giá của tập dữ liệu SQuAD. Đo mức độ trùng khớp cấp từ (token-level). Cả ref và pred sau khi chuẩn hóa sẽ được tách từ bằng hàm <code>.split()</code> để tạo thành tập hợp các từ (bag of words). Từ đó tính Precision, Recall và F1 score.</p>
   <div class="formula">P = |trùng| / |pred| ; &nbsp; R = |trùng| / |ref| ; &nbsp; F1 = 2·P·R / (P+R)</div>
   <div class="eg"><b>Ví dụ:</b> ref <code>"left upper lobe"</code> (3 token) · pred <code>"left lobe"</code> (2 token) → trùng 2 (<code>left</code>,<code>lobe</code>). P = 2/2 = 1.0, R = 2/3 ≈ 0.67 → <b>F1 ≈ 0.80</b>.</div>
   <p class="muted">Với câu open, <b>token_f1_open</b> là thước đo bề mặt tốt hơn EM (thấy được model "đúng một phần"). Nhưng vẫn không hiểu <b>đồng nghĩa</b> (xem Semantic).</p>
@@ -129,7 +129,7 @@
 
 <section id="bleu">
   <h2 class="sec"><span class="n">4</span> BLEU-1 <span class="pill">phụ</span></h2>
-  <p>Unigram precision có cắt (clip) nhân với brevity penalty (phạt câu quá ngắn). Tự implement, không cần nltk.</p>
+  <p><b>Logic Code:</b> Cài đặt thủ công bằng Python thuần để tránh phụ thuộc vào thư viện <code>nltk</code>. Tính toán Unigram Precision (độ khớp của các từ đơn) kết hợp với phạt độ dài (Brevity Penalty - BP) để tránh việc mô hình sinh câu quá ngắn nhằm đạt điểm Precision cao.</p>
   <div class="formula">BLEU-1 = BP × (số token pred trùng ref, có clip) / |pred|</div>
   <div class="eg"><b>Ví dụ:</b> ref <code>"right lung"</code> · pred <code>"lung"</code> → precision 1/1 nhưng pred ngắn hơn → BP phạt → <b>&lt; 1</b>.</div>
   <div class="callout"><b>Lưu ý:</b> câu trả lời VQA-RAD rất ngắn (1–3 từ) nên BLEU-1 gần như trùng thông tin với token-F1 và khá nhiễu. Giữ làm phụ, không dùng làm chỉ số chính.</div>
@@ -137,7 +137,13 @@
 
 <section id="sem">
   <h2 class="sec"><span class="n">5</span> Semantic Similarity <span class="pill new">MỚI</span></h2>
-  <p>Đo <b>ý nghĩa</b> chứ không phải chữ: nhúng ref và pred bằng sentence-embedding rồi tính <b>cosine</b>. Cột <code>sem_open</code> (trên subset câu mở). Model mặc định <code>all-MiniLM-L6-v2</code> (nhẹ, ổn định; có thể đổi sang model y sinh như <code>pritamdeka/S-PubMedBert-MS-MARCO</code>).</p>
+  <p><b>Logic Code:</b> Sử dụng thư viện <b><code>sentence-transformers</code></b> trong Python. Tải mô hình nhúng câu pre-trained <code>all-MiniLM-L6-v2</code> thông qua lớp <code>SentenceTransformer</code>. </p>
+  <p>Quy trình tính toán từng mẫu trong code như sau:</p>
+  <ol>
+    <li>Lấy vector nhúng cho ref và pred bằng hàm: <br><code>model.encode(..., convert_to_numpy=True, normalize_embeddings=True)</code>.<br> Việc bật <code>normalize_embeddings=True</code> giúp các vector đầu ra có độ dài L2 bằng 1.</li>
+    <li>Do vector đã chuẩn hóa, độ tương đồng Cosine (Cosine Similarity) được tính đơn giản bằng tích vô hướng (dot product) giữa hai vector: <br><code>cosine_sim = (r_vector * h_vector).sum(axis=-1)</code>.</li>
+    <li>Điểm <code>sem_open</code> tổng thể là trung bình cộng Cosine Similarity của toàn bộ các câu hỏi mở.</li>
+  </ol>
   <div class="formula">sem = trung bình cosine( emb(ref), emb(pred) ) &nbsp; ∈ [~0, 1]</div>
   <div class="eg"><b>Ví dụ:</b> ref <code>"pneumonia"</code> · pred <code>"infection"</code> → EM = 0, token-F1 = 0, nhưng <b>semantic ≈ 0.6–0.7</b> (gần nghĩa). &nbsp; ref <code>"left lung"</code> · pred <code>"lung on the left"</code> → semantic ≈ 0.9.</div>
   <div class="callout"><b>Vì sao thêm:</b> EM-open bằng 0 ở mọi model → <b>che mất khác biệt</b>. Semantic cho điểm phần theo nghĩa → các model <b>tách hạng rõ ràng</b>, đúng chuẩn đánh giá sinh chữ hiện đại. <span class="muted">Chỉ tính lúc eval (không tính trong vòng train để khỏi tải model mỗi epoch). Nếu không cài <code>sentence-transformers</code> hoặc tải model lỗi → <code>sem_open = null</code>, không làm hỏng pipeline.</span></div>
@@ -145,7 +151,13 @@
 
 <section id="clin">
   <h2 class="sec"><span class="n">6</span> Chỉ số lâm sàng — subset yes/no</h2>
-  <p>Trên riêng câu closed, coi <b>yes = dương tính</b>. Dựng từ ma trận nhầm lẫn (TP/FN/TN/FP) theo ngưỡng 0.5 trên <code>p_yes</code>.</p>
+  <p><b>Thư viện sử dụng:</b> Được tính toán thông qua các hàm trong thư viện học máy <b><code>scikit-learn</code></b> (cụ thể là gói <code>sklearn.metrics</code>).</p>
+  <p><b>Logic Code:</b> Coi nhãn <code>"yes"</code> là lớp dương tính (1), nhãn <code>"no"</code> là lớp âm tính (0). Dựa vào xác suất dự đoán <code>p_yes</code> của mô hình:</p>
+  <ol>
+    <li>Áp dụng ngưỡng mặc định 0.5 trên <code>p_yes</code> để phân loại nhị phân ra nhãn dự đoán (1 hoặc 0).</li>
+    <li>Sử dụng hàm <code>confusion_matrix(y_true, y_pred)</code> để tính ra các giá trị: True Positives (TP), False Negatives (FN), True Negatives (TN), False Positives (FP).</li>
+    <li>Từ ma trận nhầm lẫn này, tính toán các chỉ số lâm sàng truyền thống.</li>
+  </ol>
   <div class="table-wrap"><table>
     <tr><th>Chỉ số</th><th>Công thức</th><th>Ý nghĩa</th></tr>
     <tr><td><code>clin_sensitivity</code></td><td>TP / (TP+FN)</td><td>Bắt đúng bao nhiêu ca "yes" (recall lớp yes)</td></tr>
@@ -161,24 +173,24 @@
 
 <section id="pyes">
   <h2 class="sec"><span class="n">7</span> <code>p_yes</code> tính thế nào (nền của AUC)</h2>
-  <p>AUC/Sens/Spec cần xác suất lớp "yes" thật cho mỗi câu. <code>predict_answers</code> tính:</p>
+  <p><b>Logic Code:</b> Để tính được ROC-AUC (<code>clin_auc</code>) không phụ thuộc vào ngưỡng cố định, ta cần xác suất liên tục của lớp <code>"yes"</code>. Trong mã nguồn, xác suất này được thu thập như sau:</p>
   <ul>
-    <li><b>Decoder MLP</b>: <code>softmax</code> trên cặp logit của lớp <code>yes</code> và <code>no</code>.</li>
-    <li><b>Decoder generative (GPT-2)</b>: <code>softmax</code> trên logit token đầu tiên giữa <code>yes</code>/<code>no</code>.</li>
-    <li><b>Baseline CSV</b> (không có logit): suy từ chuỗi — <code>yes</code>→1.0, <code>no</code>→0.0, còn lại 0.5.</li>
+    <li><b>Mô hình phân loại MLP (Nhóm A & P_pubmed_mlp)</b>: Lấy trực tiếp từ giá trị đầu ra của lớp phân loại nhị phân sau khi đi qua hàm kích hoạt <code>softmax</code>.</li>
+    <li><b>Mô hình sinh chữ (GPT-2 và Gemma LoRA)</b>: Lấy giá trị logit (xác suất chưa chuẩn hóa) của token đầu tiên được sinh ra, chỉ xét trên hai token đại diện cho đáp án đóng là <code>"yes"</code> và <code>"no"</code>, sau đó áp dụng hàm <code>softmax</code> trên cặp này: <br>
+    <code>p_yes = exp(logit_yes) / (exp(logit_yes) + exp(logit_no))</code>.</li>
+    <li><b>Từ tệp dự đoán CSV (G Gemma raw không có logits)</b>: Do chỉ có chuỗi văn bản đầu ra, xác suất được quy đổi thô: nếu câu sinh chứa từ <code>"yes"</code> → <code>1.0</code>, nếu chứa <code>"no"</code> → <code>0.0</code>, các trường hợp khác gán <code>0.5</code>.</li>
   </ul>
-  <div class="callout"><b>Đã sửa bug:</b> trước đây <code>p_yes</code> bị gán cứng 0.5 → mọi <code>clin_auc</code> = 0.5, sensitivity = 1.0 (vô nghĩa). Nay là số thật.</div>
 </section>
 
 <section id="cost">
   <h2 class="sec"><span class="n">8</span> Chi phí (trade-off)</h2>
-  <div class="table-wrap"><table>
-    <tr><th>Cột</th><th>Ý nghĩa</th></tr>
-    <tr><td><code>params_total</code></td><td>Tổng tham số (gồm backbone đóng băng)</td></tr>
-    <tr><td><code>params_trainable</code> <span class="pill">so sánh</span></td><td>Chỉ phần <b>học được</b> — cột đúng để so trade-off (đừng dùng total)</td></tr>
-    <tr><td><code>inference_time_sec</code></td><td>Thời gian suy luận trên tập test</td></tr>
-  </table></div>
-  <div class="callout"><b>Cảnh báo:</b> nhóm dùng backbone pretrained (ResNet/PubMedBERT/CLIP) có <code>params_total</code> rất lớn (đóng băng), nhưng <code>params_trainable</code> nhỏ. So sánh phải dùng <b>trainable</b>, nếu không P_pubmed sẽ trông "khổng lồ 200M" gây hiểu nhầm.</div>
+  <p><b>Logic Code:</b></p>
+  <ul>
+    <li><code>params_total</code> và <code>params_trainable</code> được tính bằng cách đếm số lượng phần tử tensor trong mô hình PyTorch:<br>
+    • Tổng tham số: <code>sum(p.numel() for p in model.parameters())</code><br>
+    • Tham số học được: <code>sum(p.numel() for p in model.parameters() if p.requires_grad)</code></li>
+    <li><code>inference_time_sec</code>: Đo bằng thư viện <code>time</code> bằng cách tính khoảng thời gian chênh lệch trước và sau khi thực hiện vòng lặp dự đoán trên tập test (đơn vị giây).</li>
+  </ul>
 </section>
 
 <section id="schema">

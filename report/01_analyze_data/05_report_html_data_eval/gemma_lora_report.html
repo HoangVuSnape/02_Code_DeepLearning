@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo cáo Đánh giá & So sánh: Gemma-2-LoRA (E2b) vs Gemma-4-LoRA (E4b)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --border: #475569;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --good: #10b981;
+    --good-soft: rgba(16, 185, 129, 0.1);
+    --warn: #f59e0b;
+    --warn-soft: rgba(245, 158, 11, 0.1);
+    --bad: #ef4444;
+    --code-bg: #0f172a;
+    --table-header: #0f172a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem 1.5rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(to right, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  header .sub {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+  }
+
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+    color: #60a5fa;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.5rem;
+    color: #a78bfa;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    font-size: 0.98rem;
+  }
+
+  ul, ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.96rem;
+  }
+
+  li {
+    margin-bottom: 0.4rem;
+  }
+
+  code {
+    font-family: Consolas, monospace;
+    background: var(--code-bg);
+    color: #a78bfa;
+    padding: 0.15rem 0.4rem;
+    border-radius: 5px;
+    font-size: 0.88em;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+  }
+
+  th {
+    background-color: var(--table-header);
+    color: #60a5fa;
+    padding: 0.8rem 1rem;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: #e2e8f0;
+  }
+
+  tr:hover {
+    background-color: var(--surface-hover);
+  }
+
+  .highlight-row {
+    background-color: rgba(59, 130, 246, 0.08);
+  }
+  
+  .best-cell {
+    color: var(--good);
+    font-weight: bold;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+  .badge-gemma2 { background-color: rgba(52, 211, 153, 0.15); color: #34d399; border-color: rgba(52, 211, 153, 0.3); }
+  .badge-gemma4 { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+
+  .legend-box {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .alert {
+    border-left: 4px solid var(--accent);
+    background: rgba(59, 130, 246, 0.05);
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  .alert-warn {
+    border-left-color: var(--warn);
+    background: rgba(245, 158, 11, 0.05);
+  }
+  .alert-good {
+    border-left-color: var(--good);
+    background: rgba(16, 185, 129, 0.05);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 2rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📊 Báo cáo Đánh giá & So sánh: Gemma-2-LoRA vs Gemma-4-LoRA</h1>
+    <div class="sub">Đối chiếu hiệu năng mô hình Gemma 2B (E2b) vs Gemma 4B/5B (E4b) tinh chỉnh LoRA trên VQA-RAD và RadImageNet-VQA</div>
+  </header>
+
+  <!-- EXPERIMENT OVERVIEW -->
+  <section id="overview">
+    <h2>🔍 Tổng quan về Mô hình & Phương pháp tinh chỉnh</h2>
+    <p>Nhằm khảo sát khả năng của các mô hình ngôn ngữ lớn (LLMs) được tinh chỉnh cục bộ (LoRA) đối với bài toán Hỏi đáp Ảnh y khoa (Medical VQA), hai cấu hình mô hình Gemma đã được đánh giá và lưu kết quả tại [04_gemma_lora_eval](file:///e:/DoCode/Master_Subject2026_TDTU/02_Code_DeepLearning/report/01_analyze_data/04_gemma_lora_eval):</p>
+    
+    <ul>
+      <li><b>gemma_2_lora_E2b (Gemma-2B + LoRA):</b> Mô hình nền Gemma 2B, tổng số tham số khoảng <b>4.44 tỷ (4.44B)</b>, số lượng tham số LoRA được cập nhật gradient là <b>29,859,840 (29.8M)</b>.</li>
+      <li><b>gemma_4_lora_E4b (Gemma 4B/5B + LoRA):</b> Mô hình nền Gemma 4B/5B, tổng số tham số khoảng <b>5.79 tỷ (5.79B)</b>, số lượng tham số LoRA được cập nhật gradient là <b>41,222,144 (41.2M)</b>.</li>
+      <li><b>Quy trình Đánh giá:</b> Hai mô hình được kiểm thử trên cả hai tập dữ liệu <b>VQA-RAD Test Set</b> (in-domain, có trùng lặp ảnh train) và <b>RadImageNet-VQA Test Set</b> (out-of-domain, benchmark sạch 500 mẫu, không trùng lặp ảnh) để đo lường độ chính xác Exact Match và khả năng tổng quát hóa thực tế.</li>
+    </ul>
+  </section>
+
+  <!-- TABLE 1: VQA-RAD TEST SET -->
+  <section id="vqarad-test">
+    <h2>1. So sánh Kết quả trên VQA-RAD Test Set (In-Domain)</h2>
+    <div class="legend-box">
+      <b>Chú thích Table 1:</b><br>
+      • <b>EM Overall / Closed / Open:</b> Độ chính xác Exact Match tổng thể / câu hỏi đóng / câu hỏi mở.<br>
+      • <b>F1 Open & Semantic Open:</b> Thước đo từ vựng và tương đồng ngữ nghĩa ( SentenceTransformer <code>all-MiniLM-L6-v2</code>) trên các mô tả bệnh lý mở.<br>
+      • <b>Params Trainable:</b> Số tham số tinh chỉnh LoRA. <b>Params Total:</b> Dung lượng toàn bộ mô hình.
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Cấu hình mô hình</th>
+            <th>EM Overall</th>
+            <th>EM Closed</th>
+            <th>EM Open</th>
+            <th>F1 Open</th>
+            <th>Semantic Open</th>
+            <th>Clinical AUC</th>
+            <th>Params Trainable</th>
+            <th>Params Total</th>
+            <th>Inf. Time (s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- gemma_2 -->
+          <tr class="highlight-row">
+            <td><b>gemma_2_lora_E2b</b> <span class="badge badge-gemma2">E2b</span></td>
+            <td>37.92%</td>
+            <td>52.19%</td>
+            <td class="best-cell">20.00%</td>
+            <td class="best-cell">29.58%</td>
+            <td class="best-cell">0.5112</td>
+            <td>0.6285</td>
+            <td>29,859,840</td>
+            <td>4,438,171,168</td>
+            <td>676.6000</td>
+          </tr>
+          <!-- gemma_4 -->
+          <tr>
+            <td><b>gemma_4_lora_E4b</b> <span class="badge badge-gemma4">E4b</span></td>
+            <td class="best-cell">41.46%</td>
+            <td class="best-cell">62.95%</td>
+            <td>14.50%</td>
+            <td>22.56%</td>
+            <td>0.4367</td>
+            <td class="best-cell">0.6359</td>
+            <td>41,222,144</td>
+            <td>5,792,410,144</td>
+            <td>672.1000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TABLE 2: RADIMAGENET TEST SET -->
+  <section id="radimagenet-test">
+    <h2>2. So sánh Kết quả trên RadImageNet-VQA Test Set (Zero Leakage Benchmark)</h2>
+    <div class="legend-box">
+      <b>Chú thích Table 2:</b><br>
+      • RadImageNet-VQA chứa 500 mẫu độc lập hoàn toàn (patient-disjoint, 0% rò rỉ hình ảnh) để đánh giá độ tin cậy khi triển khai lâm sàng thực tế.
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Cấu hình mô hình</th>
+            <th>EM Overall</th>
+            <th>EM Closed</th>
+            <th>EM Open</th>
+            <th>F1 Open</th>
+            <th>Semantic Open</th>
+            <th>Clinical AUC</th>
+            <th>Inf. Time (s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- gemma_2 -->
+          <tr class="highlight-row">
+            <td><b>gemma_2_lora_E2b</b> <span class="badge badge-gemma2">E2b</span></td>
+            <td class="best-cell">30.20%</td>
+            <td class="best-cell">53.60%</td>
+            <td class="best-cell">6.80%</td>
+            <td class="best-cell">8.34%</td>
+            <td class="best-cell">0.3986</td>
+            <td class="best-cell">0.6684</td>
+            <td>653.1000</td>
+          </tr>
+          <!-- gemma_4 -->
+          <tr>
+            <td><b>gemma_4_lora_E4b</b> <span class="badge badge-gemma4">E4b</span></td>
+            <td>25.00%</td>
+            <td>46.40%</td>
+            <td>3.60%</td>
+            <td>3.60%</td>
+            <td>0.3139</td>
+            <td>0.4770</td>
+            <td>753.5000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DETAILED ANALYSIS -->
+  <section id="analysis">
+    <h2>📝 Phân Tích Chuyên Sâu & Đối Chiếu Hiệu Năng</h2>
+    
+    <h3>A. Đánh đổi Hiệu năng trên Tập dữ liệu Nội bộ (In-Domain Trade-Off)</h3>
+    <div class="alert alert-good">
+      <strong>📈 gemma_4_lora_E4b dẫn đầu nhờ câu hỏi đóng (Closed-ended):</strong><br>
+      Trên tập test VQA-RAD, <code>gemma_4_lora_E4b</code> đạt Exact Match tổng thể cao hơn (<b>41.46% vs 37.92%</b>). Sự vượt trội này hoàn toàn nhờ vào khả năng phân loại câu hỏi đóng (Closed EM đạt <b>62.95% vs 52.19%</b>). Điều này chứng minh dung lượng mô hình lớn hơn (5.8B) giúp học tốt hơn các mối quan hệ nhị phân (Yes/No) của miền phân phối tập train.
+    </div>
+
+    <div class="alert alert-good">
+      <strong>✨ gemma_2_lora_E2b vượt trội về khả năng mô tả ngữ nghĩa (Open-ended):</strong><br>
+      Tuy nhiên, đối với các câu hỏi mở yêu cầu mô tả bệnh lý phức tạp, <code>gemma_2_lora_E2b</code> lại giành chiến thắng áp đảo:
+      <ul>
+        <li>EM Open-ended đạt <b>20.00%</b>, vượt xa <b>14.50%</b> của <code>gemma_4</code>.</li>
+        <li>Điểm tương đồng ngữ nghĩa <b>sem_open đạt 0.5112</b> (so với <b>0.4367</b> của <code>gemma_4</code>).</li>
+      </ul>
+      Điều này phản ánh cấu trúc nhúng và khả năng sinh ngôn ngữ tự do của bản Gemma 2B tinh chỉnh LoRA mượt mà hơn, tránh được hiện tượng suy giảm ngữ nghĩa (catastrophic forgetting) của mô hình lớn khi bị LoRA cưỡng chế trên tập train nhỏ.
+    </div>
+
+    <h3>B. Đánh giá Khả năng Tổng quát hóa trên tập kiểm thử sạch RadImageNet-VQA (Out-of-Distribution)</h3>
+    <div class="alert alert-warn">
+      <strong>⚠️ Hiện tượng Quá khớp (Overfitting) nghiêm trọng ở mô hình lớn gemma_4:</strong><br>
+      Sự khác biệt rõ ràng nhất xuất hiện khi đánh giá trên tập kiểm thử sạch <b>RadImageNet-VQA (Zero Leakage)</b>:
+      <ul>
+        <li><code>gemma_2_lora_E2b</code> đạt điểm EM tổng thể lên tới <b>30.20%</b>, trong khi <code>gemma_4_lora_E4b</code> bị tụt sâu xuống <b>25.00%</b> (chênh lệch tới <b>+5.20%</b>).</li>
+        <li><code>gemma_2</code> dẫn trước ở cả câu hỏi đóng (53.60% vs 46.40%) và câu hỏi mở (6.80% vs 3.60%).</li>
+        <li>Chất lượng ngữ nghĩa Open-ended của <code>gemma_2</code> vượt trội hoàn toàn: <b>0.3986 vs 0.3139</b>.</li>
+      </ul>
+      <b>Phân tích bản chất:</b> Mô hình <code>gemma_4_lora_E4b</code> có số tham số tinh chỉnh LoRA lớn hơn (41.2M so với 29.8M). Do VQA-RAD có số lượng mẫu rất hạn chế, mô hình lớn hơn đã **quá khớp cực nặng** vào các đặc trưng ảnh nội bộ của VQA-RAD. Điều này mang lại điểm số in-domain cao, nhưng khi đối mặt với các ca bệnh nhân mới từ RadImageNet-VQA, khả năng tổng quát hóa của nó bị suy sụt nghiêm trọng. Ngược lại, <code>gemma_2_lora_E2b</code> giữ được tính chính quy (regularization) tốt hơn, thể hiện sự cứng cáp và đáng tin cậy hơn trên các ảnh lâm sàng thực tế.
+    </div>
+
+    <h3>C. So sánh với các mô hình Encoder-Decoder nhỏ (GPT-2, MLP)</h3>
+    <ul>
+      <li>Các mô hình Gemma LoRA cho điểm ngữ nghĩa mở (<code>sem_open</code> đạt 0.5112 trên VQA-RAD và 0.3986 trên RadImageNet-VQA) **vượt trội hoàn toàn** so với các mô hình GPT-2 SFT/RL (chỉ quanh mức 0.30 - 0.34).</li>
+      <li>Khả năng tổng quát hóa trên tập test sạch RadImageNet-VQA của Gemma-2-LoRA (<b>30.20%</b>) thiết lập kỷ lục mới, vượt qua cấu trúc tốt nhất của GPT-2 SFT/RL trước đó là 27.00% (P_resnet_trans) và 26.00% (Tuned D1_scst).</li>
+      <li>Điều này khẳng định rằng sức mạnh biểu diễn ngôn ngữ và tri thức có sẵn trong các mô hình LLM lớn giúp cải thiện đáng kể độ tin cậy Hỏi đáp y học so với việc xây dựng các kiến trúc kết nối thị giác - ngôn ngữ nhỏ từ đầu.</li>
+    </ul>
+  </section>
+
+  <!-- FUTURE DIRECTIONS -->
+  <section id="future-work">
+    <h2>💡 Khuyến nghị cho Nghiên cứu & Luận văn</h2>
+    <ol>
+      <li><b>Lựa chọn mô hình cho triển khai:</b> Nên chọn <code>gemma_2_lora_E2b</code> làm mô hình nền tảng cho các thử nghiệm tiếp theo nhờ khả năng tổng quát hóa tốt hơn trên tập ảnh sạch (RadImageNet-VQA) và độ chính xác mô tả ngữ nghĩa vượt trội, mặc dù điểm số in-domain của nó có vẻ thấp hơn mô hình lớn.</li>
+      <li><b>Kiểm soát Overfitting của LoRA:</b> Cần giảm bớt hạng của LoRA (Rank <code>r</code> từ 16 xuống 8 hoặc 4) hoặc tăng tỷ lệ dropout của LoRA đối với mô hình lớn hơn như <code>gemma_4</code> để hạn chế hiện tượng học thuộc lòng ảnh train.</li>
+      <li><b>Tích hợp Logits Constraint:</b> Áp dụng thêm kỹ thuật ràng buộc luật giải mã (Constrained Decoding) cho câu hỏi Closed để đưa điểm số câu hỏi Closed tiệm cận mức tối đa.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Đại học Tôn Đức Thắng (TDTU) - Master Subject 2026<br>
+    Báo cáo Đánh giá So sánh Gemma LoRA | Thực hiện tự động bởi Antigravity AI
+  </footer>
+
+</div>
+</body>
+</html>

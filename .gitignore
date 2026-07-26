@@ -10,3 +10,5 @@ data/hf_cache/
 notebook/Medical-VQA
 report/01_analyze_data/01_data-ep100_ealrystopping
 report/01_analyze_data/02_data_ep100_tuned
+report/01_analyze_data/03_data_qformer_ab
+report/01_analyze_data/04_gemma_lora_eval
