@@ -1,259 +1,318 @@
-# 🩺 Medical Visual Question Answering (MedVQA): Attention Ablation & Reinforcement Learning
+# 🩺 Medical Visual Question Answering (MedVQA): Ablation Study, Pretrained Multimodal & Reinforcement Learning (SCST)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
-[![HuggingFace Datasets](https://img.shields.io/badge/HuggingFace-VQA--RAD-yellow.svg)](https://huggingface.co/datasets/VQA-DeepLearning/vqa-rad)
+[![HuggingFace Models](https://img.shields.io/badge/HuggingFace-VQA--DeepLearning-yellow.svg)](https://huggingface.co/VQA-DeepLearning/vqa-rad-generative-ep100)
+[![Dataset](https://img.shields.io/badge/Dataset-RadImageNet--500--Test-blue.svg)](https://huggingface.co/datasets/VQA-DeepLearning/radimagenet-vqa-500-test)
 [![Comet.ml](https://img.shields.io/badge/Comet.ml-Tracking-brightgreen.svg)](https://www.comet.com/)
 [![Tests](https://img.shields.io/badge/tests-pytest-green.svg)](tests/)
 
-Mã nguồn nghiên cứu và thực nghiệm bài toán **Hỏi - Đáp trên Ảnh Y tế (Medical Visual Question Answering - MedVQA)** trên bộ dữ liệu [VQA-RAD](https://huggingface.co/datasets/VQA-DeepLearning/vqa-rad). Dự án tập trung phân tích định lượng đóng góp của các cơ chế **Attention** (Hình ảnh, Văn bản, Fusion Decoder), mô hình chiếu thị giác **Q-Former**, bộ giải mã sinh câu trả lời (**GPT-2, GRU, LSTM, Transformer**), và tinh chỉnh bằng **Học tăng cường (Self-Critical Sequence Training - SCST/REINFORCE)**.
+Mã nguồn nghiên cứu và thực nghiệm bài toán **Hỏi - Đáp trên Ảnh Y tế (Medical Visual Question Answering - MedVQA)** trên bộ dữ liệu [VQA-RAD](https://huggingface.co/datasets/flaviagiammarino/vqa-rad) và tập kiểm thử audit độc lập **RadImageNet-VQA 500 Test**.
+
+Dự án tập trung phân tích định lượng:
+1. Hiệu quả của cơ chế **Attention** (Hình ảnh & Văn bản) qua so sánh **Nhóm A1** (Không Attention) và **Nhóm A2** (Có Attention).
+2. Ảnh hưởng của chiến lược đóng băng trọng số (**Freeze All / Image / Text / Decoder**).
+3. Đóng góp của các backbone y tế tiền huấn luyện (**PubMedCLIP**, **PubMedBERT**, **ResNet18**) kết hợp bộ giải mã sinh câu trả lời (**GPT-2**, **MLP**, **BiLSTM**, **Transformer Encoder**).
+4. Tinh chỉnh bằng **Học tăng cường (Self-Critical Sequence Training - SCST / REINFORCE)**.
+5. Đánh giá đối sánh với các mô hình ngôn ngữ thị giác lớn (**Gemma-2B-IT**, **Gemma-4B-IT**).
 
 ---
 
 ## 📋 Mục lục
 
 1. [Tính năng Nổi bật](#-tính-năng-nổi-bật)
-2. [Cấu trúc Thư mục](#-cấu-trúc-thư-mục)
-3. [Mô hình & Ma trận Thực nghiệm (Ablation Study)](#-mô-hình--ma-trận-thực-nghiệm-ablation-study)
-4. [Cài đặt & Chuẩn bị Môi trường](#-cài-đặt--chuẩn-bị-môi-trường)
-5. [Hướng dẫn Chạy Thực nghiệm](#-hướng-dẫn-chạy-thực-nghiệm)
-   - [Chạy Thử Nhanh (Smoke Test)](#1-chạy-thử-nhanh-smoke-test)
-   - [Huấn luyện Mô hình (Supervised Fine-Tuning - SFT)](#2-huấn-luyện-mô-hình-supervised-fine-tuning---sft)
-   - [Huấn luyện Học tăng cường (RL / SCST)](#3-huấn-luyện-học-tăng-cường-rl--scst)
-   - [Đánh giá Checkpoint & Dự đoán Gemma](#4-đánh-giá-checkpoint--dự-đoán-gemma)
-   - [Gom Báo cáo So sánh (Report)](#5-gom-báo-cáo-so-sánh-report)
-6. [Thước đo Đánh giá (Metrics)](#-thước-đo-đánh-giá-metrics)
-7. [Kiểm thử Đơn vị (Unit Testing)](#-kiểm-thử-đơn-vị-unit-testing)
-8. [Tích hợp Hệ thống (Integrations)](#-tích-hợp-hệ-thống-integrations)
+2. [Báo cáo HTML Trực quan & Kiến trúc Mô hình](#-báo-cáo-html-trực-quan--kiến-trúc-mô-hình)
+3. [Notebooks Huấn luyện, Đánh giá & Suy luận](#-notebooks-huấn-luyện-đánh-giá--suy-luận)
+4. [Cấu trúc Thư mục Dự án](#-cấu-trúc-thư-mục-dự-án)
+5. [Ma trận Thực nghiệm (Experiment Run Matrix)](#-ma-trận-thực-nghiệm-experiment-run-matrix)
+   - [Nhóm A1: Baseline (Không Attention)](#1-nhóm-a1-baseline-không-attention)
+   - [Nhóm A2: Attention Matrix](#2-nhóm-a2-attention-matrix)
+   - [Nhóm P: Pretrained Backbones & Generative GPT-2](#3-nhóm-p-pretrained-backbones--generative-gpt-2)
+   - [Nhóm R & D: Constrained Closed & RL SCST Fine-Tuning](#4-nhóm-r--d-constrained-closed--rl-scst-fine-tuning)
+6. [Kịch bản Đánh giá Kép (Dual-Dataset Evaluation Benchmark)](#-kịch-bản-đánh-giá-kép-dual-dataset-evaluation-benchmark)
+7. [Cài đặt & Chuẩn bị Môi trường](#-cài-đặt--chuẩn-bị-môi-trường)
+8. [Hướng dẫn Chạy Thực nghiệm CLI](#-hướng-dẫn-chạy-thực-nghiệm-cli)
+9. [Kiểm thử Đơn vị (Unit Testing)](#-kiểm-thử-đơn-vị-unit-testing)
+10. [Tích hợp Hệ thống & Hugging Face Repositories](#-tích-hợp-hệ-thống--hugging-face-repositories)
 
 ---
 
 ## ✨ Tính năng Nổi bật
 
-- **Kiến trúc Fusion Đa phương thức (Multimodal Fusion)**:
-  - **Image Encoders**: CNN chuẩn, ResNet18 (Frozen), PubMedCLIP.
+- **Kiến trúc Fusion Đa phương thức Linh hoạt**:
+  - **Visual Encoders**: CNN chuẩn, ResNet18 (Frozen ImageNet), PubMedCLIP ViT-B/32.
   - **Text Encoders**: BiLSTM, Transformer Encoder, PubMedBERT.
-  - **Decoders**: Classification MLP, GRU, LSTM, Transformer Decoder, GPT-2 LM Head.
-  - **Q-Former Visual Projector**: Nối kết feature map của ảnh thành $K$ visual tokens cho GPT-2.
-- **Thực nghiệm Ablation Study Hệ thống (Matrix A1 - A8)**:
-  - Tách bạch và khảo sát hiệu quả của 3 tầng Attention: **Image Channel/SE Attention**, **Text Temporal Attention**, và **Decoder Gated Fusion Attention**.
+  - **Decoders**: Classification MLP Head, GPT-2 LM Head (Prefix Tuning / Direct Generation).
+- **Thực nghiệm Tách biệt Đóng băng Trọng số (Freezing Ablation)**:
+  - Tách bạch tác động của việc freeze toàn bộ (`all`), đóng băng visual encoder (`img`), text encoder (`txt`), hoặc decoder (`dec`).
 - **Học tăng cường SCST (Self-Critical Sequence Training)**:
-  - Tối ưu hóa trực tiếp các chỉ số đánh giá không thể tính đạo hàm như Exact Match (EM) và Token F1 bằng giải thuật REINFORCE.
-- **Hệ thống Đánh giá Toàn diện**:
-  - Hỗ trợ câu hỏi mở (Open-ended) và câu hỏi đóng (Closed/Yes-No).
-  - Tích hợp chuẩn hóa đáp án tự động (Normalization) và chuẩn hóa ràng buộc Yes/No (Constrained Closed parsing).
-  - Đánh giá đồng bộ kết quả dự đoán từ các mô hình ngôn ngữ thị giác lớn (LLaVA / Gemma-2B/4B LoRA).
-- **Tự động hóa & Giám sát**:
-  - Theo dõi thực nghiệm trực tuyến qua **Comet.ml**.
+  - Tinh chỉnh mô hình sinh câu trả lời bằng giải thuật REINFORCE, trực tiếp tối ưu chỉ số Exact Match và Token F1 trên tập dữ liệu VQA.
+- **Đánh giá Kép trên 2 Tập Test Độc lập (Dual Evaluation Benchmark)**:
+  - **VQA-RAD Test Set**: Tập test chuẩn gốc.
+  - **RadImageNet-VQA 500 Test Set**: Tập 500 mẫu audit độc lập kiểm tra khả năng suy luận thực tế.
+- **Theo dõi & Tự động hóa**:
+  - Quản lý thực nghiệm trực tuyến với **Comet.ml** (`medvqa-generative-ablation-ep100_pat15`).
   - Gửi thông báo kết quả & tiến độ real-time qua **Discord Webhook**.
-  - Đẩy checkpoint và file metrics trực tiếp lên **Hugging Face Model Hub**.
+  - Đẩy checkpoints và file metrics tự động lên **Hugging Face Hub** (`VQA-DeepLearning/vqa-rad-generative-ep100`).
 
 ---
 
-## 📁 Cấu trúc Thư mục
+## 🌐 Báo cáo HTML Trực quan & Kiến trúc Mô hình
+
+Dự án cung cấp bộ **Báo cáo HTML Trực quan (Interactive HTML Report)** tại thư mục [`html_report/`](html_report/). Bạn có thể tải về hoặc mở trực tiếp các file `.html` trong trình duyệt để xem sơ đồ kiến trúc chi tiết, phân tích kỹ thuật và bảng so sánh trực quan:
+
+| Trang Báo cáo HTML | Nội dung Chính |
+| :--- | :--- |
+| 📑 **[`00_muc_luc.html`](html_report/00_muc_luc.html)** | Trang tổng hợp mục lục và liên kết toàn bộ báo cáo |
+| 📋 **[`01_ke_hoach_tong_quan.html`](html_report/01_ke_hoach_tong_quan.html)** | Kế hoạch tổng quan và các pha thực nghiệm |
+| 🎯 **[`02_de_cuong_generative_medvqa.html`](html_report/02_de_cuong_generative_medvqa.html)** | Đề cương nghiên cứu Generative MedVQA |
+| 🧱 **[`03_kien_truc_model.html`](html_report/03_kien_truc_model.html)** | **Sơ đồ & Trực quan hóa Kiến trúc Mô hình** (Encoders, Fusion, GPT-2, Attention) |
+| 🔬 **[`04_technical_deep_dive.html`](html_report/04_technical_deep_dive.html)** | Phân tích chuyên sâu về mã nguồn, luồng dữ liệu & Loss functions |
+| 🤖 **[`05_gemma4_architecture.html`](html_report/05_gemma4_architecture.html)** | Kiến trúc & Fine-tuning mô hình Gemma |
+| 📊 **[`06_so_sanh_va_data_audit.html`](html_report/06_so_sanh_va_data_audit.html)** | Báo cáo so sánh tổng hợp các run thực nghiệm |
+| 🩺 **[`07_vqa_rad_data_audit.html`](html_report/07_vqa_rad_data_audit.html)** | Kiểm toán & Phân tích đặc trưng dữ liệu VQA-RAD |
+| 🏥 **[`08_radimagenet_vqa_audit.html`](html_report/08_radimagenet_vqa_audit.html)** | Kiểm toán & Phân tích tập test audit RadImageNet-VQA 500 |
+| 📈 **[`09_evaluation_metrics.html`](html_report/09_evaluation_metrics.html)** | Chi tiết các thước đo (Exact Match, Token F1, BLEU, Constrained Closed) |
+
+> 💡 **Cách xem**: Chỉ cần click mở file `.html` bất kỳ trong thư mục [`html_report/`](html_report/) bằng trình duyệt web (Chrome, Edge, Firefox) để trải nghiệm giao diện tương tác động.
+
+---
+
+## 📓 Notebooks Huấn luyện, Đánh giá & Suy luận
+
+Nếu bạn muốn đọc mã nguồn thực thi đầy đủ, kiểm tra quá trình **Huấn luyện (Train)**, **Đánh giá (Eval)** và **Suy luận (Inference)**, hãy truy cập thư mục:
+
+👉 **[`notebook/final_deep_result/`](notebook/final_deep_result/)**
+
+### Danh sách Notebooks chính:
+
+1. 🚀 **[`deeplearning-ep100.ipynb-reinforce.ipynb`](notebook/final_deep_result/deeplearning-ep100.ipynb-reinforce.ipynb)**:
+   - Notebook trung tâm chứa toàn bộ quy trình train & eval cho ma trận **A1**, **A2**, **P** (100 epochs) và tinh chỉnh RL **SCST** (`D1_scst`).
+   - Tự động đánh giá 2-in-1 trên cả **VQA-RAD Test** và **RadImageNet-VQA 500 Test**, tự động đẩy checkpoints & metrics lên Hugging Face.
+2. 📊 **[`deeplearning-ep100.ipynb-eval.ipynb`](notebook/final_deep_result/deeplearning-ep100.ipynb-eval.ipynb)** & **[`deeplearning-ep100.ipynb-eval_2_test.ipynb`](notebook/final_deep_result/deeplearning-ep100.ipynb-eval_2_test.ipynb)**:
+   - Đánh giá độc lập và chấm điểm các checkpoint đã huấn luyện.
+3. ⚡ **Thư mục Suy luận [`notebook/final_deep_result/inference/`](notebook/final_deep_result/inference/)**:
+   - Chứa mã nguồn load checkpoint và chạy suy luận (Inference) trên ảnh y tế & câu hỏi mới.
+4. 🤖 **[`v3-vqa-2b-it.ipynb`](notebook/final_deep_result/v3-vqa-2b-it.ipynb)** & **[`v3-vqa-4b-it.ipynb`](notebook/final_deep_result/v3-vqa-4b-it.ipynb)**:
+   - Thực nghiệm Fine-tuning & Đánh giá mô hình **Gemma-2B-IT** và **Gemma-4B-IT** làm baseline so sánh.
+5. 📈 **[`benchmark_4.ipynb`](notebook/final_deep_result/benchmark_4.ipynb)**:
+   - Tổng hợp & vẽ đồ thị so sánh hiệu năng benchmark giữa các mô hình.
+
+---
+
+## 📁 Cấu trúc Thư mục Dự án
 
 ```text
 .
-├── config.py                 # File cấu hình trung tâm (Hyperparameters, Paths, Defaults)
-├── train.py                  # Script CLI chính huấn luyện 1 run (SFT hoặc RL)
-├── eval.py                   # Script CLI đánh giá 1 checkpoint hoặc CSV predictions
+├── config.py                 # Cấu hình hằng số & hyperparameters chung
+├── train.py                  # CLI Script chính huấn luyện (SFT hoặc RL)
+├── eval.py                   # CLI Script đánh giá checkpoint hoặc file prediction CSV
 ├── report.py                 # Script gom kết quả từ runs/*_metrics.json ra CSV/HTML
-├── HUONG_DAN_CHAY.md         # Hướng dẫn chi tiết các bước chạy lệnh CLI
-├── requirements-dev.txt      # Thư viện phụ thuộc phục vụ phát triển & kiểm thử
+├── push_dataset_to_hf.py     # Script đẩy dữ liệu audit RadImageNet-500 lên HF Dataset Org
+├── HUONG_DAN_CHAY.md         # Hướng dẫn chi tiết thứ tự chạy lệnh CLI
+├── requirements-dev.txt      # Gói phụ thuộc kiểm thử & phát triển
+│
+├── html_report/              # Báo cáo HTML trực quan & Trực quan hóa Kiến trúc Mô hình
+│   ├── 00_muc_luc.html       # Mục lục tổng quan báo cáo HTML
+│   ├── 03_kien_truc_model.html# Sơ đồ & Trực quan hóa Kiến trúc Mô hình
+│   └── ...                   # Các trang báo cáo chuyên sâu (Data Audit, Technical, Metrics)
+│
+├── notebook/                 # Notebooks thực nghiệm
+│   ├── kaggle_cli.ipynb      # Notebook điều khiển chạy CLI trên Kaggle/Colab
+│   └── final_deep_result/    # Thư mục chính chứa Notebooks Train, Eval & Inference
 │
 ├── src/                      # Mã nguồn cốt lõi
-│   ├── data/                 # Xử lý dữ liệu VQA-RAD (Dataset, Tokenizer, Splits)
-│   ├── models/               # Định nghĩa Encoders, Decoders, Attention, Q-Former, Fusion
-│   ├── train/                # Engine huấn luyện (SFT Engine, RL Engine, Metrics)
-│   ├── integrations/         # Callback Comet.ml, Discord notify, HuggingFace Hub push
-│   └── utils/                # Utility helpers (Logging, I/O)
+│   ├── data/                 # Data loaders, tokenizers, VQA-RAD preprocessors
+│   ├── models/               # Encoders (CNN, ResNet, PubMedCLIP, PubMedBERT), Fusion & GPT2
+│   ├── train/                # Engine SFT, Engine RL SCST, Metrics (EM, BLEU, F1)
+│   ├── integrations/         # Callbacks Comet.ml, Discord Webhooks, HF Hub push
+│   └── utils/                # Helpers & I/O
 │
-├── docs/                     # Tài liệu thiết kế chi tiết (Plan, Secret, Callbacks, etc.)
-├── notebook/                 # Jupyter Notebooks (kaggle_cli.ipynb cho chạy máy ảo)
-├── tests/                    # Bộ kiểm thử tự động với Pytest
-└── runs/                     # Thư mục chứa Checkpoints (.pt), Metrics (.json), Predictions (.csv)
+├── radimagenet_vqa_audit/    # File dữ liệu audit radimagenet_vqa_500_test.parquet & metadata
+├── docs/                     # Tài liệu thiết kế & hướng dẫn push dataset
+├── tests/                    # Bộ unit test Pytest tự động
+└── runs/                     # Thư mục chứa Checkpoints (.pt), Metrics (.json), Summary CSVs
 ```
 
 ---
 
-## 🧬 Mô hình & Ma trận Thực nghiệm (Ablation Study)
+## 🧬 Ma trận Thực nghiệm (Experiment Run Matrix)
 
-Ma trận thí nghiệm nhóm A khảo sát sự đóng góp của từng thành phần Attention trong kiến trúc Fusion:
+Hệ thống được thiết kế theo 4 nhóm thực nghiệm chính (theo cấu hình từ notebook `deeplearning-ep100.ipynb-reinforce.ipynb`):
 
-| Run Name | `--image_attention` | `--text_attention` | `--decoder_attention` | Mô tả |
-| :---: | :---: | :---: | :---: | :--- |
-| **A1_000** | ❌ | ❌ | ❌ | Baseline Fusion (Không dùng Attention) |
-| **A2_001** | ❌ | ❌ | ✅ | Chỉ bật Gated Fusion Attention ở Decoder |
-| **A3_010** | ❌ | ✅ | ❌ | Chỉ bật Temporal Attention ở Text Encoder |
-| **A4_011** | ❌ | ✅ | ✅ | Kết hợp Text Attention + Decoder Attention |
-| **A5_100** | ✅ | ❌ | ❌ | Chỉ bật SE Channel Attention ở Image Encoder |
-| **A6_101** | ✅ | ❌ | ✅ | Kết hợp Image Attention + Decoder Attention |
-| **A7_110** | ✅ | ✅ | ❌ | Kết hợp Image Attention + Text Attention |
-| **A8_111** | ✅ | ✅ | ✅ | Bật toàn bộ 3 tầng Attention |
+### 1. Nhóm A1: Baseline (Không Attention - `attn: False`)
+
+| Run Name | Visual Encoder | Text Encoder | Decoder | Freeze Strategy |
+| :--- | :---: | :---: | :---: | :---: |
+| `A1_lstm_all` | CNN | BiLSTM | MLP | None (Un-freezed) |
+| `A1_lstm_img` | CNN | BiLSTM | MLP | Freeze Image Encoder |
+| `A1_lstm_txt` | CNN | BiLSTM | MLP | Freeze Text Encoder |
+| `A1_lstm_dec` | CNN | BiLSTM | MLP | Freeze Decoder |
+| `A1_trans_all` | CNN | Transformer | MLP | None (Un-freezed) |
+| `A1_trans_img` | CNN | Transformer | MLP | Freeze Image Encoder |
+| `A1_trans_txt` | CNN | Transformer | MLP | Freeze Text Encoder |
+| `A1_trans_dec` | CNN | Transformer | MLP | Freeze Decoder |
+
+### 2. Nhóm A2: Attention Matrix (`attn: True`)
+
+| Run Name | Visual Encoder | Text Encoder | Decoder | Freeze Strategy |
+| :--- | :---: | :---: | :---: | :---: |
+| `A2_lstm_all` | CNN + Attention | BiLSTM + Attention | MLP | None (Un-freezed) |
+| `A2_lstm_img` | CNN + Attention | BiLSTM + Attention | MLP | Freeze Image Encoder |
+| `A2_lstm_txt` | CNN + Attention | BiLSTM + Attention | MLP | Freeze Text Encoder |
+| `A2_lstm_dec` | CNN + Attention | BiLSTM + Attention | MLP | Freeze Decoder |
+| `A2_trans_all` | CNN + Attention | Transformer + Attention | MLP | None (Un-freezed) |
+| `A2_trans_img` | CNN + Attention | Transformer + Attention | MLP | Freeze Image Encoder |
+| `A2_trans_txt` | CNN + Attention | Transformer + Attention | MLP | Freeze Text Encoder |
+| `A2_trans_dec` | CNN + Attention | Transformer + Attention | MLP | Freeze Decoder |
+
+### 3. Nhóm P: Pretrained Backbones & Generative GPT-2
+
+| Run Name | Visual Encoder | Text Encoder | Decoder | Mô tả |
+| :--- | :---: | :---: | :---: | :--- |
+| `P_resnet_lstm` | ResNet18 (Frozen) | BiLSTM | MLP | Baseline ResNet18 + BiLSTM |
+| `P_resnet_trans` | ResNet18 (Frozen) | Transformer | MLP | Baseline ResNet18 + Transformer |
+| `P_pubmed_mlp` | PubMedCLIP | PubMedBERT | MLP | Domain-adapted Classification |
+| `P_pubmed_gpt2` | PubMedCLIP | PubMedBERT | GPT-2 | Domain-adapted Generative LM |
+
+### 4. Nhóm R & D: Constrained Closed & RL SCST Fine-Tuning
+
+| Run Name | Base Model | Thuật toán / Chế độ | Mục tiêu |
+| :--- | :---: | :---: | :--- |
+| `R_constrained` | `P_pubmed_gpt2` | Constrained Closed Parsing | Chuẩn hóa cứng câu trả lời closed về Yes/No |
+| `D1_scst` | `P_pubmed_gpt2` | RL (SCST / REINFORCE) | Tinh chỉnh trực tiếp metric Exact Match & Token F1 |
+
+---
+
+## 🔬 Kịch bản Đánh giá Kép (Dual-Dataset Evaluation Benchmark)
+
+Mỗi mô hình sau khi huấn luyện xong trên **VQA-RAD** sẽ được đánh giá tự động trên **2 tập test độc lập**:
+
+1. **VQA-RAD Test Set** (`flaviagiammarino/vqa-rad`): Lưu kết quả tại `runs/{name}_metrics.json` $\rightarrow$ Tổng hợp tại `runs/summary_vqarad.csv`.
+2. **RadImageNet-VQA 500 Test Set** (`radimagenet_vqa_audit/radimagenet_vqa_500_test.parquet`): Lưu kết quả tại `runs_radimagenet/{name}_metrics.json` $\rightarrow$ Tổng hợp tại `runs_radimagenet/summary_radimagenet.csv`.
 
 ---
 
 ## ⚙️ Cài đặt & Chuẩn bị Môi trường
 
-### 1. Cài đặt Thư viện Phụ thuộc
+### 1. Cài đặt Phụ thuộc
 
-Yêu cầu môi trường Python $\ge 3.10$:
+Sử dụng `uv` (khuyên dùng) hoặc `pip`:
 
 ```bash
 git clone https://github.com/VQA-DeepLearning/medvqa-ablation.git
 cd medvqa-ablation
 
-# Cài đặt gói phụ thuộc
-pip install -r requirements-dev.txt
+# Cài đặt môi trường với uv
+uv sync
 ```
 
-### 2. Thiết lập Khóa bí mật (Secrets / API Keys)
+### 2. Cấu hình Khóa bí mật (`.env`)
 
-Tạo file `.env` tại thư mục gốc của dự án (được bỏ qua bởi `.gitignore`):
+Tạo file `.env` tại thư mục gốc dự án:
 
 ```env
-COMET_API_KEY=your_comet_api_key_here
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
-HF_TOKEN=hf_your_huggingface_write_token
+COMET_API_KEY=your_comet_api_key
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook
+HF_TOKEN=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
 ```
-
-> **Lưu ý:** Nếu thiếu secret nào, tính năng tương ứng (Comet tracking, Discord alert, HF Push) sẽ tự động tắt mà không làm ngắt quãng quá trình huấn luyện.
 
 ---
 
-## 🚀 Hướng dẫn Chạy Thực nghiệm
+## 🚀 Hướng dẫn Chạy Thực nghiệm CLI
 
 ### 1. Chạy Thử Nhanh (Smoke Test)
 
-Đảm bảo pipeline không gặp lỗi runtime chỉ trong 1-2 phút:
-
 ```bash
-python train.py --run_name smoke_test --smoke --use_discord
+python train.py --run_name smoke_pubmed --image_encoder pubmedclip --text_encoder pubmedbert --decoder mlp --smoke
 ```
 
-### 2. Huấn luyện Mô hình (Supervised Fine-Tuning - SFT)
+### 2. Huấn luyện Cấu hình (SFT)
 
-Huấn luyện 1 cấu hình cụ thể (Ví dụ: `A8_111` bật full Attention):
-
-```bash
-python train.py \
-  --run_name A8_111 \
-  --image_encoder cnn \
-  --text_encoder lstm \
-  --decoder mlp \
-  --image_attention \
-  --text_attention \
-  --decoder_attention \
-  --epochs 20 \
-  --batch_size 32 \
-  --use_comet \
-  --use_discord
-```
-
-*Huấn luyện mô hình GPT-2 cùng visual projector Q-Former:*
+Huấn luyện 1 run cụ thể thuộc nhóm **A1**, **A2**, hoặc **P**:
 
 ```bash
-python train.py \
-  --run_name QFormer_GPT2 \
-  --image_encoder pubmedclip \
-  --decoder gpt2 \
-  --image_proj qformer \
-  --epochs 15
+# Train A1 (Baseline không attention)
+python train.py --run_name A1_lstm_all --image_encoder cnn --text_encoder lstm --decoder mlp --epochs 100 --batch_size 128
+
+# Train A2 (Có attention)
+python train.py --run_name A2_lstm_all --image_encoder cnn --text_encoder lstm --decoder mlp --image_attention --text_attention --epochs 100 --batch_size 128
+
+# Train P_pubmed_gpt2 (Generative Model)
+python train.py --run_name P_pubmed_gpt2 --image_encoder pubmedclip --text_encoder pubmedbert --decoder gpt2 --epochs 100 --batch_size 32
 ```
 
 ### 3. Huấn luyện Học tăng cường (RL / SCST)
 
-Tinh chỉnh checkpoint tốt nhất thu được từ pha SFT bằng REINFORCE algorithm:
+Fine-tune bằng SCST trên checkpoint generative tốt nhất:
 
 ```bash
 python train.py \
-  --run_name D1_scst_A8 \
+  --run_name D1_scst \
   --rl \
-  --load_checkpoint runs/A8_111_best.pt \
-  --image_attention \
-  --text_attention \
-  --decoder_attention \
-  --rl_epochs 5 \
-  --rl_lr 1e-5 \
-  --rl_reward lexical
+  --load_checkpoint runs/P_pubmed_gpt2_best.pt \
+  --image_encoder pubmedclip \
+  --text_encoder pubmedbert \
+  --decoder gpt2 \
+  --rl_epochs 20 \
+  --rl_lr 1e-5
 ```
 
-### 4. Đánh giá Checkpoint & Dự đoán Gemma
-
-> ⚠️ **Quy tắc quan trọng:** Các cờ kiến trúc (`--image_attention`, `--text_attention`, `--decoder_attention`, v.v.) khi gọi `eval.py` phải **trùng khớp 100%** với cờ đã dùng khi `train.py`.
+### 4. Đánh giá Kép (Dual Evaluation)
 
 ```bash
-# Đánh giá checkpoint
-python eval.py \
-  --checkpoint runs/A8_111_best.pt \
-  --image_attention \
-  --text_attention \
-  --decoder_attention \
-  --constrained_closed \
-  --save_metrics runs/A8_111_metrics.json \
-  --save_predictions runs/A8_111_preds.csv
+# Đánh giá trên VQA-RAD Test Set
+python eval.py --checkpoint runs/P_pubmed_gpt2_best.pt --image_encoder pubmedclip --text_encoder pubmedbert --decoder gpt2 --save_metrics runs/P_pubmed_gpt2_metrics.json
 
-# Đánh giá file kết quả dự đoán CSV từ mô hình ngoài (ví dụ: Gemma-2B LoRA)
-python eval.py \
-  --predictions_csv gemma_preds/gemma2b_test.csv \
-  --save_metrics runs/gemma-2b-lora_metrics.json
+# Đánh giá trên RadImageNet-VQA 500 Audit Set
+python eval.py --checkpoint runs/P_pubmed_gpt2_best.pt --image_encoder pubmedclip --text_encoder pubmedbert --decoder gpt2 --test_parquet radimagenet_vqa_audit/radimagenet_vqa_500_test.parquet --save_metrics runs_radimagenet/P_pubmed_gpt2_metrics.json
 ```
 
-### 5. Gom Báo cáo So sánh (Report)
-
-Tự động tổng hợp tất cả các file `runs/*_metrics.json` thành bảng so sánh thống nhất:
+### 5. Tổng hợp Báo cáo (Report Generator)
 
 ```bash
-python report.py
+# Báo cáo VQA-RAD Test
+python report.py --out-dir runs --out-csv runs/summary_vqarad.csv
+
+# Báo cáo RadImageNet Audit Test
+python report.py --out-dir runs_radimagenet --out-csv runs_radimagenet/summary_radimagenet.csv
 ```
-
-Kết quả xuất ra tại `runs/metrics_summary.csv` và hiển thị trực quan dạng Markdown table.
-
----
-
-## 📊 Thước đo Đánh giá (Metrics)
-
-Dự án đánh giá chất lượng câu trả lời MedVQA dựa trên các thước đo chuẩn:
-
-- **Exact Match (EM)**: Tỷ lệ đáp án dự đoán khớp hoàn toàn với đáp án chuẩn (sau khi qua hàm `normalize_answer`).
-  - **EM All**: Tính trên toàn bộ tập test.
-  - **EM Open**: Tính riêng cho các câu hỏi mở (Open-ended questions).
-  - **EM Closed**: Tính riêng cho các câu hỏi đóng (Closed / Yes-No questions).
-  - **Constrained Closed EM**: Tính sau khi chuẩn hóa cứng câu trả lời về dạng Yes/No.
-- **Token F1**: Chỉ số F1 ở mức độ token giữa chuỗi dự đoán và chuỗi gốc.
-- **BLEU Scores**: BLEU-1, BLEU-2, BLEU-3, BLEU-4 đo đạc độ tương đồng n-gram.
 
 ---
 
 ## 🧪 Kiểm thử Đơn vị (Unit Testing)
 
-Hệ thống được đảm bảo chất lượng với bộ kiểm thử Pytest. Trước khi tiến hành train thật trên GPU, luôn chạy bộ test:
+Chạy bộ kiểm thử tự động Pytest:
 
 ```bash
-pytest tests/
+uv run python -m pytest tests/
 ```
 
-Bộ test kiểm tra:
-- `test_attention.py`: Hoạt động của Gated Attention & SE Attention.
-- `test_dataset.py` & `test_vqa_rad.py`: Đọc và tiền xử lý dữ liệu VQA-RAD.
-- `test_encoders.py` & `test_fusion.py`: Shape của tensor qua Encoders & Decoders.
-- `test_metrics.py`: Độ chính xác của các thuật toán tính EM, BLEU, F1.
-- `test_rl.py`: Thuật toán tính Reward và Loss trong SCST.
-- `test_integrations.py`: Tích hợp Comet, Discord, HuggingFace.
+Các module được kiểm thử:
+- `test_attention.py`: Kiểm tra Channel & Temporal Attention mechanisms.
+- `test_dataset.py` & `test_vqa_rad.py`: Đọc dữ liệu, tokenizer & data splits.
+- `test_encoders.py` & `test_fusion.py`: Shape tensor đầu ra của Encoders & GPT-2 Fusion.
+- `test_metrics.py`: Kiểm tra thuật toán Exact Match, Token F1, BLEU.
+- `test_rl.py`: Thuật toán Reward & Policy Loss trong SCST.
 
 ---
 
-## 🤝 Tích hợp Hệ thống (Integrations)
+## 🤝 Tích hợp Hệ thống & Hugging Face Repositories
 
-- **[Comet.ml](https://www.comet.com/)**: Ghi nhận loss, learning rate, validation accuracy, BLEU score theo từng epoch dưới dạng biểu đồ tương tác.
-- **[Discord Webhooks](https://discord.com/)**: Tự động thông báo trạng thái khi bắt đầu run, báo lỗi khẩn cấp, hoặc báo cáo chỉ số cuối cùng khi hoàn thành run.
-- **[Hugging Face Hub](https://huggingface.co/)**: Đẩy tự động checkpoint tốt nhất (`{run_name}_best.pt`) và file báo cáo `_metrics.json` lên repository cá nhân/tổ chức.
+- **Model Checkpoints & Metrics Hub**:
+  🔗 [https://huggingface.co/VQA-DeepLearning/vqa-rad-generative-ep100](https://huggingface.co/VQA-DeepLearning/vqa-rad-generative-ep100)
+- **RadImageNet Audit Dataset Hub**:
+  🔗 [https://huggingface.co/datasets/VQA-DeepLearning/radimagenet-vqa-500-test](https://huggingface.co/datasets/VQA-DeepLearning/radimagenet-vqa-500-test)
+- **Comet.ml Tracking**:
+  Project `medvqa-generative-ablation-ep100_pat15`
+- **Discord Webhook**:
+  Tự động báo tiến độ & hoàn thành từng run.
 
 ---
 
 ## 📜 Giấy phép & Liên hệ
 
-Dự án phục vụ mục đích nghiên cứu học thuật tại **Trường Đại học Tôn Đức Thắng (TDTU)**.
+Dự án phục vụ mục đích nghiên cứu tại **Trường Đại học Tôn Đức Thắng (TDTU)**.
 
 - **Tác giả**: HoangVuSnape & MedVQA Research Team
-- **Liên hệ**: [GitHub Issues](https://github.com/VQA-DeepLearning/medvqa-ablation/issues)
+- **Organization**: [VQA-DeepLearning](https://huggingface.co/VQA-DeepLearning)
