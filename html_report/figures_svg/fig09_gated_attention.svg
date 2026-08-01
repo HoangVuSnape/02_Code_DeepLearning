@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 920" width="1600" height="920" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif">
+<!-- Hình ⑨: Gated Attention. Sửa so với bản Gemini:
+     - công thức z′ = z ⊙ σ(W z) dùng ĐÚNG ⊙ (Hadamard) và σ  (bản cũ ghi "z × sigma(W.z)")
+     - 12 ô đúng như đặc tả; 12 giá trị in tách bạch, không dính nhau (bản cũ "0.780.050.05")
+     - z′ có độ đậm = ĐÚNG z × gate từng ô: z đồng nhất 0.85 → opacity z′ = 0.85 × gate
+       (bản cũ pattern z′ không khớp gate → hình tự phản chứng chính nó)
+     - nhánh dưới ghi đúng là "z đi thẳng — toán hạng thứ nhất", không gọi nhầm là "skip"
+     - σ(Wz) ∈ [0,1] thay vì ký pháp lập trình "0..1"
+-->
+<defs>
+  <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker>
+  <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+  <marker id="agr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <marker id="agn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#15803D"/></marker>
+  <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+</defs>
+<rect width="1600" height="920" fill="#F6F8FB"/>
+
+<!-- ===== FORMULA ===== -->
+<rect x="470" y="42" width="660" height="86" rx="14" fill="#FFF" stroke="#7C3AED" stroke-width="2.4" filter="url(#sh)"/>
+<text x="800" y="100" text-anchor="middle" font-size="44" font-weight="700" fill="#5B21B6">z′ = z ⊙ σ( W z )</text>
+<text x="800" y="152" text-anchor="middle" font-size="17" fill="#6B7280">⊙ là tích Hadamard — nhân theo TỪNG CHIỀU, không phải nhân ma trận</text>
+
+<!-- ===== z ===== -->
+<text x="380" y="234" font-size="19" font-weight="700" fill="#5B21B6">fused z [B,D]</text>
+<text x="530" y="234" font-size="16" fill="#6B7280">— mọi chiều vào với cùng độ đậm</text>
+<g fill="#7C3AED" fill-opacity=".85" stroke="#5B21B6" stroke-width="1.6">
+  <rect x="380" y="250" width="60" height="60"/><rect x="440" y="250" width="60" height="60"/><rect x="500" y="250" width="60" height="60"/>
+  <rect x="560" y="250" width="60" height="60"/><rect x="620" y="250" width="60" height="60"/><rect x="680" y="250" width="60" height="60"/>
+  <rect x="740" y="250" width="60" height="60"/><rect x="800" y="250" width="60" height="60"/><rect x="860" y="250" width="60" height="60"/>
+  <rect x="920" y="250" width="60" height="60"/><rect x="980" y="250" width="60" height="60"/><rect x="1040" y="250" width="60" height="60"/>
+</g>
+
+<!-- ===== gate branch ===== -->
+<path d="M380,280 L220,280 L220,416" fill="none" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ab)"/>
+<rect x="100" y="420" width="240" height="80" rx="11" fill="#FFF" stroke="#2563EB" stroke-width="2.4" filter="url(#sh)"/>
+<text x="220" y="452" text-anchor="middle" font-size="18" fill="#1F2937">Linear(D → D)</text>
+<text x="220" y="480" text-anchor="middle" font-size="18" fill="#1F2937">→ σ</text>
+<line x1="344" y1="460" x2="376" y2="460" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ab)"/>
+
+<text x="380" y="392" font-size="19" font-weight="700" fill="#5B21B6">gate = σ(W z) ∈ [0,1]</text>
+<g font-size="14" font-weight="600" fill="#5B21B6" text-anchor="middle">
+  <text x="410" y="418">0.92</text><text x="470" y="418">0.11</text><text x="530" y="418">0.78</text>
+  <text x="590" y="418">0.05</text><text x="650" y="418">0.64</text><text x="710" y="418">0.97</text>
+  <text x="770" y="418">0.22</text><text x="830" y="418">0.51</text><text x="890" y="418">0.08</text>
+  <text x="950" y="418">0.86</text><text x="1010" y="418">0.35</text><text x="1070" y="418">0.70</text>
+</g>
+<g fill="#7C3AED" stroke="#5B21B6" stroke-width="1.6">
+  <rect x="380" y="430" width="60" height="60" fill-opacity=".92"/><rect x="440" y="430" width="60" height="60" fill-opacity=".11"/>
+  <rect x="500" y="430" width="60" height="60" fill-opacity=".78"/><rect x="560" y="430" width="60" height="60" fill-opacity=".05"/>
+  <rect x="620" y="430" width="60" height="60" fill-opacity=".64"/><rect x="680" y="430" width="60" height="60" fill-opacity=".97"/>
+  <rect x="740" y="430" width="60" height="60" fill-opacity=".22"/><rect x="800" y="430" width="60" height="60" fill-opacity=".51"/>
+  <rect x="860" y="430" width="60" height="60" fill-opacity=".08"/><rect x="920" y="430" width="60" height="60" fill-opacity=".86"/>
+  <rect x="980" y="430" width="60" height="60" fill-opacity=".35"/><rect x="1040" y="430" width="60" height="60" fill-opacity=".70"/>
+</g>
+
+<!-- ===== identity path + Hadamard ===== -->
+<path d="M1104,280 L1290,280 L1290,548" fill="none" stroke="#7C3AED" stroke-width="2.8" marker-end="url(#ap)"/>
+<text x="1302" y="330" font-size="15" fill="#5B21B6">z đi thẳng</text>
+<text x="1302" y="352" font-size="15" fill="#5B21B6">(toán hạng</text>
+<text x="1302" y="374" font-size="15" fill="#5B21B6">thứ nhất)</text>
+<path d="M1104,460 L1200,460 L1200,575 L1258,575" fill="none" stroke="#7C3AED" stroke-width="2.8" marker-end="url(#ap)"/>
+<circle cx="1290" cy="575" r="30" fill="#FFF" stroke="#5B21B6" stroke-width="2.8"/>
+<circle cx="1290" cy="575" r="10" fill="#5B21B6"/>
+<text x="1290" y="634" text-anchor="middle" font-size="16" fill="#5B21B6">nhân theo chiều</text>
+<path d="M1290,605 L1290,690 L1108,690" fill="none" stroke="#7C3AED" stroke-width="2.8" marker-end="url(#ap)"/>
+
+<!-- ===== 1-to-1 guides ===== -->
+<g stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="6 5">
+  <line x1="410" y1="494" x2="410" y2="656"/><line x1="470" y1="494" x2="470" y2="656"/><line x1="530" y1="494" x2="530" y2="656"/>
+  <line x1="590" y1="494" x2="590" y2="656"/><line x1="650" y1="494" x2="650" y2="656"/><line x1="710" y1="494" x2="710" y2="656"/>
+  <line x1="770" y1="494" x2="770" y2="656"/><line x1="830" y1="494" x2="830" y2="656"/><line x1="890" y1="494" x2="890" y2="656"/>
+  <line x1="950" y1="494" x2="950" y2="656"/><line x1="1010" y1="494" x2="1010" y2="656"/><line x1="1070" y1="494" x2="1070" y2="656"/>
+</g>
+
+<!-- ===== z' : opacity = 0.85 x gate ===== -->
+<text x="368" y="684" text-anchor="end" font-size="19" font-weight="700" fill="#5B21B6">z′ [B,D]</text>
+<text x="368" y="708" text-anchor="end" font-size="15" fill="#6B7280">= z ⊙ gate</text>
+<text x="380" y="748" font-size="14" fill="#6B7280">độ đậm mỗi ô = 0.85 × gate của ĐÚNG ô đó — đường đứt nối 1-1</text>
+<g fill="#7C3AED" stroke="#5B21B6" stroke-width="1.6">
+  <rect x="380" y="660" width="60" height="60" fill-opacity=".78"/><rect x="440" y="660" width="60" height="60" fill-opacity=".09"/>
+  <rect x="500" y="660" width="60" height="60" fill-opacity=".66"/><rect x="560" y="660" width="60" height="60" fill-opacity=".04"/>
+  <rect x="620" y="660" width="60" height="60" fill-opacity=".54"/><rect x="680" y="660" width="60" height="60" fill-opacity=".82"/>
+  <rect x="740" y="660" width="60" height="60" fill-opacity=".19"/><rect x="800" y="660" width="60" height="60" fill-opacity=".43"/>
+  <rect x="860" y="660" width="60" height="60" fill-opacity=".07"/><rect x="920" y="660" width="60" height="60" fill-opacity=".73"/>
+  <rect x="980" y="660" width="60" height="60" fill-opacity=".30"/><rect x="1040" y="660" width="60" height="60" fill-opacity=".60"/>
+</g>
+
+<!-- ===== annotations ===== -->
+<line x1="590" y1="790" x2="590" y2="726" stroke="#64748B" stroke-width="2.4" marker-end="url(#agr)"/>
+<text x="590" y="812" text-anchor="middle" font-size="16" font-weight="600" fill="#475569">gate 0.05</text>
+<text x="590" y="834" text-anchor="middle" font-size="15" fill="#64748B">chiều nhiễu — gần như tắt</text>
+<line x1="950" y1="790" x2="950" y2="726" stroke="#15803D" stroke-width="2.4" marker-end="url(#agn)"/>
+<text x="950" y="812" text-anchor="middle" font-size="16" font-weight="600" fill="#15803D">gate 0.86</text>
+<text x="950" y="834" text-anchor="middle" font-size="15" fill="#15803D">chiều hữu ích — giữ gần nguyên</text>
+
+<!-- ===== NOTE ===== -->
+<rect x="1160" y="726" width="400" height="152" rx="12" fill="#FFF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1184" y="758" font-size="17" font-weight="700" fill="#5B21B6">D → D: không đổi số chiều</text>
+<text x="1184" y="786" font-size="16" fill="#475569">Cổng chỉ điều tiết LUỒNG thông tin,</text>
+<text x="1184" y="810" font-size="16" fill="#475569">không nén cũng không mở rộng vector.</text>
+<text x="1184" y="840" font-size="15" fill="#6B7280">Đây là cổng sigmoid theo chiều,</text>
+<text x="1184" y="862" font-size="15" fill="#6B7280">KHÔNG phải softmax attention.</text>
+</svg>

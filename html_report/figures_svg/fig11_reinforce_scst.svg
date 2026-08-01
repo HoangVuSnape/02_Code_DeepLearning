@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1060" width="1600" height="1060" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif">
+<!-- Hình ⑪: REINFORCE Self-Critical. Sửa so với bản Gemini:
+     - nền #F6F8FB đồng bộ cả bộ (bản cũ nền kem #FAF2E7, lệch hẳn 12 ảnh còn lại)
+     - Loss chỉ MỘT dấu trừ (bản cũ in 2 dấu − liên tiếp → thành gradient ascent)
+     - 0.5·EM dùng dấu nhân giữa · (bản cũ "0.5.EM" đọc như số lỗi)
+     - hộp greedy KHÔNG dùng gạch ngang kiểu phân số (bản cũ đọc thành "argmax / reward(greedy)")
+     - Advantage và Loss là HAI bước riêng, có mũi tên nối
+     - bar chart có TRỤC TUNG, chung baseline, đúng tỉ lệ: r=0.9 cao gấp 9 lần r=0.1,
+       và hai cột r=0.9 ở hai case cao BẰNG NHAU (bản cũ 125px vs 120px, không trục)
+     - CASE A và CASE B cùng thứ tự đọc
+     - bỏ chữ rác "UPPER BRANCH" / "LOWER BRANCH"; không vẽ critic (đúng tinh thần self-critical)
+-->
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#BE123C"/></marker>
+  <marker id="ags" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+</defs>
+<rect width="1600" height="1060" fill="#F6F8FB"/>
+
+<text x="60" y="58" font-size="27" font-weight="700" fill="#0F172A">REINFORCE Self-Critical Sequence Training</text>
+<text x="60" y="86" font-size="17" fill="#64748B">vòng lặp chạy SAU khi đã hoàn tất supervised fine-tuning (SFT)</text>
+
+<!-- ===== LOOP ===== -->
+<rect x="60" y="180" width="240" height="104" rx="12" fill="#FFF" stroke="#BE123C" stroke-width="2.6" filter="url(#sh)"/>
+<text x="180" y="216" text-anchor="middle" font-size="18" fill="#1F2937">Model sau SFT</text>
+<text x="180" y="246" text-anchor="middle" font-size="19" font-weight="700" fill="#BE123C">= policy π</text>
+<text x="180" y="270" text-anchor="middle" font-size="15" fill="#6B7280">tham số θ</text>
+
+<path d="M304,232 L344,232 L344,171 L386,171" fill="none" stroke="#BE123C" stroke-width="2.6" marker-end="url(#ar)"/>
+<path d="M304,232 L344,232 L344,313 L386,313" fill="none" stroke="#64748B" stroke-width="2.6" marker-end="url(#ags)"/>
+<text x="330" y="222" font-size="15" fill="#475569">logits</text>
+
+<rect x="390" y="110" width="440" height="122" rx="12" fill="#FDEEF1" stroke="#BE123C" stroke-width="2.8" filter="url(#sh)"/>
+<text x="610" y="144" text-anchor="middle" font-size="18" font-weight="700" fill="#9F1239">Sample answer ~ Categorical(logits)</text>
+<text x="610" y="172" text-anchor="middle" font-size="17" fill="#64748B">↓</text>
+<text x="610" y="204" text-anchor="middle" font-size="18" fill="#1F2937">r(sample) = 0.5 · EM + 0.5 · token F1</text>
+
+<rect x="390" y="252" width="440" height="148" rx="12" fill="#F1F5F9" stroke="#94A3B8" stroke-width="2" filter="url(#sh)"/>
+<text x="610" y="284" text-anchor="middle" font-size="18" font-weight="700" fill="#475569">Greedy answer = argmax(logits)</text>
+<text x="610" y="310" text-anchor="middle" font-size="17" fill="#94A3B8">↓</text>
+<text x="610" y="338" text-anchor="middle" font-size="18" fill="#1F2937">r(greedy)</text>
+<rect x="424" y="356" width="372" height="32" rx="16" fill="#475569"/>
+<text x="610" y="378" text-anchor="middle" font-size="14" fill="#FFF">BASELINE TỰ THÂN — không cần value network</text>
+
+<path d="M834,171 L866,171 L866,214 L896,214" fill="none" stroke="#BE123C" stroke-width="2.6" marker-end="url(#ar)"/>
+<path d="M834,313 L866,313 L866,256 L896,256" fill="none" stroke="#64748B" stroke-width="2.6" marker-end="url(#ags)"/>
+
+<rect x="900" y="188" width="280" height="94" rx="12" fill="#FFF" stroke="#BE123C" stroke-width="2.6" filter="url(#sh)"/>
+<text x="1040" y="220" text-anchor="middle" font-size="17" font-weight="700" fill="#9F1239">Advantage</text>
+<text x="1040" y="254" text-anchor="middle" font-size="19" fill="#1F2937">A = r(sample) − r(greedy)</text>
+<line x1="1184" y1="235" x2="1234" y2="235" stroke="#BE123C" stroke-width="2.6" marker-end="url(#ar)"/>
+
+<rect x="1238" y="182" width="322" height="106" rx="12" fill="#FFF" stroke="#BE123C" stroke-width="2.6" filter="url(#sh)"/>
+<text x="1399" y="214" text-anchor="middle" font-size="17" font-weight="700" fill="#9F1239">Policy-gradient loss</text>
+<text x="1399" y="250" text-anchor="middle" font-size="19" fill="#1F2937">L = −( log π(sample) · A ).mean()</text>
+<text x="1399" y="276" text-anchor="middle" font-size="15" fill="#6B7280">một dấu trừ · grad clip 1.0</text>
+
+<path d="M1399,292 L1399,450 L180,450 L180,288" fill="none" stroke="#BE123C" stroke-width="3" stroke-dasharray="11 6" marker-end="url(#ar)"/>
+<text x="900" y="440" text-anchor="middle" font-size="17" font-weight="700" fill="#9F1239">cập nhật policy — lr 1e-5 · ~5 epoch · giữ checkpoint val EM tốt nhất</text>
+
+<!-- ===== SHARED-AXIS CHART ===== -->
+<line x1="170" y1="500" x2="170" y2="790" stroke="#94A3B8" stroke-width="2"/>
+<g stroke="#E2E8F0" stroke-width="1.4">
+  <line x1="170" y1="650" x2="1420" y2="650"/><line x1="170" y1="510" x2="1420" y2="510"/>
+</g>
+<g font-size="14" fill="#64748B" text-anchor="end">
+  <text x="162" y="795">0</text><text x="162" y="655">0.5</text><text x="162" y="515">1.0</text>
+</g>
+<line x1="170" y1="790" x2="1420" y2="790" stroke="#334155" stroke-width="2.4"/>
+<text x="118" y="650" font-size="15" fill="#64748B" transform="rotate(-90 118 650)" text-anchor="middle">reward</text>
+
+<!-- CASE A -->
+<text x="230" y="486" font-size="19" font-weight="700" fill="#0F172A">TRƯỜNG HỢP A</text>
+<rect x="230" y="538" width="100" height="252" fill="#BE123C"/>
+<rect x="370" y="650" width="100" height="140" fill="#94A3B8"/>
+<text x="280" y="528" text-anchor="middle" font-size="17" font-weight="700" fill="#9F1239">0.9</text>
+<text x="420" y="640" text-anchor="middle" font-size="17" font-weight="700" fill="#475569">0.5</text>
+<text x="280" y="814" text-anchor="middle" font-size="15" font-weight="600" fill="#9F1239">sample</text>
+<text x="280" y="836" text-anchor="middle" font-size="15" fill="#1F2937">“right lung”</text>
+<text x="420" y="814" text-anchor="middle" font-size="15" font-weight="600" fill="#475569">greedy</text>
+<text x="420" y="836" text-anchor="middle" font-size="15" fill="#1F2937">“lung”</text>
+<text x="350" y="874" text-anchor="middle" font-size="19" font-weight="700" fill="#15803D">A = 0.9 − 0.5 = +0.4</text>
+<path d="M590,720 L590,600 M566,624 L590,596 L614,624" fill="none" stroke="#15803D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="590" y="760" text-anchor="middle" font-size="16" font-weight="700" fill="#15803D">A &gt; 0</text>
+<text x="590" y="784" text-anchor="middle" font-size="15" fill="#15803D">tăng xác suất</text>
+<text x="590" y="806" text-anchor="middle" font-size="15" fill="#15803D">của chuỗi sample</text>
+
+<!-- CASE B -->
+<text x="900" y="486" font-size="19" font-weight="700" fill="#0F172A">TRƯỜNG HỢP B</text>
+<rect x="900" y="762" width="100" height="28" fill="#BE123C"/>
+<rect x="1040" y="538" width="100" height="252" fill="#94A3B8"/>
+<text x="950" y="752" text-anchor="middle" font-size="17" font-weight="700" fill="#9F1239">0.1</text>
+<text x="1090" y="528" text-anchor="middle" font-size="17" font-weight="700" fill="#475569">0.9</text>
+<text x="950" y="814" text-anchor="middle" font-size="15" font-weight="600" fill="#9F1239">sample</text>
+<text x="950" y="836" text-anchor="middle" font-size="15" fill="#1F2937">“no”</text>
+<text x="1090" y="814" text-anchor="middle" font-size="15" font-weight="600" fill="#475569">greedy</text>
+<text x="1090" y="836" text-anchor="middle" font-size="15" fill="#1F2937">“right lung”</text>
+<text x="1020" y="874" text-anchor="middle" font-size="19" font-weight="700" fill="#B91C1C">A = 0.1 − 0.9 = −0.8</text>
+<path d="M1260,600 L1260,720 M1236,696 L1260,724 L1284,696" fill="none" stroke="#B91C1C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1260" y="760" text-anchor="middle" font-size="16" font-weight="700" fill="#B91C1C">A &lt; 0</text>
+<text x="1260" y="784" text-anchor="middle" font-size="15" fill="#B91C1C">giảm xác suất</text>
+<text x="1260" y="806" text-anchor="middle" font-size="15" fill="#B91C1C">của chuỗi sample</text>
+
+<text x="1420" y="486" text-anchor="end" font-size="14" fill="#94A3B8">chung một trục — hai cột r = 0.9 cao bằng nhau</text>
+
+<!-- ===== NOTES ===== -->
+<rect x="60" y="912" width="720" height="124" rx="12" fill="#FFF" stroke="#E2E8F0" stroke-width="2"/>
+<rect x="60" y="912" width="7" height="124" rx="3" fill="#BE123C"/>
+<text x="92" y="946" font-size="18" font-weight="700" fill="#9F1239">Vì sao cần RL</text>
+<text x="92" y="976" font-size="16" fill="#334155">Cross-entropy tối ưu likelihood của từng token,</text>
+<text x="92" y="1000" font-size="16" fill="#334155">không tối ưu EM / token-F1 — hai chỉ số rời rạc,</text>
+<text x="92" y="1024" font-size="16" fill="#334155">không khả vi nên không đưa vào loss trực tiếp được.</text>
+
+<rect x="820" y="912" width="720" height="124" rx="12" fill="#FFF" stroke="#E2E8F0" stroke-width="2"/>
+<rect x="820" y="912" width="7" height="124" rx="3" fill="#BE123C"/>
+<text x="852" y="946" font-size="18" font-weight="700" fill="#9F1239">Lưu ý khi triển khai</text>
+<text x="852" y="976" font-size="16" fill="#334155">REINFORCE có phương sai lớn khi reward thưa.</text>
+<text x="852" y="1000" font-size="16" fill="#334155">Thứ tự bắt buộc: SFT trước, RL sau.</text>
+<text x="852" y="1024" font-size="16" fill="#334155">Đáp án chưa từng xuất hiện trong tập train → reward = 0.</text>
+</svg>

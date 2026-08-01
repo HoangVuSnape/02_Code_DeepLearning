@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif">
+<!-- Hình ⑧: Concatenation. Sửa so với bản Gemini:
+     - TỈ LỆ CHÍNH XÁC: 4 px / chiều → v_img 512px, v_txt 256px, fused 768px = TỔNG đúng
+       (bản cũ vẽ fused 50/50 và tổng chỉ bằng riêng v_img)
+     - phần teal trong fused dài ĐÚNG bằng v_img, phần amber dài ĐÚNG bằng v_txt (có đường gióng kiểm chứng)
+     - toán tử vẽ bằng HỘP "concat", KHÔNG dùng dấu + (bản cũ dùng dấu cộng = phép ngược lại)
+     - mũi tên sang GRU Decoder là ĐƯỜNG VẼ, không phải ký tự "→" nằm trong hộp
+-->
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker>
+  <marker id="arP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+  <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+  <pattern id="cellT" width="16" height="40" patternUnits="userSpaceOnUse">
+    <rect width="16" height="40" fill="#0E7490"/><rect x="15" width="1" height="40" fill="#F6F8FB"/></pattern>
+  <pattern id="cellA" width="16" height="40" patternUnits="userSpaceOnUse">
+    <rect width="16" height="40" fill="#D97706"/><rect x="15" width="1" height="40" fill="#F6F8FB"/></pattern>
+  <pattern id="cellP" width="14" height="34" patternUnits="userSpaceOnUse">
+    <rect width="14" height="34" fill="#7C3AED"/><rect x="13" width="1" height="34" fill="#FFFFFF"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="#F6F8FB"/>
+
+<text x="120" y="76" font-size="27" font-weight="700" fill="#1F2937">Fusion bằng Concatenation — 1 ô vuông = 4 chiều</text>
+<text x="120" y="106" font-size="17" fill="#6B7280">Độ dài mỗi dải tỉ lệ CHÍNH XÁC với số chiều ghi trên nhãn</text>
+
+<!-- ===== v_img : 128 dims = 512 px ===== -->
+<text x="120" y="160" font-size="21" font-weight="600" fill="#0E7490">v_img [B,128]</text>
+<rect x="120" y="172" width="512" height="40" fill="url(#cellT)" stroke="#0B5E75" stroke-width="1.6"/>
+<path d="M120,222 v10 M632,222 v10 M120,227 H632" fill="none" stroke="#64748B" stroke-width="1.6"/>
+<text x="376" y="252" text-anchor="middle" font-size="17" fill="#475569">128 chiều — 512 px</text>
+
+<!-- ===== v_txt : 64 dims = 256 px ===== -->
+<text x="120" y="300" font-size="21" font-weight="600" fill="#B45309">v_txt [B,64]</text>
+<rect x="120" y="312" width="256" height="40" fill="url(#cellA)" stroke="#92400E" stroke-width="1.6"/>
+<path d="M120,362 v10 M376,362 v10 M120,367 H376" fill="none" stroke="#64748B" stroke-width="1.6"/>
+<text x="248" y="392" text-anchor="middle" font-size="17" fill="#475569">64 chiều — 256 px</text>
+
+<!-- ===== CONCAT OPERATOR ===== -->
+<rect x="196" y="432" width="360" height="86" rx="14" fill="#F3EBFE" stroke="#7C3AED" stroke-width="2.6" filter="url(#sh)"/>
+<text x="376" y="466" text-anchor="middle" font-size="25" font-weight="700" fill="#5B21B6">concat</text>
+<text x="376" y="498" text-anchor="middle" font-size="20" fill="#5B21B6">[ v_img ; v_txt ]</text>
+<path d="M520,216 L520,410 L400,410 L400,428" fill="none" stroke="#7C3AED" stroke-width="2.4" marker-end="url(#arP)"/>
+<path d="M340,356 L340,410 L352,410 L352,428" fill="none" stroke="#7C3AED" stroke-width="2.4" marker-end="url(#arP)"/>
+<path d="M376,522 L376,552" fill="none" stroke="#7C3AED" stroke-width="2.4" marker-end="url(#arP)"/>
+
+<!-- warning: not addition -->
+<g transform="translate(600,442)">
+  <circle cx="26" cy="26" r="21" fill="#FFF" stroke="#DC2626" stroke-width="2.4"/>
+  <line x1="26" y1="14" x2="26" y2="38" stroke="#DC2626" stroke-width="2.4"/>
+  <line x1="14" y1="26" x2="38" y2="26" stroke="#DC2626" stroke-width="2.4"/>
+  <line x1="8" y1="44" x2="44" y2="8" stroke="#DC2626" stroke-width="4" stroke-linecap="round"/>
+  <text x="60" y="22" font-size="17" font-weight="600" fill="#DC2626">KHÔNG phải phép cộng ⊕</text>
+  <text x="60" y="46" font-size="16" fill="#6B7280">cộng cần cùng chiều và giữ nguyên chiều;</text>
+  <text x="60" y="68" font-size="16" fill="#6B7280">concat NỐI, nên chiều bằng TỔNG</text>
+</g>
+
+<!-- ===== fused : 192 dims = 768 px ===== -->
+<rect x="120" y="562" width="512" height="40" fill="url(#cellT)" stroke="#0B5E75" stroke-width="1.6"/>
+<rect x="632" y="562" width="256" height="40" fill="url(#cellA)" stroke="#92400E" stroke-width="1.6"/>
+<rect x="120" y="562" width="768" height="40" fill="none" stroke="#5B21B6" stroke-width="2.6"/>
+<text x="120" y="550" font-size="21" font-weight="600" fill="#5B21B6">fused [B,192]</text>
+<path d="M120,612 v10 M632,612 v10 M120,617 H632" fill="none" stroke="#0E7490" stroke-width="1.6"/>
+<text x="376" y="642" text-anchor="middle" font-size="17" fill="#0E7490">128 (giữ nguyên)</text>
+<path d="M632,612 v10 M888,612 v10 M632,617 H888" fill="none" stroke="#B45309" stroke-width="1.6"/>
+<text x="760" y="642" text-anchor="middle" font-size="17" fill="#B45309">64 (giữ nguyên)</text>
+<path d="M120,664 v10 M888,664 v10 M120,669 H888" fill="none" stroke="#5B21B6" stroke-width="2"/>
+<text x="504" y="700" text-anchor="middle" font-size="20" font-weight="700" fill="#5B21B6">192 chiều — 768 px = 512 + 256</text>
+
+<!-- verification guides -->
+<g stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="5 5">
+  <line x1="632" y1="212" x2="632" y2="558"/>
+</g>
+<text x="644" y="534" font-size="14" fill="#94A3B8">đường gióng — mép phải v_img trùng mép phải phần teal</text>
+
+<!-- ===== TO DECODER ===== -->
+<line x1="892" y1="582" x2="946" y2="582" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+<rect x="952" y="548" width="200" height="68" rx="11" fill="#FFF" stroke="#2563EB" stroke-width="2.4" filter="url(#sh)"/>
+<text x="1052" y="590" text-anchor="middle" font-size="21" fill="#1E3A8A">GRU Decoder</text>
+
+<!-- ===== PROJECTOR VARIANT ===== -->
+<rect x="980" y="140" width="570" height="300" rx="14" fill="#FFF" stroke="#7C3AED" stroke-width="2" stroke-dasharray="8 5"/>
+<text x="1265" y="176" text-anchor="middle" font-size="20" font-weight="700" fill="#5B21B6">Biến thể: có Projector → [B,2P]</text>
+<text x="1265" y="202" text-anchor="middle" font-size="16" fill="#6B7280">hai nhánh được đưa về CÙNG số chiều P trước khi nối</text>
+
+<text x="1012" y="244" font-size="17" fill="#5B21B6">z_img [B,P]</text>
+<rect x="1180" y="228" width="168" height="34" fill="url(#cellP)" stroke="#5B21B6" stroke-width="1.5"/>
+<text x="1012" y="298" font-size="17" fill="#5B21B6">z_txt [B,P]</text>
+<rect x="1180" y="282" width="168" height="34" fill="url(#cellP)" stroke="#5B21B6" stroke-width="1.5"/>
+<path d="M1364,245 C1400,245 1400,352 1372,352" fill="none" stroke="#7C3AED" stroke-width="2.2" marker-end="url(#arP)"/>
+<path d="M1364,299 C1390,299 1390,352 1372,352" fill="none" stroke="#7C3AED" stroke-width="2.2" marker-end="url(#arP)"/>
+<text x="1012" y="358" font-size="17" font-weight="600" fill="#5B21B6">[B,2P]</text>
+<rect x="1180" y="335" width="336" height="34" fill="url(#cellP)" stroke="#5B21B6" stroke-width="2.2"/>
+<path d="M1180,382 v9 M1348,382 v9 M1180,386 H1348" fill="none" stroke="#94A3B8" stroke-width="1.4"/>
+<path d="M1348,382 v9 M1516,382 v9 M1348,386 H1516" fill="none" stroke="#94A3B8" stroke-width="1.4"/>
+<text x="1264" y="406" text-anchor="middle" font-size="15" fill="#6B7280">P</text>
+<text x="1432" y="406" text-anchor="middle" font-size="15" fill="#6B7280">P</text>
+<text x="1265" y="428" text-anchor="middle" font-size="16" fill="#6B7280">hai nửa BẰNG NHAU (khác hẳn trường hợp 128 : 64 bên trái)</text>
+
+<!-- ===== CAPTION ===== -->
+<rect x="120" y="760" width="1360" height="98" rx="12" fill="#FFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="150" y="796" font-size="20" font-weight="600" fill="#1F2937">Đơn giản, rẻ, dễ diễn giải — concat chỉ NỐI hai vector, không trộn, nên mỗi nửa giữ nguyên ngữ nghĩa gốc.</text>
+<text x="150" y="828" font-size="19" fill="#B45309">Nhược điểm: không có tương tác chéo modality ở mức đặc trưng → đó là lý do cần Gated Attention (hình 9) và Cross-Attention (hình 10).</text>
+</svg>

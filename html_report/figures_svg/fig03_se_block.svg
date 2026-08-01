@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif">
+<!-- Hình ③: SE-Block. Sửa so với bản Gemini:
+     - ĐÚNG 6 kênh ở cả 2 stack và 6 bar (bản cũ: 7 slab vs 6 bar)
+     - stack F tô ĐỒNG NHẤT (bản cũ đậm dần → mất tương phản before/after)
+     - bar vẽ NGANG, cùng tung độ với slab → ánh xạ 1-1 tuyệt đối, không có đường chéo cắt nhau
+     - cường độ slab F' = ĐÚNG trọng số (fill-opacity = s_c); không có slab màu xanh lá lạc quẻ
+     - ⊙ (Hadamard) thay cho × ; "Global Avg Pool" (bản cũ lỗi "Avg Avg")
+-->
+<defs>
+  <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#2563EB"/></marker>
+  <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+</defs>
+<rect width="1600" height="900" fill="#F6F8FB"/>
+
+<!-- ===== 5 STEP BOXES ===== -->
+<g filter="url(#sh)">
+  <rect x="40"  y="86" width="250" height="88" rx="11" fill="#FFF" stroke="#0E7490" stroke-width="2"/>
+  <rect x="310" y="86" width="250" height="88" rx="11" fill="#FFF" stroke="#0E7490" stroke-width="2"/>
+  <rect x="580" y="86" width="340" height="88" rx="11" fill="#FFF" stroke="#0E7490" stroke-width="2"/>
+  <rect x="940" y="86" width="190" height="88" rx="11" fill="#FFF" stroke="#0E7490" stroke-width="2"/>
+  <rect x="1150" y="86" width="410" height="88" rx="11" fill="#FFF" stroke="#0E7490" stroke-width="2"/>
+</g>
+<g text-anchor="middle" fill="#1F2937">
+  <text x="165" y="122" font-size="17" font-weight="700" fill="#0E7490">① INPUT</text>
+  <text x="165" y="150" font-size="19">Feature map F [B,C,H,W]</text>
+  <text x="435" y="122" font-size="17" font-weight="700" fill="#0E7490">② SQUEEZE</text>
+  <text x="435" y="150" font-size="19">Global Avg Pool → z [B,C]</text>
+  <text x="750" y="118" font-size="17" font-weight="700" fill="#0E7490">③ EXCITE</text>
+  <text x="750" y="142" font-size="16">FC(C→C/4) → ReLU</text>
+  <text x="750" y="164" font-size="16">→ FC(C/4→C) → Sigmoid</text>
+  <text x="1035" y="122" font-size="17" font-weight="700" fill="#0E7490">④ SCALE</text>
+  <text x="1035" y="152" font-size="21">F′ = s ⊙ F</text>
+  <text x="1355" y="122" font-size="17" font-weight="700" fill="#15803D">⑤ OUTPUT</text>
+  <text x="1355" y="150" font-size="19">F′ đã tái trọng số [B,C,H,W]</text>
+</g>
+<g stroke="#2563EB" stroke-width="2.4" marker-end="url(#ar)">
+  <line x1="292" y1="130" x2="306" y2="130"/><line x1="562" y1="130" x2="576" y2="130"/>
+  <line x1="922" y1="130" x2="936" y2="130"/><line x1="1132" y1="130" x2="1146" y2="130"/>
+</g>
+
+<!-- ===== F STACK (uniform) ===== -->
+<g stroke="#0E7490" stroke-width="1.8" stroke-opacity=".6">
+  <g id="fstack" fill="#CFE3EA">
+    <g><polygon points="112,330 200,304 288,330 200,356"/><polygon points="112,330 200,356 200,365 112,339" fill="#B4D2DC"/><polygon points="200,356 288,330 288,339 200,365" fill="#A6C8D4"/></g>
+    <g><polygon points="112,392 200,366 288,392 200,418"/><polygon points="112,392 200,418 200,427 112,401" fill="#B4D2DC"/><polygon points="200,418 288,392 288,401 200,427" fill="#A6C8D4"/></g>
+    <g><polygon points="112,454 200,428 288,454 200,480"/><polygon points="112,454 200,480 200,489 112,463" fill="#B4D2DC"/><polygon points="200,480 288,454 288,463 200,489" fill="#A6C8D4"/></g>
+    <g><polygon points="112,516 200,490 288,516 200,542"/><polygon points="112,516 200,542 200,551 112,525" fill="#B4D2DC"/><polygon points="200,542 288,516 288,525 200,551" fill="#A6C8D4"/></g>
+    <g><polygon points="112,578 200,552 288,578 200,604"/><polygon points="112,578 200,604 200,613 112,587" fill="#B4D2DC"/><polygon points="200,604 288,578 288,587 200,613" fill="#A6C8D4"/></g>
+    <g><polygon points="112,640 200,614 288,640 200,666"/><polygon points="112,640 200,666 200,675 112,649" fill="#B4D2DC"/><polygon points="200,666 288,640 288,649 200,675" fill="#A6C8D4"/></g>
+  </g>
+</g>
+<g font-size="15" fill="#6B7280" text-anchor="end">
+  <text x="100" y="336">c1</text><text x="100" y="398">c2</text><text x="100" y="460">c3</text>
+  <text x="100" y="522">c4</text><text x="100" y="584">c5</text><text x="100" y="646">c6</text>
+</g>
+<text x="200" y="716" text-anchor="middle" font-size="20" font-weight="600" fill="#1F2937">F — mọi kênh tô GIỐNG NHAU</text>
+<text x="200" y="742" text-anchor="middle" font-size="16" fill="#6B7280">(chưa biết kênh nào quan trọng)</text>
+
+<line x1="306" y1="490" x2="352" y2="490" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ar)"/>
+
+<!-- ===== SQUEEZE COLUMN ===== -->
+<g fill="#CBD5E1" stroke="#64748B" stroke-width="1.6">
+  <rect x="376" y="313" width="52" height="34" rx="4"/><rect x="376" y="375" width="52" height="34" rx="4"/>
+  <rect x="376" y="437" width="52" height="34" rx="4"/><rect x="376" y="499" width="52" height="34" rx="4"/>
+  <rect x="376" y="561" width="52" height="34" rx="4"/><rect x="376" y="623" width="52" height="34" rx="4"/>
+</g>
+<text x="402" y="716" text-anchor="middle" font-size="19" font-weight="600" fill="#1F2937">z [B,C]</text>
+<text x="402" y="740" text-anchor="middle" font-size="16" fill="#6B7280">C số vô hướng</text>
+<line x1="446" y1="490" x2="492" y2="490" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ar)"/>
+
+<!-- ===== EXCITE : HORIZONTAL BARS aligned to slabs ===== -->
+<line x1="530" y1="300" x2="530" y2="672" stroke="#94A3B8" stroke-width="2"/>
+<g fill="#0E7490">
+  <rect x="530" y="313" width="270" height="34" rx="3"/>
+  <rect x="530" y="375" width="60"  height="34" rx="3"/>
+  <rect x="530" y="437" width="210" height="34" rx="3"/>
+  <rect x="530" y="499" width="285" height="34" rx="3"/>
+  <rect x="530" y="561" width="30"  height="34" rx="3"/>
+  <rect x="530" y="623" width="150" height="34" rx="3"/>
+</g>
+<g font-size="19" font-weight="700" fill="#0E7490">
+  <text x="812" y="338">0.90</text><text x="602" y="400">0.20</text><text x="752" y="462">0.70</text>
+  <text x="827" y="524">0.95</text><text x="572" y="586">0.10</text><text x="692" y="648">0.50</text>
+</g>
+<text x="700" y="716" text-anchor="middle" font-size="20" font-weight="600" fill="#1F2937">s ∈ (0,1)<tspan font-size="14" dy="-8">C</tspan></text>
+<text x="700" y="740" text-anchor="middle" font-size="16" fill="#6B7280">1 trọng số cho mỗi kênh</text>
+
+<!-- ===== HADAMARD ===== -->
+<circle cx="1000" cy="490" r="30" fill="#FFF" stroke="#2563EB" stroke-width="2.6"/>
+<circle cx="1000" cy="490" r="9" fill="#2563EB"/>
+<text x="1000" y="548" text-anchor="middle" font-size="17" fill="#2563EB">nhân theo kênh</text>
+<line x1="900" y1="490" x2="964" y2="490" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ar)"/>
+<line x1="1036" y1="490" x2="1096" y2="490" stroke="#2563EB" stroke-width="2.6" marker-end="url(#ar)"/>
+
+<!-- ===== 1-to-1 MAPPING : perfectly horizontal, zero crossings ===== -->
+<g stroke="#94A3B8" stroke-width="1.6" stroke-dasharray="6 5">
+  <line x1="900" y1="330" x2="1236" y2="330"/><line x1="900" y1="392" x2="1236" y2="392"/>
+  <line x1="900" y1="454" x2="1236" y2="454"/><line x1="900" y1="516" x2="1236" y2="516"/>
+  <line x1="900" y1="578" x2="1236" y2="578"/><line x1="900" y1="640" x2="1236" y2="640"/>
+</g>
+
+<!-- ===== F' STACK : opacity == weight ===== -->
+<g stroke="#0E7490" stroke-width="1.8">
+  <g><polygon points="1242,330 1330,304 1418,330 1330,356" fill="#0E7490" fill-opacity="0.90"/><polygon points="1242,330 1330,356 1330,365 1242,339" fill="#0B5E75" fill-opacity="0.90"/><polygon points="1330,356 1418,330 1418,339 1330,365" fill="#094D60" fill-opacity="0.90"/></g>
+  <g><polygon points="1242,392 1330,366 1418,392 1330,418" fill="#0E7490" fill-opacity="0.20"/><polygon points="1242,392 1330,418 1330,427 1242,401" fill="#0B5E75" fill-opacity="0.20"/><polygon points="1330,418 1418,392 1418,401 1330,427" fill="#094D60" fill-opacity="0.20"/></g>
+  <g><polygon points="1242,454 1330,428 1418,454 1330,480" fill="#0E7490" fill-opacity="0.70"/><polygon points="1242,454 1330,480 1330,489 1242,463" fill="#0B5E75" fill-opacity="0.70"/><polygon points="1330,480 1418,454 1418,463 1330,489" fill="#094D60" fill-opacity="0.70"/></g>
+  <g><polygon points="1242,516 1330,490 1418,516 1330,542" fill="#0E7490" fill-opacity="0.95"/><polygon points="1242,516 1330,542 1330,551 1242,525" fill="#0B5E75" fill-opacity="0.95"/><polygon points="1330,542 1418,516 1418,525 1330,551" fill="#094D60" fill-opacity="0.95"/></g>
+  <g><polygon points="1242,578 1330,552 1418,578 1330,604" fill="#0E7490" fill-opacity="0.10"/><polygon points="1242,578 1330,604 1330,613 1242,587" fill="#0B5E75" fill-opacity="0.10"/><polygon points="1330,604 1418,578 1418,587 1330,613" fill="#094D60" fill-opacity="0.10"/></g>
+  <g><polygon points="1242,640 1330,614 1418,640 1330,666" fill="#0E7490" fill-opacity="0.50"/><polygon points="1242,640 1330,666 1330,675 1242,649" fill="#0B5E75" fill-opacity="0.50"/><polygon points="1330,666 1418,640 1418,649 1330,675" fill="#094D60" fill-opacity="0.50"/></g>
+</g>
+<g font-size="15" fill="#6B7280">
+  <text x="1432" y="336">× 0.90</text><text x="1432" y="398">× 0.20</text><text x="1432" y="460">× 0.70</text>
+  <text x="1432" y="522">× 0.95</text><text x="1432" y="584">× 0.10</text><text x="1432" y="646">× 0.50</text>
+</g>
+<text x="1330" y="716" text-anchor="middle" font-size="20" font-weight="600" fill="#1F2937">F′ — độ đậm = ĐÚNG trọng số</text>
+<text x="1330" y="742" text-anchor="middle" font-size="16" fill="#6B7280">c4 (0.95) nổi bật · c5 (0.10) gần như tắt</text>
+
+<!-- ===== CAPTION ===== -->
+<rect x="240" y="790" width="1120" height="66" rx="12" fill="#FFF" stroke="#15803D" stroke-width="2"/>
+<text x="800" y="822" text-anchor="middle" font-size="21" fill="#14532D">Kênh hữu ích được khuếch đại, kênh nhiễu bị dập tắt —</text>
+<text x="800" y="846" text-anchor="middle" font-size="18" fill="#6B7280">SE không đổi kích thước tensor, chỉ tái phân bổ trọng số theo kênh</text>
+</svg>

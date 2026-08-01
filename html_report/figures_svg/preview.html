@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Bộ hình kiến trúc đã sửa — preview</title>
+<style>
+ body{margin:0;padding:32px;background:#eef1f6;font-family:"Segoe UI",Inter,system-ui,sans-serif;color:#0f172a}
+ h1{font-size:26px;margin:0 0 4px} .sub{color:#64748b;margin:0 0 8px;max-width:900px;line-height:1.5}
+ .bar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 28px}
+ .bar a{font-size:13px;text-decoration:none;background:#fff;border:1px solid #cbd5e1;border-radius:20px;padding:5px 13px;color:#334155}
+ .bar a:hover{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+ figure{margin:0 0 34px;background:#fff;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;scroll-margin-top:16px}
+ figcaption{padding:14px 20px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
+ .t{font-weight:700;font-size:18px} .f{color:#15803d;font-size:14px;margin-top:5px;line-height:1.45}
+ img{display:block;width:100%;height:auto}
+</style></head><body>
+<h1>Bộ hình kiến trúc — bản đã sửa (SVG vẽ tay)</h1>
+<p class="sub">11 hình thay cho bộ ảnh Gemini. Mở bằng Figma / Illustrator / Inkscape để chỉnh chữ, hoặc nhúng thẳng vào HTML.
+Chi tiết từng lỗi gốc: xem <code>../BAO_CAO_LOI_ANH.md</code>.</p>
+<div class="bar">
+ <a href="#f01">① CustomCNN</a><a href="#f02">② ResNet-18</a><a href="#f03">③ SE-Block</a>
+ <a href="#f04">④ BiLSTM</a><a href="#f05">⑤ Transformer</a><a href="#f06">⑥ Temporal Attn</a>
+ <a href="#f07">⑦ Projector</a><a href="#f08">⑧ Concat</a><a href="#f09">⑨ Gated Attn</a>
+ <a href="#f10">⑩ GRU Decoder</a><a href="#f11">⑪ SCST</a><a href="#fpo">Poster</a>
+</div>
+
+<figure id="f02"><figcaption><div class="t">② ResNet-18 đóng băng</div>
+<div class="f">layer1→2→3→4 nối tiếp · residual đặt đúng trong 1 BasicBlock · gradient chặn tại biên · bỏ chữ rác “STRUCK THROUGH / HOT / ACTIVE” · nhãn nằm ngang</div></figcaption>
+<img src="fig02_resnet18_frozen.svg" alt="ResNet-18 frozen"></figure>
+
+<figure id="f03"><figcaption><div class="t">③ SE-Block</div>
+<div class="f">đúng 6 kênh ↔ 6 bar · F đồng màu · bar vẽ ngang cùng tung độ với slab → ánh xạ 1-1 không cắt nhau · ⊙ thay × · sửa lỗi “Avg Avg”</div></figcaption>
+<img src="fig03_se_block.svg" alt="SE-Block"></figure>
+
+<figure id="f04"><figcaption><div class="t">④ BiLSTM</div>
+<div class="f">first h← nối thật vào concat · Temporal Attention nhận bus H [B,32,64] đúng chiều · nhãn nằm ngang</div></figcaption>
+<img src="fig04_bilstm.svg" alt="BiLSTM"></figure>
+
+<figure id="f05"><figcaption><div class="t">⑤ Transformer Encoder</div>
+<div class="f">heatmap đậm nhất tại (effusion, pleural) chứ không phải đường chéo · ⊕ đặt ở nơi hợp nhất, chấm tròn đặc ở nơi rẽ nhánh · không đếm phép cộng hai lần · bỏ nhãn ×2 trùng</div></figcaption>
+<img src="fig05_transformer_encoder.svg" alt="Transformer encoder"></figure>
+
+<figure id="f06"><figcaption><div class="t">⑥ Temporal Attention</div>
+<div class="f">hai cột &lt;pad&gt; cao bằng 0 thật · chỉ một hộp context · có trục tung, chung baseline · bỏ thanh ray đi vào hư không</div></figcaption>
+<img src="fig06_temporal_attention.svg" alt="Temporal attention"></figure>
+
+<figure id="f07"><figcaption><div class="t">⑦ Projector MLP</div>
+<div class="f">HAI projector riêng biệt (một Linear không thể nhận cả 128 và 64 chiều) · bỏ chữ rác “UPPER/LOWER HALF” · phần so sánh vẽ thành hai không gian khác số chiều · có ghi chú “minh hoạ khái niệm”</div></figcaption>
+<img src="fig07_projector_mlp.svg" alt="Projector MLP"></figure>
+
+<figure id="f08"><figcaption><div class="t">⑧ Fusion Concat</div>
+<div class="f">4 px/chiều → 512 + 256 = 768 px chính xác, có đường gióng kiểm chứng · toán tử là hộp “concat”, không phải dấu + · mũi tên là đường vẽ</div></figcaption>
+<img src="fig08_fusion_concat.svg" alt="Concat"></figure>
+
+<figure id="f09"><figcaption><div class="t">⑨ Gated Attention</div>
+<div class="f">công thức z′ = z ⊙ σ(Wz) đúng ký hiệu · 12 giá trị tách bạch · độ đậm z′ = 0.85 × gate từng ô nên hình khớp với công thức · nhánh dưới gọi đúng tên</div></figcaption>
+<img src="fig09_gated_attention.svg" alt="Gated attention"></figure>
+
+<figure id="f10"><figcaption><div class="t">⑩ GRU Decoder + Cross-Attention</div>
+<div class="f">sinh đúng “right lung” · autoregressive đúng chiều t→t+1 · [B,49,128] kèm dẫn xuất 7×7=49 → Linear(512→128) · cross-attention khép mạch (query ↑ / context ↓) · 3 cell nhãn giống nhau</div></figcaption>
+<img src="fig10_gru_decoder.svg" alt="GRU decoder"></figure>
+
+<figure id="f11"><figcaption><div class="t">⑪ REINFORCE Self-Critical</div>
+<div class="f">nền đồng bộ cả bộ · Loss một dấu trừ · 0.5·EM dùng dấu · · hộp greedy không có gạch kiểu phân số · bar chung trục, r=0.9 hai case cao bằng nhau · hai case cùng thứ tự đọc</div></figcaption>
+<img src="fig11_reinforce_scst.svg" alt="REINFORCE SCST"></figure>
+
+<figure id="fpo"><figcaption><div class="t">Poster tổng quan</div>
+<div class="f">tiêu đề thật · 4 vùng đủ heading · legend 5 màu khác nhau (RL đổi sang crimson) · badge 1–11 khớp đúng 11 hình · mũi tên luồng chính đáp vào biên panel</div></figcaption>
+<img src="fig_poster_tong_quan.svg" alt="Poster"></figure>
+
+<figure id="f01"><figcaption><div class="t">① CustomCNN</div>
+<div class="f">tỉ lệ nén không gian chính xác (224 → 112 → 56 → 28, giảm 50% mỗi bước) · stack 4 slab (32 ch) → 6 slab (64 ch) → 8 slab (128 ch) · không trùng hộp · SE-Block có nhãn · ký hiệu Unicode chuẩn</div></figcaption>
+<img src="fig01_custom_cnn.svg" alt="CustomCNN"></figure>
+</body></html>

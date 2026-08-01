@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="Segoe UI, Inter, Helvetica Neue, Arial, sans-serif">
+<!-- Hình ④: BiLSTM. Sửa so với bản Gemini:
+     - "first h←" từ ô backward NGOÀI CÙNG TRÁI được nối THẬT vào hộp concat (bản cũ bỏ trống)
+     - Temporal Attention NHẬN toàn bộ chuỗi hidden states (bản cũ mũi tên chỉ ngược, và hộp không có input)
+     - mọi nhãn nằm ngang (bản cũ xoay dọc 90°)
+     - 2 pill chế độ đặt cùng quy tắc: ngoài hộp, phía dưới
+-->
+<defs>
+  <marker id="aF" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker>
+  <marker id="aB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker>
+  <marker id="aG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <filter id="sh" x="-20%" y="-20%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.10"/></filter>
+</defs>
+<rect width="1600" height="900" fill="#F6F8FB"/>
+
+<!-- ===== INPUT ===== -->
+<g filter="url(#sh)">
+  <rect x="34" y="436" width="128" height="72" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2"/>
+  <rect x="186" y="426" width="130" height="92" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2"/>
+</g>
+<text x="98" y="466" text-anchor="middle" font-size="17" fill="#1F2937">Question</text>
+<text x="98" y="490" text-anchor="middle" font-size="17" fill="#1F2937">tokens [B,32]</text>
+<text x="251" y="462" text-anchor="middle" font-size="17" fill="#1F2937">Embedding</text>
+<text x="251" y="486" text-anchor="middle" font-size="17" fill="#1F2937">(V, 64)</text>
+<text x="251" y="508" text-anchor="middle" font-size="15" fill="#B45309">→ [B,32,64]</text>
+<line x1="164" y1="472" x2="182" y2="472" stroke="#B45309" stroke-width="2.4" marker-end="url(#aF)"/>
+<line x1="318" y1="452" x2="394" y2="452" stroke="#B45309" stroke-width="2.4" marker-end="url(#aF)"/>
+
+<!-- ===== FORWARD ROW ===== -->
+<text x="712" y="238" text-anchor="middle" font-size="21" font-weight="700" fill="#B45309">forward  h→</text>
+<g filter="url(#sh)">
+  <rect x="400" y="266" width="104" height="66" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4"/>
+  <rect x="530" y="266" width="104" height="66" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4"/>
+  <rect x="660" y="266" width="104" height="66" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4"/>
+  <rect x="790" y="266" width="104" height="66" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4"/>
+  <rect x="920" y="266" width="104" height="66" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4"/>
+</g>
+<g font-size="18" text-anchor="middle" fill="#1F2937">
+  <text x="452" y="306">LSTM</text><text x="582" y="306">LSTM</text><text x="712" y="306">LSTM</text>
+  <text x="842" y="306">LSTM</text><text x="972" y="306">LSTM</text>
+</g>
+<g stroke="#B45309" stroke-width="2.6" marker-end="url(#aF)">
+  <line x1="506" y1="299" x2="526" y2="299"/><line x1="636" y1="299" x2="656" y2="299"/>
+  <line x1="766" y1="299" x2="786" y2="299"/><line x1="896" y1="299" x2="916" y2="299"/>
+</g>
+
+<!-- ===== WORD CHIPS ===== -->
+<g filter="url(#sh)">
+  <rect x="400" y="422" width="104" height="52" rx="10" fill="#FFF" stroke="#D97706" stroke-width="2"/>
+  <rect x="530" y="422" width="104" height="52" rx="10" fill="#FFF" stroke="#D97706" stroke-width="2"/>
+  <rect x="660" y="422" width="104" height="52" rx="10" fill="#FFF" stroke="#D97706" stroke-width="2"/>
+  <rect x="790" y="422" width="104" height="52" rx="10" fill="#FFF" stroke="#D97706" stroke-width="2"/>
+  <rect x="920" y="422" width="104" height="52" rx="10" fill="#FFF" stroke="#D97706" stroke-width="2"/>
+</g>
+<g font-size="18" text-anchor="middle" fill="#1F2937">
+  <text x="452" y="455">is</text><text x="582" y="455">there</text><text x="712" y="455">pleural</text>
+  <text x="842" y="455">effusion</text><text x="972" y="455">?</text>
+</g>
+<g stroke="#B45309" stroke-width="2.2" marker-end="url(#aF)">
+  <line x1="452" y1="418" x2="452" y2="338"/><line x1="582" y1="418" x2="582" y2="338"/><line x1="712" y1="418" x2="712" y2="338"/>
+  <line x1="842" y1="418" x2="842" y2="338"/><line x1="972" y1="418" x2="972" y2="338"/>
+</g>
+<g stroke="#C2410C" stroke-width="2.2" marker-end="url(#aB)">
+  <line x1="452" y1="478" x2="452" y2="554"/><line x1="582" y1="478" x2="582" y2="554"/><line x1="712" y1="478" x2="712" y2="554"/>
+  <line x1="842" y1="478" x2="842" y2="554"/><line x1="972" y1="478" x2="972" y2="554"/>
+</g>
+
+<!-- ===== BACKWARD ROW ===== -->
+<g filter="url(#sh)">
+  <rect x="400" y="560" width="104" height="66" rx="10" fill="#FFF" stroke="#C2410C" stroke-width="2.4"/>
+  <rect x="530" y="560" width="104" height="66" rx="10" fill="#FFF" stroke="#C2410C" stroke-width="2.4"/>
+  <rect x="660" y="560" width="104" height="66" rx="10" fill="#FFF" stroke="#C2410C" stroke-width="2.4"/>
+  <rect x="790" y="560" width="104" height="66" rx="10" fill="#FFF" stroke="#C2410C" stroke-width="2.4"/>
+  <rect x="920" y="560" width="104" height="66" rx="10" fill="#FFF" stroke="#C2410C" stroke-width="2.4"/>
+</g>
+<g font-size="18" text-anchor="middle" fill="#1F2937">
+  <text x="452" y="600">LSTM</text><text x="582" y="600">LSTM</text><text x="712" y="600">LSTM</text>
+  <text x="842" y="600">LSTM</text><text x="972" y="600">LSTM</text>
+</g>
+<g stroke="#C2410C" stroke-width="2.6" marker-end="url(#aB)">
+  <line x1="916" y1="593" x2="896" y2="593"/><line x1="786" y1="593" x2="766" y2="593"/>
+  <line x1="656" y1="593" x2="636" y2="593"/><line x1="526" y1="593" x2="506" y2="593"/>
+</g>
+<text x="712" y="654" text-anchor="middle" font-size="21" font-weight="700" fill="#C2410C">backward  h←</text>
+<rect x="1180" y="302" width="232" height="44" rx="8" fill="#FEF3E2" stroke="#D97706" stroke-width="1.6"/>
+<text x="1296" y="330" text-anchor="middle" font-size="15" fill="#92400E">hidden 32 mỗi chiều → 64 tổng</text>
+
+<!-- ===== ROUTE 1 : last h→  ===== -->
+<path d="M1026,299 L1064,299 L1064,414 L1116,414" fill="none" stroke="#B45309" stroke-width="3" marker-end="url(#aF)"/>
+<text x="1040" y="290" font-size="16" font-weight="600" fill="#B45309">last h→ [B,32]</text>
+
+<!-- ===== ROUTE 2 : first h←  (ĐÃ NỐI, bản cũ bỏ trống) ===== -->
+<path d="M396,593 L344,593 L344,174 L1152,174 L1152,372" fill="none" stroke="#C2410C" stroke-width="3" stroke-dasharray="1 0" marker-end="url(#aB)"/>
+<text x="700" y="164" text-anchor="middle" font-size="17" font-weight="700" fill="#C2410C">first h← [B,32] — trạng thái cuối của chiều ngược, lấy tại t = 1</text>
+
+<!-- ===== CONCAT ===== -->
+<rect x="1120" y="376" width="290" height="104" rx="12" fill="#FFF" stroke="#B45309" stroke-width="2.6" filter="url(#sh)"/>
+<text x="1265" y="410" text-anchor="middle" font-size="18" fill="#1F2937">concat( last h→ , first h← )</text>
+<text x="1265" y="440" text-anchor="middle" font-size="19" font-weight="600" fill="#B45309">→ [B,64]</text>
+<text x="1265" y="466" text-anchor="middle" font-size="15" fill="#6B7280">32 + 32 = 64</text>
+<rect x="1176" y="490" width="178" height="32" rx="16" fill="#B45309"/>
+<text x="1265" y="512" text-anchor="middle" font-size="16" fill="#FFF">chế độ no-attention</text>
+
+<!-- ===== SEQUENCE BUS → TEMPORAL ATTENTION ===== -->
+<g stroke="#64748B" stroke-width="2">
+  <line x1="452" y1="630" x2="452" y2="700"/><line x1="582" y1="630" x2="582" y2="700"/><line x1="712" y1="630" x2="712" y2="700"/>
+  <line x1="842" y1="630" x2="842" y2="700"/><line x1="972" y1="630" x2="972" y2="700"/>
+</g>
+<path d="M452,700 L1064,700 L1064,690 L1116,690" fill="none" stroke="#64748B" stroke-width="3" marker-end="url(#aG)"/>
+<text x="700" y="726" text-anchor="middle" font-size="17" font-weight="600" fill="#475569">H = [ h→ ; h← ] tại MỌI bước — [B,32,64]</text>
+
+<rect x="1120" y="640" width="290" height="104" rx="12" fill="#FFF" stroke="#B45309" stroke-width="2.4" stroke-dasharray="8 5"/>
+<text x="1265" y="674" text-anchor="middle" font-size="18" fill="#1F2937">Temporal Attention</text>
+<text x="1265" y="700" text-anchor="middle" font-size="17" fill="#1F2937">trên H [B,32,64]</text>
+<text x="1265" y="728" text-anchor="middle" font-size="19" font-weight="600" fill="#B45309">→ [B,64]</text>
+<rect x="1190" y="754" width="150" height="32" rx="16" fill="#B45309"/>
+<text x="1265" y="776" text-anchor="middle" font-size="16" fill="#FFF">chế độ attention</text>
+
+<!-- ===== MERGE → LAYERNORM → v_txt ===== -->
+<path d="M1414,428 L1442,428 L1442,548" fill="none" stroke="#B45309" stroke-width="2.6"/>
+<path d="M1414,692 L1442,692 L1442,596" fill="none" stroke="#B45309" stroke-width="2.6"/>
+<path d="M1442,548 L1442,562" fill="none" stroke="#B45309" stroke-width="2.6"/>
+<rect x="1442" y="530" width="126" height="62" rx="10" fill="#FFF" stroke="#B45309" stroke-width="2.4" filter="url(#sh)"/>
+<text x="1505" y="568" text-anchor="middle" font-size="18" fill="#1F2937">LayerNorm</text>
+<line x1="1505" y1="596" x2="1505" y2="628" stroke="#B45309" stroke-width="2.6" marker-end="url(#aF)"/>
+<rect x="1442" y="632" width="126" height="66" rx="10" fill="#B45309"/>
+<text x="1505" y="660" text-anchor="middle" font-size="19" font-weight="700" fill="#FFF">v_txt</text>
+<text x="1505" y="684" text-anchor="middle" font-size="18" fill="#FDE9CE">[B,64]</text>
+
+<!-- ===== NOTE ===== -->
+<rect x="34" y="800" width="1000" height="66" rx="12" fill="#FFF" stroke="#CBD5E1" stroke-width="2"/>
+<text x="58" y="828" font-size="17" fill="#1F2937">Hai hàng chạy NGƯỢC chiều nhau: hàng trên t = 1→5, hàng dưới t = 5→1.</text>
+<text x="58" y="852" font-size="17" fill="#6B7280">Vì vậy “trạng thái cuối” của chiều ngược nằm ở ô TRÁI NHẤT — đó là lý do đường nét cam phải vòng từ trái sang.</text>
+</svg>

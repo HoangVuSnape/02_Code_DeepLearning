@@ -1,0 +1,205 @@
+{
+  "main": {
+    "id": "2ec392ccbf4cd1d7",
+    "type": "split",
+    "children": [
+      {
+        "id": "6b0715bc30317d70",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "639f21cc3bf0f10f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "html_report/PHAN_TICH_CHI_TIET_SVG.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "PHAN_TICH_CHI_TIET_SVG"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "b7727e0b9a993a55",
+    "type": "split",
+    "children": [
+      {
+        "id": "0957eb6c84c66235",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ce035c3b75038990",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "aa4569e0613692de",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "843de44dcc46a383",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "5d6b3a97d0dc60e2",
+    "type": "split",
+    "children": [
+      {
+        "id": "9567938869eb4e6c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "31d455c3ca830870",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "html_report/PHAN_TICH_CHI_TIET_SVG.md",
+                "collapseAll": false,
+                "extraContext": true,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "30090b3391ffbac9",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "html_report/PHAN_TICH_CHI_TIET_SVG.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "01157b0f2a410fd7",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "cce6fad9b5d96332",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "4d24468d4a51a8a1",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "html_report/PHAN_TICH_CHI_TIET_SVG.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "639f21cc3bf0f10f",
+  "lastOpenFiles": [
+    "report/01_analyze_data/05_report_html_data_eval/~$MedicalVQA_BaoCao.pptx",
+    "report/01_analyze_data/05_report_html_data_eval/ppt7CC9.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/ppt7BCE.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/ppt79AA.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/pptD18B.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/SpeakerNotes_Slide3_17.md",
+    "report/01_analyze_data/05_report_html_data_eval/ppt49AC.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/ppt99D9.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/ppt89EA.tmp",
+    "report/01_analyze_data/05_report_html_data_eval/pptE49E.tmp",
+    "html_report/gemini_prompts_kien_truc.md",
+    "html_report/PHAN_TICH_CHI_TIET_SVG.md"
+  ]
+}

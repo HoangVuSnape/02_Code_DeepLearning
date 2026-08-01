@@ -522,6 +522,97 @@
     </div>
   </section>
 
+  <!-- CÁCH TÍNH EVAL -->
+  <section>
+    <h2>5. Cách tính các chỉ số đánh giá (Evaluation Protocol)</h2>
+    <p>Mọi cấu hình đều được chấm bởi <b>cùng một module</b> <code>src/train/metrics.py</code> → các con số so sánh trực tiếp được. Câu trả lời được <code>normalize_answer()</code> trước khi chấm, rồi tách riêng <b>closed</b> (yes/no) và <b>open</b> (mô tả tự do).</p>
+
+    <h3>a) Chỉ số trên chuỗi trả lời</h3>
+    <table>
+      <thead><tr><th>Chỉ số</th><th>Công thức</th><th>Đo cái gì</th><th>Hạn chế</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>EM</b></td>
+          <td><code>EM = 1[ normalize(ref) == normalize(hyp) ]</code></td>
+          <td>Khớp chuỗi tuyệt đối</td>
+          <td style="color:#fca5a5">Quá khắt khe với câu mở — đồng nghĩa bị tính sai</td>
+        </tr>
+        <tr>
+          <td><b>Token-F1</b><br>(SQuAD-style)</td>
+          <td><code>common = Counter(ref) ∩ Counter(hyp)</code><br>
+              <code>P = |common|/|hyp| · R = |common|/|ref|</code><br>
+              <code>F1 = 2·P·R / (P+R)</code></td>
+          <td>Trùng lặp từ vựng, có thưởng bán phần</td>
+          <td>Bỏ qua thứ tự từ &amp; ngữ nghĩa</td>
+        </tr>
+        <tr>
+          <td><b>BLEU-1</b></td>
+          <td><code>clipped = Σ min(count_hyp(t), count_ref(t))</code><br>
+              <code>BP = 1 nếu |hyp| ≥ |ref|, ngược lại exp(1 − |ref|/|hyp|)</code><br>
+              <code>BLEU-1 = BP × clipped/|hyp|</code></td>
+          <td>Chính xác unigram, phạt câu quá ngắn</td>
+          <td>Chỉ 1-gram</td>
+        </tr>
+        <tr>
+          <td><b>Semantic Open</b><br><code>sem_open</code></td>
+          <td><code>sem = mean( Encode(ref) · Encode(hyp) )</code><br>cosine, embedding <code>all-MiniLM-L6-v2</code></td>
+          <td style="color:#6ee7b7"><b>Tương đồng ngữ nghĩa</b> — bắt được cách diễn đạt đồng nghĩa</td>
+          <td>Chỉ tính trên tập con <b>open</b>; eval-only</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout info">
+      <b>Vì sao phải đọc <code>sem_open</code> cùng EM:</b> EM Open thấp không chứng minh mô hình sai — nó chỉ nói mô hình không dùng <em>đúng từ</em>. Bước nhảy <code>sem_open</code> <b>0,34 → 0,51</b> của Gemma là bằng chứng chất lượng thật đã tăng mà EM che giấu. Đây cũng chính là tín hiệu được đề xuất đưa vào reward RL ở <b>giải pháp ③</b>.
+    </div>
+
+    <h3>b) Chỉ số lâm sàng trên câu đóng (yes/no)</h3>
+    <p>Lớp dương = <code>yes</code>, ngưỡng 0,5. Nguồn <code>p_yes</code>: softmax hạn chế trên {yes, no}; nếu không có logit (vd CSV của Gemma) thì suy từ chuỗi sinh — <code>yes → 1.0</code>, <code>no → 0.0</code>, còn lại <code>→ 0.5</code>.</p>
+    <table>
+      <thead><tr><th>Chỉ số</th><th>Công thức</th><th>Ý nghĩa lâm sàng</th></tr></thead>
+      <tbody>
+        <tr><td>Sensitivity</td><td><code>TP / (TP + FN)</code></td><td>Bắt đúng ca bất thường — bỏ sót là nguy hiểm nhất</td></tr>
+        <tr><td>Specificity</td><td><code>TN / (TN + FP)</code></td><td>Loại đúng ca bình thường — tránh báo động giả</td></tr>
+        <tr><td>Precision</td><td><code>TP / (TP + FP)</code></td><td>Trong các ca báo dương, bao nhiêu đúng</td></tr>
+        <tr><td>Balanced Accuracy</td><td><code>(Sens + Spec) / 2</code></td><td>Công bằng khi yes/no lệch tỷ lệ</td></tr>
+        <tr><td>F1</td><td><code>2·Prec·Sens / (Prec + Sens)</code></td><td>Cân bằng bỏ sót &amp; báo giả</td></tr>
+        <tr><td><b>Clinical AUC</b></td><td><code>roc_auc_score(y_true, p_yes)</code></td><td><b>Chỉ số chính</b> — phân biệt độc lập ngưỡng</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- MODEL CONFIG -->
+  <section>
+    <h2>6. Cấu hình mô hình &amp; siêu tham số (<code>config.py</code>)</h2>
+    <table>
+      <thead><tr><th>Nhóm</th><th>Tham số</th><th>Baseline</th><th>Tuned</th><th>Vai trò</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="4" style="color:var(--purple)"><b>Dữ liệu</b></td><td><code>image_size</code></td><td colspan="2">224 × 224</td><td>Chuẩn hóa chung mọi encoder</td></tr>
+        <tr><td><code>max_len</code></td><td colspan="2">32 token</td><td>Độ dài câu hỏi tối đa</td></tr>
+        <tr><td><code>max_ans_len</code></td><td colspan="2">16 token</td><td>Giới hạn chuỗi sinh</td></tr>
+        <tr><td><code>val_ratio</code> / <code>seed</code></td><td colspan="2">0.1 / 42</td><td>Tái lập kết quả</td></tr>
+
+        <tr><td rowspan="5" style="color:var(--purple)"><b>SFT</b></td><td><code>batch_size</code></td><td colspan="2">32</td><td>—</td></tr>
+        <tr><td><code>lr</code> (toàn cục)</td><td>1e-3</td><td>1e-3</td><td>Giữ nguyên cho khối nhẹ</td></tr>
+        <tr><td><b><code>LR_GPT2</code></b></td><td>1e-3</td><td style="color:#6ee7b7"><b>1e-4</b></td><td>Bảo vệ tri thức pretrain của GPT-2</td></tr>
+        <tr><td><b><code>WD_GPT2</code></b></td><td>1e-4</td><td style="color:#6ee7b7"><b>1e-2</b></td><td>Tăng chính quy hóa, chống overfit</td></tr>
+        <tr><td><code>patience</code></td><td colspan="2">15 (mặc định file: 5)</td><td>Early stopping theo val EM</td></tr>
+
+        <tr><td rowspan="3" style="color:var(--purple)"><b>RL (SCST)</b></td><td><code>rl_epochs</code></td><td colspan="2">5 (Q-Former: 20)</td><td>Chạy <em>sau</em> khi SFT xong</td></tr>
+        <tr><td><code>rl_lr</code></td><td colspan="2">1e-5</td><td>Nhỏ để không phá policy</td></tr>
+        <tr><td>Gradient clipping</td><td colspan="2">1.0</td><td>Ổn định REINFORCE</td></tr>
+
+        <tr><td style="color:var(--purple)"><b>Tối ưu</b></td><td>Bộ tối ưu / <code>epochs</code></td><td colspan="2">AdamW / 100 (mặc định 20)</td><td>Kết thúc bởi early stopping</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <b>Lưu ý khi báo cáo:</b> <code>config.py</code> giữ giá trị <em>mặc định</em> (<code>epochs=20</code>, <code>patience=5</code>); các run đã báo cáo <b>ghi đè</b> từ notebook (<code>ep100</code> → 100 epoch, patience 15). Nên nêu rõ điều này để hội đồng không thấy vênh giữa mã nguồn và bảng kết quả.
+    </div>
+    <div class="callout info">
+      📐 <b>Bộ bảng chuẩn đánh số (Table 4.1 → 4.15)</b> — kiến trúc, cấu hình, giao thức đánh giá, kết quả, ablation — đã tách riêng ở
+      <code>bang_chuan_cho_slide.html</code> để dùng làm nguồn nội dung cho slide.
+    </div>
+  </section>
+
   <footer>
     Đại học Tôn Đức Thắng (TDTU) — Master Subject 2026<br>
     Tài liệu định hướng tinh chỉnh kiến trúc VQA (dựa trên <code>evaluation_report.html</code>) · Không chỉnh sửa mã nguồn
