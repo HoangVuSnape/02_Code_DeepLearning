@@ -1,0 +1,19 @@
+🔗 TỔNG HỢP LINK DỰ ÁN MEDICAL VQA (MEDVQA)
+
+1. Mã nguồn Dự án chính (Source Code & Model Pipeline):
+https://github.com/HoangVuSnape/02_Code_DeepLearning
+👉 Chứa toàn bộ mã nguồn mô hình, script CLI (train/eval/report), kiểm thử (pytest) và báo cáo HTML trực quan (html_report/).
+
+2. Notebooks Thực nghiệm & Suy luận (Train, Eval & Inference):
+https://github.com/HoangVuSnape/02_Code_DeepLearning/tree/main/notebook/final_deep_result
+👉 Chứa các Jupyter Notebooks chính chạy huấn luyện ep100, RL SCST, đánh giá kép (VQA-RAD & RadImageNet 500) và suy luận (Inference).
+
+3. Báo cáo Khoa học LaTeX (Research Report & Paper):
+https://github.com/HoangVuSnape/01_DeepLearning_report
+👉 Chứa toàn bộ mã nguồn LaTeX, tài liệu báo cáo chi tiết, hình ảnh sơ đồ và file PDF tổng kết dự án.
+
+4. Hugging Face Organization & Resources:
+https://huggingface.co/VQA-DeepLearning
+👉 Trang chủ Organization trên Hugging Face lưu trữ toàn bộ Models, Checkpoints và Datasets của dự án.
+- Model Checkpoints & Metrics: https://huggingface.co/VQA-DeepLearning/vqa-rad-generative-ep100
+- Audit Dataset (500 Test): https://huggingface.co/datasets/VQA-DeepLearning/radimagenet-vqa-500-test
